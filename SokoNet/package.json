@@ -1,0 +1,17 @@
+{
+  "name": "sokonet",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "client",
+    "server",
+    "mobile"
+  ],
+  "scripts": {
+    "dev:client": "npm --prefix client run dev",
+    "dev:server": "npm --prefix server run dev",
+    "start:client": "npm --prefix client run preview",
+    "start:server": "npm --prefix server run start",
+    "install:all": "npm install && npm --prefix client install && npm --prefix server install && npm --prefix mobile install"
+  }
+}
