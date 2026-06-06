@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const { data } = await api.post('/api/auth/login', { email, password });
+      const { data } = await api.post('/auth/login', { email, password });
       if (data.success) {
         const userData = {
           _id: data._id,
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, phone, password, role) => {
     try {
-      const { data } = await api.post('/api/auth/register', {
+      const { data } = await api.post('/auth/register', {
         name,
         email,
         phone,

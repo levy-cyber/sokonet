@@ -4,6 +4,23 @@ import { AuthContext } from './AuthContext';
 
 export const SocketContext = createContext();
 
+// Resolve socket server URL:
+// - In production, VITE_API_URL might be "https://sokonet-api.onrender.com/api"
+//   so we strip the path to get the server root.
+// - In dev, fall back to window.location.origin (proxied by Vite to localhost:5000).
+const getSocketUrl = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
+  if (apiUrl) {
+    try {
+      const url = new URL(apiUrl);
+      return url.origin; // e.g. "https://sokonet-api.onrender.com"
+    } catch {
+      return window.location.origin;
+    }
+  }
+  return window.location.origin;
+};
+
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const { user } = useContext(AuthContext);
@@ -12,14 +29,12 @@ export const SocketProvider = ({ children }) => {
     let newSocket;
 
     if (user) {
-      // Connect to the server socket.io proxy
-      newSocket = io(window.location.origin, {
+      newSocket = io(getSocketUrl(), {
         transports: ['websocket'],
       });
 
       newSocket.on('connect', () => {
         console.log('Connected to SokoNet Socket Server');
-        // Join personal room for this user
         newSocket.emit('join', user._id);
       });
 
@@ -34,8 +49,12 @@ export const SocketProvider = ({ children }) => {
   }, [user]);
 
   return (
-    <SocketContext.Provider value={socket}>
+    <SocketContext.Provider value={{ socket }}>
       {children}
     </SocketContext.Provider>
   );
 };
+
+// Named hook for convenient consumption in any component
+export const useSocket = () => useContext(SocketContext);
+

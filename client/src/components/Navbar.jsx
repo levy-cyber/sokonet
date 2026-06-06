@@ -6,21 +6,17 @@ import { FiBell, FiDollarSign, FiSearch, FiSettings } from 'react-icons/fi';
 
 const Navbar = ({ title }) => {
   const { user } = useAuth();
-  const socket = useContext(SocketContext);
+  const { socket } = useContext(SocketContext);
   const [balance, setBalance] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Fetch Wallet Balance & Notifications
+  // Fetch Wallet Balance
   const fetchNavbarData = async () => {
     try {
       if (user) {
-        const walletRes = await api.get('/api/wallet');
-        setBalance(walletRes.data.balance);
-
-        const notifRes = await api.get('/api/users/profile'); // Mock fetch notifications by fetching profile alerts or generic endpoint
-        // Let's create an endpoint or just fetch recent database notifications
-        const notifDetails = await api.get('/api/orders'); // Fetch recent orders to mock some notifications, or fetch wallet activity
+        const walletRes = await api.get('/wallet');
+        setBalance(walletRes.data.balance || 0);
       }
     } catch (err) {
       console.log('Error fetching navbar metadata:', err);

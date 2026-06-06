@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { 
   FiHome, FiShoppingBag, FiLock, FiCreditCard, FiInbox, 
-  FiBriefcase, FiUser, FiSliders, FiUsers, FiActivity, FiLogOut, FiShoppingCard 
+  FiBriefcase, FiUser, FiSliders, FiUsers, FiActivity, FiLogOut 
 } from 'react-icons/fi';
 
 const Sidebar = () => {
