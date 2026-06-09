@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { USE_MOCK, mockHelpers } = require('../config/db');
 
 const protect = async (req, res, next) => {
   let token;
@@ -15,8 +16,19 @@ const protect = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretjwtkey_sokonet_2026_prod');
 
-      // Get user from the token, exclude password
-      req.user = await User.findById(decoded.id).select('-password');
+      // Get user from the token
+      let user;
+      if (USE_MOCK) {
+        user = mockHelpers.findUser({ _id: decoded.id });
+        if (user) {
+          // Remove password from mock user
+          const { password, ...userWithoutPassword } = user;
+          req.user = userWithoutPassword;
+        }
+      } else {
+        user = await User.findById(decoded.id).select('-password');
+        req.user = user;
+      }
 
       if (!req.user) {
         return res.status(401).json({ success: false, message: 'Not authorized, user not found' });

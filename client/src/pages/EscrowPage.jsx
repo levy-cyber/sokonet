@@ -181,7 +181,7 @@ const EscrowPage = () => {
           className="space-y-4"
         >
           {filteredTransactions.map((transaction) => (
-            <EscrowCard key={transaction._id} transaction={transaction} />
+            <EscrowCard key={transaction._id} escrow={transaction} />
           ))}
         </motion.div>
       )}

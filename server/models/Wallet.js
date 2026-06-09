@@ -18,6 +18,25 @@ const walletSchema = new mongoose.Schema(
       type: String,
       default: 'KES',
     },
+    transactions: [
+      {
+        type: {
+          type: String,
+          enum: ['deposit', 'withdraw', 'escrow_hold', 'escrow_release', 'refund'],
+        },
+        amount: Number,
+        status: {
+          type: String,
+          enum: ['pending', 'completed', 'failed'],
+          default: 'pending',
+        },
+        reference: String,
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

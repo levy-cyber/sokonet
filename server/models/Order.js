@@ -12,25 +12,12 @@ const orderSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    items: [
-      {
-        product: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'Product',
-          required: true,
-        },
-        quantity: {
-          type: Number,
-          required: true,
-          min: 1,
-        },
-        price: {
-          type: Number,
-          required: true,
-        },
-      },
-    ],
-    totalAmount: {
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product',
+      required: true,
+    },
+    amount: {
       type: Number,
       required: true,
     },
@@ -38,23 +25,14 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: 'KES',
     },
-    paymentStatus: {
+    status: {
       type: String,
-      enum: ['Pending', 'Escrowed', 'Released', 'Refunded'],
-      default: 'Pending',
-    },
-    deliveryStatus: {
-      type: String,
-      enum: ['Pending', 'Processing', 'Assigned', 'Shipped', 'Delivered', 'Cancelled'],
-      default: 'Pending',
-    },
-    shippingAddress: {
-      type: String,
-      required: true,
+      enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+      default: 'pending',
     },
     rider: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Rider',
       default: null,
     },
     escrow: {

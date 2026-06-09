@@ -2,6 +2,8 @@ const User = require('../models/User');
 const Wallet = require('../models/Wallet');
 const Shop = require('../models/Shop');
 const generateToken = require('../utils/generateToken');
+const { USE_MOCK, mockHelpers } = require('../config/db');
+const bcrypt = require('bcryptjs');
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -10,21 +12,39 @@ const registerUser = async (req, res) => {
   const { name, email, phone, password, role } = req.body;
 
   try {
-    const userExists = await User.findOne({ $or: [{ email }, { phone }] });
+    let userExists;
+
+    if (USE_MOCK) {
+      userExists = mockHelpers.findUser({ email }) || mockHelpers.findUser({ phone });
+    } else {
+      userExists = await User.findOne({ $or: [{ email }, { phone }] });
+    }
 
     if (userExists) {
       return res.status(400).json({ success: false, message: 'User already exists with this email or phone' });
     }
 
-    const user = await User.create({
-      name,
-      email,
-      phone,
-      password,
-      role,
-    });
+    let user;
+    if (USE_MOCK) {
+      // Simple password check for mock (in real app would be bcrypt)
+      user = mockHelpers.createUser({
+        name,
+        email,
+        phone,
+        password: 'hashed_password', // Mock hashed password
+        role: role || 'user',
+        avatar: `https://i.pravatar.cc/150?u=${Date.now()}`,
+        rating: 5.0
+      });
+    } else {
+      user = await User.create({
+        name,
+        email,
+        phone,
+        password,
+        role,
+      });
 
-    if (user) {
       // Create user wallet immediately
       await Wallet.create({
         user: user._id,
@@ -40,13 +60,15 @@ const registerUser = async (req, res) => {
           address: 'Stall 4, Biashara Street, Nairobi',
         });
       }
+    }
 
+    if (user) {
       res.status(201).json({
         success: true,
         _id: user._id,
         name: user.name,
         email: user.email,
-        phone: user.phone,
+        phone: user.phone || '',
         role: user.role,
         avatar: user.avatar,
         token: generateToken(user._id),
@@ -66,16 +88,29 @@ const authUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Check for user email
-    const user = await User.findOne({ email }).select('+password');
+    let user;
 
-    if (user && (await user.matchPassword(password))) {
+    if (USE_MOCK) {
+      user = mockHelpers.findUser({ email });
+      // Mock password check - in real app would be bcrypt.compare
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+      }
+    } else {
+      user = await User.findOne({ email }).select('+password');
+
+      if (user && !(await user.matchPassword(password))) {
+        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+      }
+    }
+
+    if (user) {
       res.json({
         success: true,
         _id: user._id,
         name: user.name,
         email: user.email,
-        phone: user.phone,
+        phone: user.phone || '',
         role: user.role,
         avatar: user.avatar,
         token: generateToken(user._id),
@@ -93,7 +128,13 @@ const authUser = async (req, res) => {
 // @access  Private
 const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    let user;
+
+    if (USE_MOCK) {
+      user = mockHelpers.findUser({ _id: req.user._id });
+    } else {
+      user = await User.findById(req.user._id);
+    }
 
     if (user) {
       res.json({
@@ -101,10 +142,10 @@ const getUserProfile = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        phone: user.phone,
+        phone: user.phone || '',
         role: user.role,
         avatar: user.avatar,
-        rating: user.rating,
+        rating: user.rating || 5.0,
       });
     } else {
       res.status(404).json({ success: false, message: 'User not found' });

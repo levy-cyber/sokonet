@@ -12,7 +12,7 @@ const WalletCard = ({ balance, currency, onDeposit, onWithdraw }) => {
           <span className="text-xs text-dark-muted font-mono tracking-widest uppercase">Digital Wallet Balance</span>
           <div className="flex items-baseline gap-2 mt-2">
             <span className="text-4xl font-extrabold text-white tracking-tight font-mono">
-              {balance.toLocaleString()}
+              {balance ? balance.toLocaleString() : '0'}
             </span>
             <span className="text-brand font-bold font-mono text-sm">{currency || 'KES'}</span>
           </div>

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import StatCard from '../components/StatCard';
-import { TrendingUp, ShoppingBag, Wallet, Users, Package, DollarSign } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const Dashboard = () => {
@@ -67,42 +66,42 @@ const Dashboard = () => {
         <StatCard
           title="Total Orders"
           value={stats.totalOrders}
-          icon={<ShoppingBag className="w-6 h-6" />}
+          icon={null}
           trend="+12.5%"
           trendUp={true}
         />
         <StatCard
           title="Total Revenue"
           value={`KES ${stats.totalRevenue.toLocaleString()}`}
-          icon={<DollarSign className="w-6 h-6" />}
+          icon={null}
           trend="+8.2%"
           trendUp={true}
         />
         <StatCard
           title="Wallet Balance"
           value={`KES ${stats.walletBalance.toLocaleString()}`}
-          icon={<Wallet className="w-6 h-6" />}
+          icon={null}
           trend="+15.3%"
           trendUp={true}
         />
         <StatCard
           title="Active Products"
           value={stats.activeProducts}
-          icon={<Package className="w-6 h-6" />}
+          icon={null}
           trend="+5.7%"
           trendUp={true}
         />
         <StatCard
           title="Total Users"
           value={stats.totalUsers}
-          icon={<Users className="w-6 h-6" />}
+          icon={null}
           trend="+22.1%"
           trendUp={true}
         />
         <StatCard
           title="Pending Orders"
           value={stats.pendingOrders}
-          icon={<TrendingUp className="w-6 h-6" />}
+          icon={null}
           trend="-3.2%"
           trendUp={false}
         />

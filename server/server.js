@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
-const connectDB = require('./config/db');
+const { connectDB } = require('./config/db');
 const { errorHandler } = require('./middleware/errorMiddleware');
 const initSocketServer = require('./socket/socketServer');
 
@@ -10,7 +10,7 @@ const initSocketServer = require('./socket/socketServer');
 const app = express();
 const server = http.createServer(app);
 
-// Connect Database
+// Connect Database (will use mock mode if no MongoDB)
 connectDB();
 
 // Init Socket Server
@@ -44,5 +44,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`Server running in production mode on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📍 Local: http://localhost:${PORT}`);
+  console.log(`🌐 API: http://localhost:${PORT}/api`);
 });

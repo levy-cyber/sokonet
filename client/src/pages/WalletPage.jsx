@@ -140,7 +140,7 @@ const WalletPage = () => {
       </motion.div>
 
       {/* Wallet Card */}
-      <WalletCard wallet={wallet} />
+      <WalletCard balance={wallet.balance} currency={wallet.currency} onDeposit={handleDeposit} onWithdraw={handleWithdraw} />
 
       {/* Action Tabs */}
       <motion.div

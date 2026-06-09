@@ -1,6 +1,8 @@
 import React from 'react';
 
 const StatCard = ({ title, value, icon: Icon, trend, trendType = 'up' }) => {
+  // Force re-render
+  const iconContent = typeof Icon === 'function' ? <Icon className="text-xl w-6 h-6" /> : <span className="text-2xl">📊</span>;
   return (
     <div className="glass-panel p-6 rounded-2xl relative overflow-hidden transition-all duration-300 hover:border-brand/40 group">
       {/* Mini-glow background on hover */}
@@ -21,8 +23,8 @@ const StatCard = ({ title, value, icon: Icon, trend, trendType = 'up' }) => {
           )}
         </div>
 
-        <div className="p-3 bg-dark-card border border-dark-border rounded-xl text-dark-muted group-hover:text-brand group-hover:border-brand/30 transition-all duration-300 shadow-sm">
-          <Icon className="text-xl" />
+        <div className="p-3 bg-dark-card border border-dark-border rounded-xl text-brand group-hover:text-brand group-hover:border-brand/30 transition-all duration-300 shadow-sm">
+          {iconContent}
         </div>
       </div>
     </div>
