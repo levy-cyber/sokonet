@@ -32,13 +32,11 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         localStorage.setItem('sokonet_token', data.token);
         localStorage.setItem('sokonet_user', JSON.stringify(userData));
-        return { success: true };
+      } else {
+        throw new Error(data.message || 'Login failed');
       }
     } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Login failed. Please try again.',
-      };
+      throw new Error(error.response?.data?.message || error.message || 'Login failed. Please try again.');
     }
   };
 
@@ -63,13 +61,11 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         localStorage.setItem('sokonet_token', data.token);
         localStorage.setItem('sokonet_user', JSON.stringify(userData));
-        return { success: true };
+      } else {
+        throw new Error(data.message || 'Registration failed');
       }
     } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || error.response?.data?.error || 'Registration failed.',
-      };
+      throw new Error(error.response?.data?.message || error.response?.data?.error || error.message || 'Registration failed.');
     }
   };
 

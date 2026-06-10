@@ -30,11 +30,11 @@ const AuthPage = ({ isLogin }) => {
       if (isLogin) {
         await login(formData.email, formData.password);
       } else {
-        await register(formData);
+        await register(formData.name, formData.email, formData.phone, formData.password, formData.role);
       }
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Authentication failed');
+      setError(err.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
