@@ -20,4 +20,7 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    allowedHosts: ['sokonet-1.onrender.com', '.onrender.com', 'localhost'],
+  },
 });
