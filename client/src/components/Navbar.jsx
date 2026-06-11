@@ -51,29 +51,31 @@ const Navbar = ({ title, onMenuToggle }) => {
   const cartCount = getCartCount();
 
   return (
-    <header className="h-16 fixed top-0 right-0 left-0 lg:left-64 glass-panel border-b border-dark-border flex items-center justify-between px-4 lg:px-8 z-20">
-      <div className="flex items-center gap-4">
+    <header className="h-14 lg:h-16 fixed top-0 right-0 left-0 lg:left-64 glass-panel border-b border-dark-border flex items-center justify-between px-3 lg:px-8 z-20">
+      <div className="flex items-center gap-2 lg:gap-4">
         {/* Mobile Menu Toggle */}
         <button
           onClick={onMenuToggle}
-          className="lg:hidden w-10 h-10 rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors"
+          className="lg:hidden w-9 h-9 rounded-lg bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors"
         >
-          <FiMenu className="text-lg" />
+          <FiMenu className="text-base lg:text-lg" />
         </button>
 
         {/* Title */}
-        <h2 className="text-lg font-semibold text-white tracking-wide">{title || 'Dashboard'}</h2>
+        <h2 className="text-base lg:text-lg font-semibold text-white tracking-wide truncate max-w-[200px] lg:max-w-none">
+          {title || 'Dashboard'}
+        </h2>
       </div>
 
       {/* Utilities */}
-      <div className="flex items-center gap-4 lg:gap-6">
+      <div className="flex items-center gap-2 lg:gap-6">
         {/* Shopping Cart */}
         {user && (
           <Link to="/cart" className="relative">
-            <button className="w-10 h-10 rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors">
-              <FiShoppingCart className="text-lg" />
+            <button className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors">
+              <FiShoppingCart className="text-base lg:text-lg" />
               {cartCount > 0 && (
-                <span className="absolute top-1 right-1 w-5 h-5 bg-brand rounded-full text-black text-xs font-bold flex items-center justify-center ring-2 ring-dark-bg">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand rounded-full text-black text-xs font-bold flex items-center justify-center ring-2 ring-dark-bg">
                   {cartCount}
                 </span>
               )}
@@ -81,13 +83,16 @@ const Navbar = ({ title, onMenuToggle }) => {
           </Link>
         )}
 
-        {/* Wallet Balance Badge */}
+        {/* Wallet Balance Badge - Simplified on mobile */}
         {user && (
-          <div className="flex items-center gap-2 bg-dark-card border border-dark-border px-3 py-1.5 rounded-xl">
-            <FiDollarSign className="text-brand font-bold text-lg" />
+          <div className="flex items-center gap-1.5 lg:gap-2 bg-dark-card border border-dark-border px-2 lg:px-3 py-1 lg:py-1.5 rounded-lg lg:rounded-xl">
+            <FiDollarSign className="text-brand font-bold text-base lg:text-lg" />
             <div className="hidden sm:block">
-              <span className="text-xs text-dark-muted block leading-none font-mono">KES Wallet</span>
-              <span className="text-sm font-bold text-white font-mono">{balance.toLocaleString()}</span>
+              <span className="text-[10px] lg:text-xs text-dark-muted block leading-none font-mono">KES Wallet</span>
+              <span className="text-xs lg:text-sm font-bold text-white font-mono">{balance.toLocaleString()}</span>
+            </div>
+            <div className="sm:hidden">
+              <span className="text-xs font-bold text-white font-mono">{(balance / 1000).toFixed(0)}k</span>
             </div>
           </div>
         )}
@@ -96,43 +101,50 @@ const Navbar = ({ title, onMenuToggle }) => {
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="w-10 h-10 rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors"
+            className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors"
           >
-            <FiBell className="text-lg" />
+            <FiBell className="text-base lg:text-lg" />
             {notifications.length > 0 && (
-              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-brand rounded-full ring-2 ring-dark-bg animate-pulse"></span>
+              <span className="absolute top-1 right-1 w-2 lg:w-2.5 h-2 lg:h-2.5 bg-brand rounded-full ring-2 ring-dark-bg animate-pulse"></span>
             )}
           </button>
 
           {/* Notifications Dropdown */}
           {showNotifications && (
-            <div className="absolute right-0 mt-3 w-80 glass-panel border border-dark-border rounded-2xl shadow-xl overflow-hidden py-2 z-50">
-              <div className="px-4 py-2 border-b border-dark-border flex justify-between items-center">
-                <span className="font-semibold text-sm text-white">Notifications</span>
-                {notifications.length > 0 && (
-                  <button
-                    onClick={() => setNotifications([])}
-                    className="text-xs text-brand hover:underline font-mono"
-                  >
-                    Clear All
-                  </button>
-                )}
-              </div>
-              <div className="max-h-64 overflow-y-auto">
-                {notifications.length === 0 ? (
-                  <div className="px-4 py-8 text-center text-xs text-dark-muted font-mono">
-                    No new alerts
-                  </div>
-                ) : (
-                  notifications.map((notif, index) => (
-                    <div key={index} className="px-4 py-3 hover:bg-dark-cardMuted/30 border-b border-dark-border/40 transition-colors last:border-b-0">
-                      <p className="text-xs font-semibold text-white">{notif.title}</p>
-                      <p className="text-[11px] text-dark-muted mt-0.5">{notif.content}</p>
+            <>
+              {/* Backdrop for mobile */}
+              <div
+                className="fixed inset-0 z-40 lg:hidden"
+                onClick={() => setShowNotifications(false)}
+              />
+              <div className="absolute right-0 mt-2 lg:mt-3 w-72 lg:w-80 glass-panel border border-dark-border rounded-2xl shadow-xl overflow-hidden py-2 z-50">
+                <div className="px-3 lg:px-4 py-2 border-b border-dark-border flex justify-between items-center">
+                  <span className="font-semibold text-xs lg:text-sm text-white">Notifications</span>
+                  {notifications.length > 0 && (
+                    <button
+                      onClick={() => setNotifications([])}
+                      className="text-[10px] lg:text-xs text-brand hover:underline font-mono"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="px-3 lg:px-4 py-6 lg:py-8 text-center text-[10px] lg:text-xs text-dark-muted font-mono">
+                      No new alerts
                     </div>
-                  ))
-                )}
+                  ) : (
+                    notifications.map((notif, index) => (
+                      <div key={index} className="px-3 lg:px-4 py-2 lg:py-3 hover:bg-dark-cardMuted/30 border-b border-dark-border/40 transition-colors last:border-b-0">
+                        <p className="text-[11px] lg:text-xs font-semibold text-white">{notif.title}</p>
+                        <p className="text-[10px] lg:text-[11px] text-dark-muted mt-0.5">{notif.content}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
 

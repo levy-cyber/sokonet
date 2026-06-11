@@ -64,54 +64,49 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     };
   };
 
-  const getLinkClass = (linkRole, userRole) => {
-    if (linkRole === 'all') return ''; // Show all links normally
-    if (linkRole === userRole) return 'text-white'; // Highlight role-specific links
-    return 'text-gray-500'; // Dim links for other roles
-  };
-
   return (
     <>
-      {/* Mobile Close Button */}
-      <button
-        onClick={() => setIsOpen(false)}
-        className="lg:hidden fixed top-20 right-4 z-50 w-10 h-10 rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-white"
-      >
-        <FiX className="text-lg" />
-      </button>
+      {/* Mobile Close Button - Only visible when sidebar is open */}
+      {isOpen && (
+        <button
+          onClick={() => setIsOpen(false)}
+          className="lg:hidden fixed top-20 right-4 z-50 w-10 h-10 rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-white"
+        >
+          <FiX className="text-lg" />
+        </button>
+      )}
 
       <aside className={`
-        w-64 h-screen fixed left-0 top-0 glass-panel border-r border-dark-border flex flex-col justify-between py-6 z-30
+        w-64 lg:w-64 h-screen fixed left-0 top-0 glass-panel border-r border-dark-border flex flex-col justify-between py-4 lg:py-6 z-30
         transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div>
           {/* Brand Header */}
-          <div className="px-6 mb-8 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center font-bold text-black text-xl shadow-glow-green">
+          <div className="px-4 lg:px-6 mb-4 lg:mb-8 flex items-center gap-2 lg:gap-3">
+            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl bg-brand flex items-center justify-center font-bold text-black text-lg lg:text-xl shadow-glow-green">
               S
             </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-white font-sans">
+            <div className="hidden sm:block">
+              <h1 className="text-lg lg:text-xl font-bold tracking-tight text-white font-sans">
                 Soko<span className="text-brand">Net</span>
               </h1>
-              <span className="text-xs text-dark-muted font-mono tracking-wider">v1.0.0 PROD</span>
+              <span className="text-[10px] lg:text-xs text-dark-muted font-mono tracking-wider">v1.0.0 PROD</span>
             </div>
           </div>
 
           {/* User Card */}
           {user && (
-            <div className="px-4 mb-6">
-              <div className="p-3 bg-dark-cardMuted/50 border border-dark-border rounded-xl flex items-center gap-3">
+            <div className="px-3 lg:px-4 mb-4 lg:mb-6">
+              <div className="p-2 lg:p-3 bg-dark-cardMuted/50 border border-dark-border rounded-xl flex items-center gap-2 lg:gap-3">
                 <img
                   src={user.avatar}
                   alt={user.name}
-                  className="w-10 h-10 rounded-full object-cover border border-brand/35"
+                  className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover border border-brand/35"
                 />
                 <div className="overflow-hidden">
-                  <p className="text-sm font-semibold text-white truncate">{user.name}</p>
-                  <span className={`inline-block px-2 py-0.5 text-[10px] uppercase font-mono rounded font-semibold border ${getRoleBadge().className}`}>
+                  <p className="text-xs lg:text-sm font-semibold text-white truncate">{user.name}</p>
+                  <span className={`inline-block px-1.5 lg:px-2 py-0.5 text-[9px] lg:text-[10px] uppercase font-mono rounded font-semibold border ${getRoleBadge().className}`}>
                     {getRoleBadge().text}
                   </span>
                 </div>
@@ -119,8 +114,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             </div>
           )}
 
-          {/* Navigation links - Now shows filtered links based on role */}
-          <nav className="px-3 space-y-1">
+          {/* Navigation links */}
+          <nav className="px-2 lg:px-3 space-y-0.5 lg:space-y-1">
             {navigationLinks.map((link) => {
               const Icon = link.icon;
               return (
@@ -129,18 +124,18 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   to={link.path}
                   onClick={() => setIsOpen(false)}
                   className={({ isActive }) => `
-                    flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                    flex items-center gap-2 lg:gap-3 px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-medium transition-all duration-200
                     ${isActive
-                      ? 'bg-brand/10 border-l-4 border-brand text-brand shadow-glow-green/5'
+                      ? 'bg-brand/10 border-l-2 lg:border-l-4 border-brand text-brand shadow-glow-green/5'
                       : 'hover:bg-dark-cardMuted/30 hover:translate-x-1'
                     }
                   `}
                   title={link.description}
                 >
-                  <Icon className="text-lg shrink-0" />
-                  <span className="flex-1">{link.name}</span>
+                  <Icon className="text-base lg:text-lg shrink-0" />
+                  <span className="flex-1 truncate">{link.name}</span>
                   {link.role !== 'all' && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full border border-gray-600 text-gray-500">
+                    <span className="text-[9px] lg:text-[10px] px-1.5 lg:px-2 py-0.5 rounded-full border border-gray-600 text-gray-500">
                       {link.role === 'seller' && '🏪'}
                       {link.role === 'freelancer' && '💼'}
                       {link.role === 'service_provider' && '🔧'}
@@ -155,12 +150,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </div>
 
         {/* Logout button */}
-        <div className="px-3">
+        <div className="px-2 lg:px-3">
           <button
             onClick={logout}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-950/20 rounded-xl transition-all duration-200"
+            className="w-full flex items-center gap-2 lg:gap-3 px-3 lg:px-4 py-2 lg:py-2.5 text-xs lg:text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-950/20 rounded-lg lg:rounded-xl transition-all duration-200"
           >
-            <FiLogOut className="text-lg shrink-0" />
+            <FiLogOut className="text-base lg:text-lg shrink-0" />
             <span>Sign Out</span>
           </button>
         </div>

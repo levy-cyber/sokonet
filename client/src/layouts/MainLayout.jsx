@@ -26,7 +26,7 @@ const MainLayout = ({ title }) => {
         <Navbar title={title} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
         {/* Content Container */}
-        <main className="flex-1 pt-20 lg:pt-24 px-4 lg:px-8 pb-8 lg:pb-12 overflow-x-hidden">
+        <main className="flex-1 pt-14 lg:pt-16 px-0 overflow-x-hidden">
           <Outlet />
         </main>
       </div>

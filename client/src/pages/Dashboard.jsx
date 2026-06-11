@@ -97,17 +97,17 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-4 lg:p-6 space-y-6">
+    <div className="p-3 sm:p-4 lg:p-6 space-y-4 lg:space-y-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 lg:mb-8"
+        className="flex flex-col gap-3 sm:gap-4 mb-4 lg:mb-6"
       >
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 lg:mb-2">
             Welcome back, {user?.name || 'User'}
           </h1>
-          <p className="text-gray-400 text-sm lg:text-base">
+          <p className="text-gray-400 text-xs sm:text-sm lg:text-base">
             {user?.activeRole === 'seller' && 'Here\'s your business performance overview.'}
             {user?.activeRole === 'service_provider' && 'Here\'s your service booking overview.'}
             {user?.activeRole === 'rider' && 'Here\'s your delivery performance overview.'}
@@ -131,42 +131,42 @@ const Dashboard = () => {
 
 const BuyerDashboard = ({ stats, revenueData, activityData }) => (
   <>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
       <StatCard title="Total Orders" value={stats.totalOrders} icon={FiShoppingBag} trend="+12.5%" trendUp={true} />
       <StatCard title="Wallet Balance" value={`KES ${stats.walletBalance?.toLocaleString()}`} icon={FiDollarSign} trend="+8.2%" trendUp={true} />
       <StatCard title="Total Spent" value={`KES ${stats.totalSpent?.toLocaleString()}`} icon={FiTrendingUp} trend="+15.3%" trendUp={true} />
       <StatCard title="Pending Orders" value={stats.pendingOrders} icon={FiClock} trend="-3.2%" trendUp={false} />
     </div>
 
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-      <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
-        <h3 className="text-lg lg:text-xl font-semibold text-white mb-4 lg:mb-6">Spending Overview</h3>
-        <ResponsiveContainer width="100%" height={250}>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+      <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-3 sm:p-4 lg:p-6">
+        <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-3 sm:mb-4 lg:mb-6">Spending Overview</h3>
+        <ResponsiveContainer width="100%" height={200}>
           <LineChart data={revenueData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
-            <YAxis stroke="#9CA3AF" fontSize={12} />
+            <XAxis dataKey="name" stroke="#9CA3AF" fontSize={10} />
+            <YAxis stroke="#9CA3AF" fontSize={10} />
             <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} />
             <Line type="monotone" dataKey="revenue" stroke="#00C853" strokeWidth={2} dot={{ fill: '#00C853' }} />
           </LineChart>
         </ResponsiveContainer>
       </motion.div>
 
-      <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
-        <h3 className="text-lg lg:text-xl font-semibold text-white mb-4 lg:mb-6">Order Status</h3>
-        <ResponsiveContainer width="100%" height={250}>
+      <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-3 sm:p-4 lg:p-6">
+        <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-3 sm:mb-4 lg:mb-6">Order Status</h3>
+        <ResponsiveContainer width="100%" height={200}>
           <PieChart>
-            <Pie data={activityData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
+            <Pie data={activityData} cx="50%" cy="50%" innerRadius={40} outerRadius={80} paddingAngle={5} dataKey="value">
               {activityData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
             </Pie>
             <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} />
           </PieChart>
         </ResponsiveContainer>
-        <div className="flex flex-wrap justify-center gap-4 lg:gap-6 mt-4">
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-4 lg:gap-6 mt-2 lg:mt-4">
           {activityData.map((entry) => (
-            <div key={entry.name} className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
-              <span className="text-gray-400 text-xs lg:text-sm">{entry.name}</span>
+            <div key={entry.name} className="flex items-center gap-1 sm:gap-2">
+              <div className="w-2 h-2 lg:w-3 lg:h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
+              <span className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">{entry.name}</span>
             </div>
           ))}
         </div>
@@ -177,7 +177,7 @@ const BuyerDashboard = ({ stats, revenueData, activityData }) => (
 
 const SellerDashboard = ({ stats, revenueData }) => (
   <>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-6">
       <StatCard title="Total Revenue" value={`KES ${stats.totalRevenue?.toLocaleString()}`} icon={FiDollarSign} trend="+22.5%" trendUp={true} />
       <StatCard title="Wallet Balance" value={`KES ${stats.walletBalance?.toLocaleString()}`} icon={FiDollarSign} trend="+15.3%" trendUp={true} />
       <StatCard title="Total Orders" value={stats.totalOrders} icon={FiPackage} trend="+18.2%" trendUp={true} />
@@ -186,43 +186,43 @@ const SellerDashboard = ({ stats, revenueData }) => (
       <StatCard title="Daily Sales" value={`KES ${stats.dailySales?.toLocaleString()}`} icon={FiTrendingUp} trend="+12.3%" trendUp={true} />
     </div>
 
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-      <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
-        <h3 className="text-lg lg:text-xl font-semibold text-white mb-4 lg:mb-6">Revenue Overview</h3>
-        <ResponsiveContainer width="100%" height={250}>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+      <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-3 sm:p-4 lg:p-6">
+        <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-3 sm:mb-4 lg:mb-6">Revenue Overview</h3>
+        <ResponsiveContainer width="100%" height={200}>
           <LineChart data={revenueData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
-            <YAxis stroke="#9CA3AF" fontSize={12} />
+            <XAxis dataKey="name" stroke="#9CA3AF" fontSize={10} />
+            <YAxis stroke="#9CA3AF" fontSize={10} />
             <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} />
             <Line type="monotone" dataKey="revenue" stroke="#00C853" strokeWidth={2} dot={{ fill: '#00C853' }} />
           </LineChart>
         </ResponsiveContainer>
       </motion.div>
 
-      <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
-        <h3 className="text-lg lg:text-xl font-semibold text-white mb-4 lg:mb-6">Business Insights</h3>
-        <div className="space-y-3 lg:space-y-4">
-          <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-800/30 rounded-lg">
+      <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-3 sm:p-4 lg:p-6">
+        <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-3 sm:mb-4 lg:mb-6">Business Insights</h3>
+        <div className="space-y-2 sm:space-y-3 lg:space-y-4">
+          <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4 bg-gray-800/30 rounded-lg">
             <div>
-              <p className="text-white font-medium text-sm lg:text-base">Top Product</p>
-              <p className="text-gray-400 text-xs lg:text-sm">{stats.topProduct || 'iPhone 15 Pro Max'}</p>
+              <p className="text-white font-medium text-xs sm:text-sm lg:text-base">Top Product</p>
+              <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">{stats.topProduct || 'iPhone 15 Pro Max'}</p>
             </div>
-            <span className="text-brand font-bold text-sm lg:text-base">KES 185,000</span>
+            <span className="text-brand font-bold text-xs sm:text-sm lg:text-base">KES 185,000</span>
           </div>
-          <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-800/30 rounded-lg">
+          <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4 bg-gray-800/30 rounded-lg">
             <div>
-              <p className="text-white font-medium text-sm lg:text-base">Weekly Revenue</p>
-              <p className="text-gray-400 text-xs lg:text-sm">This week's performance</p>
+              <p className="text-white font-medium text-xs sm:text-sm lg:text-base">Weekly Revenue</p>
+              <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">This week's performance</p>
             </div>
-            <span className="text-brand font-bold text-sm lg:text-base">KES {stats.weeklyRevenue?.toLocaleString()}</span>
+            <span className="text-brand font-bold text-xs sm:text-sm lg:text-base">KES {stats.weeklyRevenue?.toLocaleString()}</span>
           </div>
-          <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-800/30 rounded-lg">
+          <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4 bg-gray-800/30 rounded-lg">
             <div>
-              <p className="text-white font-medium text-sm lg:text-base">Conversion Rate</p>
-              <p className="text-gray-400 text-xs lg:text-sm">Orders to sales</p>
+              <p className="text-white font-medium text-xs sm:text-sm lg:text-base">Conversion Rate</p>
+              <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">Orders to sales</p>
             </div>
-            <span className="text-green-400 font-bold text-sm lg:text-base">+15.3%</span>
+            <span className="text-green-400 font-bold text-xs sm:text-sm lg:text-base">+15.3%</span>
           </div>
         </div>
       </motion.div>
@@ -232,7 +232,7 @@ const SellerDashboard = ({ stats, revenueData }) => (
 
 const ServiceProviderDashboard = ({ stats, revenueData }) => (
   <>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-6">
       <StatCard title="Total Bookings" value={stats.totalBookings} icon={FiCalendar} trend="+25.5%" trendUp={true} />
       <StatCard title="Total Revenue" value={`KES ${stats.totalRevenue?.toLocaleString()}`} icon={FiDollarSign} trend="+18.2%" trendUp={true} />
       <StatCard title="Wallet Balance" value={`KES ${stats.walletBalance?.toLocaleString()}`} icon={FiDollarSign} trend="+12.3%" trendUp={true} />
@@ -241,43 +241,43 @@ const ServiceProviderDashboard = ({ stats, revenueData }) => (
       <StatCard title="Completed Services" value={stats.completedServices} icon={FiUsers} trend="+22.1%" trendUp={true} />
     </div>
 
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-      <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
-        <h3 className="text-lg lg:text-xl font-semibold text-white mb-4 lg:mb-6">Service Revenue</h3>
-        <ResponsiveContainer width="100%" height={250}>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+      <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-3 sm:p-4 lg:p-6">
+        <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-3 sm:mb-4 lg:mb-6">Service Revenue</h3>
+        <ResponsiveContainer width="100%" height={200}>
           <LineChart data={revenueData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
-            <YAxis stroke="#9CA3AF" fontSize={12} />
+            <XAxis dataKey="name" stroke="#9CA3AF" fontSize={10} />
+            <YAxis stroke="#9CA3AF" fontSize={10} />
             <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} />
             <Line type="monotone" dataKey="revenue" stroke="#00C853" strokeWidth={2} dot={{ fill: '#00C853' }} />
           </LineChart>
         </ResponsiveContainer>
       </motion.div>
 
-      <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
-        <h3 className="text-lg lg:text-xl font-semibold text-white mb-4 lg:mb-6">Service Performance</h3>
-        <div className="space-y-3 lg:space-y-4">
-          <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-800/30 rounded-lg">
+      <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-3 sm:p-4 lg:p-6">
+        <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-3 sm:mb-4 lg:mb-6">Service Performance</h3>
+        <div className="space-y-2 sm:space-y-3 lg:space-y-4">
+          <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4 bg-gray-800/30 rounded-lg">
             <div>
-              <p className="text-white font-medium text-sm lg:text-base">Average Rating</p>
-              <p className="text-gray-400 text-xs lg:text-sm">Customer satisfaction</p>
+              <p className="text-white font-medium text-xs sm:text-sm lg:text-base">Average Rating</p>
+              <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">Customer satisfaction</p>
             </div>
-            <span className="text-brand font-bold text-sm lg:text-base">{stats.averageRating}/5.0</span>
+            <span className="text-brand font-bold text-xs sm:text-sm lg:text-base">{stats.averageRating}/5.0</span>
           </div>
-          <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-800/30 rounded-lg">
+          <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4 bg-gray-800/30 rounded-lg">
             <div>
-              <p className="text-white font-medium text-sm lg:text-base">Completion Rate</p>
-              <p className="text-gray-400 text-xs lg:text-sm">Bookings completed</p>
+              <p className="text-white font-medium text-xs sm:text-sm lg:text-base">Completion Rate</p>
+              <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">Bookings completed</p>
             </div>
-            <span className="text-green-400 font-bold text-sm lg:text-base">93.3%</span>
+            <span className="text-green-400 font-bold text-xs sm:text-sm lg:text-base">93.3%</span>
           </div>
-          <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-800/30 rounded-lg">
+          <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4 bg-gray-800/30 rounded-lg">
             <div>
-              <p className="text-white font-medium text-sm lg:text-base">Average Booking Value</p>
-              <p className="text-gray-400 text-xs lg:text-sm">Per service</p>
+              <p className="text-white font-medium text-xs sm:text-sm lg:text-base">Average Booking Value</p>
+              <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">Per service</p>
             </div>
-            <span className="text-brand font-bold text-sm lg:text-base">KES 6,333</span>
+            <span className="text-brand font-bold text-xs sm:text-sm lg:text-base">KES 6,333</span>
           </div>
         </div>
       </motion.div>
@@ -287,7 +287,7 @@ const ServiceProviderDashboard = ({ stats, revenueData }) => (
 
 const RiderDashboard = ({ stats }) => (
   <>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-6">
       <StatCard title="Total Deliveries" value={stats.totalDeliveries} icon={FiTruck} trend="+35.5%" trendUp={true} />
       <StatCard title="Total Earnings" value={`KES ${stats.totalEarnings?.toLocaleString()}`} icon={FiDollarSign} trend="+28.2%" trendUp={true} />
       <StatCard title="Wallet Balance" value={`KES ${stats.walletBalance?.toLocaleString()}`} icon={FiDollarSign} trend="+18.3%" trendUp={true} />
@@ -296,36 +296,36 @@ const RiderDashboard = ({ stats }) => (
       <StatCard title="Total Distance" value={`${stats.totalDistance} km`} icon={FiTrendingUp} trend="+45.2%" trendUp={true} />
     </div>
 
-    <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
-      <h3 className="text-lg lg:text-xl font-semibold text-white mb-4 lg:mb-6">Rider Performance</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-800/30 rounded-lg">
+    <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-3 sm:p-4 lg:p-6">
+      <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-3 sm:mb-4 lg:mb-6">Rider Performance</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+        <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4 bg-gray-800/30 rounded-lg">
           <div>
-            <p className="text-white font-medium text-sm lg:text-base">Average Rating</p>
-            <p className="text-gray-400 text-xs lg:text-sm">Customer satisfaction</p>
+            <p className="text-white font-medium text-xs sm:text-sm lg:text-base">Average Rating</p>
+            <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">Customer satisfaction</p>
           </div>
-          <span className="text-brand font-bold text-sm lg:text-base">{stats.averageRating}/5.0</span>
+          <span className="text-brand font-bold text-xs sm:text-sm lg:text-base">{stats.averageRating}/5.0</span>
         </div>
-        <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-800/30 rounded-lg">
+        <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4 bg-gray-800/30 rounded-lg">
           <div>
-            <p className="text-white font-medium text-sm lg:text-base">Completion Rate</p>
-            <p className="text-gray-400 text-xs lg:text-sm">Deliveries completed</p>
+            <p className="text-white font-medium text-xs sm:text-sm lg:text-base">Completion Rate</p>
+            <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">Deliveries completed</p>
           </div>
-          <span className="text-green-400 font-bold text-sm lg:text-base">96.6%</span>
+          <span className="text-green-400 font-bold text-xs sm:text-sm lg:text-base">96.6%</span>
         </div>
-        <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-800/30 rounded-lg">
+        <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4 bg-gray-800/30 rounded-lg">
           <div>
-            <p className="text-white font-medium text-sm lg:text-base">Average Earnings</p>
-            <p className="text-gray-400 text-xs lg:text-sm">Per delivery</p>
+            <p className="text-white font-medium text-xs sm:text-sm lg:text-base">Average Earnings</p>
+            <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">Per delivery</p>
           </div>
-          <span className="text-brand font-bold text-sm lg:text-base">KES 1,628</span>
+          <span className="text-brand font-bold text-xs sm:text-sm lg:text-base">KES 1,628</span>
         </div>
-        <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-800/30 rounded-lg">
+        <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4 bg-gray-800/30 rounded-lg">
           <div>
-            <p className="text-white font-medium text-sm lg:text-base">Active Status</p>
-            <p className="text-gray-400 text-xs lg:text-sm">Current availability</p>
+            <p className="text-white font-medium text-xs sm:text-sm lg:text-base">Active Status</p>
+            <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">Current availability</p>
           </div>
-          <span className="text-green-400 font-bold text-sm lg:text-base">Online</span>
+          <span className="text-green-400 font-bold text-xs sm:text-sm lg:text-base">Online</span>
         </div>
       </div>
     </motion.div>
@@ -334,7 +334,7 @@ const RiderDashboard = ({ stats }) => (
 
 const FreelancerDashboard = ({ stats }) => (
   <>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-6">
       <StatCard title="Total Projects" value={stats.totalProjects} icon={FiBriefcase} trend="+45.5%" trendUp={true} />
       <StatCard title="Total Earnings" value={`KES ${stats.totalEarnings?.toLocaleString()}`} icon={FiDollarSign} trend="+32.2%" trendUp={true} />
       <StatCard title="Wallet Balance" value={`KES ${stats.walletBalance?.toLocaleString()}`} icon={FiDollarSign} trend="+25.3%" trendUp={true} />
@@ -343,36 +343,36 @@ const FreelancerDashboard = ({ stats }) => (
       <StatCard title="Pending Proposals" value={stats.pendingProposals} icon={FiTrendingUp} trend="+8.3%" trendUp={true} />
     </div>
 
-    <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
-      <h3 className="text-lg lg:text-xl font-semibold text-white mb-4 lg:mb-6">Freelancer Performance</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-800/30 rounded-lg">
+    <motion.div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-3 sm:p-4 lg:p-6">
+      <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-3 sm:mb-4 lg:mb-6">Freelancer Performance</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+        <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4 bg-gray-800/30 rounded-lg">
           <div>
-            <p className="text-white font-medium text-sm lg:text-base">Average Rating</p>
-            <p className="text-gray-400 text-xs lg:text-sm">Client satisfaction</p>
+            <p className="text-white font-medium text-xs sm:text-sm lg:text-base">Average Rating</p>
+            <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">Client satisfaction</p>
           </div>
-          <span className="text-brand font-bold text-sm lg:text-base">{stats.averageRating}/5.0</span>
+          <span className="text-brand font-bold text-xs sm:text-sm lg:text-base">{stats.averageRating}/5.0</span>
         </div>
-        <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-800/30 rounded-lg">
+        <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4 bg-gray-800/30 rounded-lg">
           <div>
-            <p className="text-white font-medium text-sm lg:text-base">Completion Rate</p>
-            <p className="text-gray-400 text-xs lg:text-sm">Projects completed</p>
+            <p className="text-white font-medium text-xs sm:text-sm lg:text-base">Completion Rate</p>
+            <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">Projects completed</p>
           </div>
-          <span className="text-green-400 font-bold text-sm lg:text-base">75.0%</span>
+          <span className="text-green-400 font-bold text-xs sm:text-sm lg:text-base">75.0%</span>
         </div>
-        <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-800/30 rounded-lg">
+        <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4 bg-gray-800/30 rounded-lg">
           <div>
-            <p className="text-white font-medium text-sm lg:text-base">Average Project Value</p>
-            <p className="text-gray-400 text-xs lg:text-sm">Per project</p>
+            <p className="text-white font-medium text-xs sm:text-sm lg:text-base">Average Project Value</p>
+            <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">Per project</p>
           </div>
-          <span className="text-brand font-bold text-sm lg:text-base">KES 23,750</span>
+          <span className="text-brand font-bold text-xs sm:text-sm lg:text-base">KES 23,750</span>
         </div>
-        <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-800/30 rounded-lg">
+        <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4 bg-gray-800/30 rounded-lg">
           <div>
-            <p className="text-white font-medium text-sm lg:text-base">Active Proposals</p>
-            <p className="text-gray-400 text-xs lg:text-sm">Pending applications</p>
+            <p className="text-white font-medium text-xs sm:text-sm lg:text-base">Active Proposals</p>
+            <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm">Pending applications</p>
           </div>
-          <span className="text-brand font-bold text-sm lg:text-base">{stats.pendingProposals}</span>
+          <span className="text-brand font-bold text-xs sm:text-sm lg:text-base">{stats.pendingProposals}</span>
         </div>
       </div>
     </motion.div>
