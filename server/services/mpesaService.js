@@ -96,13 +96,58 @@ class MpesaService {
   // Trigger B2C payment (withdraw to phone)
   async triggerPayout(phoneNumber, amount, description) {
     console.log(`[M-Pesa B2C] Sending KES ${amount} to ${phoneNumber}`);
-    return {
-      ConversationID: `CON_${Math.random().toString(36).substr(2, 9)}`,
-      OriginatorConversationID: `OCON_${Math.random().toString(36).substr(2, 9)}`,
-      ResponseCode: '0',
-      ResponseDescription: 'Accept the service request successfully.',
-      isMock: true,
+    
+    if (this.consumerKey === 'dummy_mpesa_consumer_key') {
+      // Simulate successful B2C payout
+      return {
+        ConversationID: `CON_${Math.random().toString(36).substr(2, 9)}`,
+        OriginatorConversationID: `OCON_${Math.random().toString(36).substr(2, 9)}`,
+        ResponseCode: '0',
+        ResponseDescription: 'Accept the service request successfully.',
+        isMock: true,
+      };
+    }
+
+    const token = await this.getOAuthToken();
+    const url = this.env === 'sandbox'
+      ? 'https://sandbox.safaricom.co.ke/mpesa/b2c/v1/paymentrequest'
+      : 'https://api.safaricom.co.ke/mpesa/b2c/v1/paymentrequest';
+
+    const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
+    const password = Buffer.from(`${this.shortcode}${this.passkey}${timestamp}`).toString('base64');
+    
+    // Normalize phone number to format 254XXXXXXXXX
+    let formattedPhone = phoneNumber.replace(/[^0-9]/g, '');
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '254' + formattedPhone.slice(1);
+    } else if (!formattedPhone.startsWith('254')) {
+      formattedPhone = '254' + formattedPhone;
+    }
+
+    const requestBody = {
+      InitiatorName: 'testapi',
+      SecurityCredential: password,
+      CommandID: 'BusinessPayment',
+      Amount: Math.round(amount),
+      PartyA: this.shortcode,
+      PartyB: formattedPhone,
+      Remarks: description,
+      QueueTimeOutURL: 'https://sokonet-backend-url.railway.app/api/wallet/mpesa-b2c-timeout',
+      ResultURL: 'https://sokonet-backend-url.railway.app/api/wallet/mpesa-b2c-result',
+      Occasion: 'WalletWithdrawal',
     };
+
+    try {
+      const response = await axios.post(url, requestBody, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('M-Pesa B2C Error:', error.response ? error.response.data : error.message);
+      throw new Error('M-Pesa B2C transaction failed');
+    }
   }
 }
 
