@@ -3,12 +3,14 @@ import { motion } from 'framer-motion';
 import { Wallet, ArrowUpRight, ArrowDownLeft, History, CreditCard, Smartphone, X } from 'lucide-react';
 import WalletCard from '../components/WalletCard';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const WalletPage = () => {
+  const { user } = useAuth();
   const [wallet, setWallet] = useState({
-    balance: 125000,
+    balance: 0,
     currency: 'KES',
-    pendingBalance: 15000,
+    pendingBalance: 0,
   });
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
@@ -32,57 +34,18 @@ const WalletPage = () => {
     } catch (error) {
       console.error('Error fetching wallet data:', error);
       setLoading(false);
-      // Mock data
-      setTransactions([
-        {
-          _id: '1',
-          type: 'deposit',
-          amount: 50000,
-          status: 'completed',
-          description: 'M-Pesa Deposit',
-          createdAt: '2024-01-20T10:30:00Z',
-        },
-        {
-          _id: '2',
-          type: 'withdrawal',
-          amount: 20000,
-          status: 'completed',
-          description: 'Bank Withdrawal',
-          createdAt: '2024-01-18T14:20:00Z',
-        },
-        {
-          _id: '3',
-          type: 'payment',
-          amount: 185000,
-          status: 'completed',
-          description: 'Order Payment - iPhone 15 Pro Max',
-          createdAt: '2024-01-15T09:15:00Z',
-        },
-        {
-          _id: '4',
-          type: 'refund',
-          amount: 45000,
-          status: 'pending',
-          description: 'Escrow Refund',
-          createdAt: '2024-01-12T16:45:00Z',
-        },
-        {
-          _id: '5',
-          type: 'deposit',
-          amount: 100000,
-          status: 'completed',
-          description: 'M-Pesa Deposit',
-          createdAt: '2024-01-10T11:00:00Z',
-        },
-      ]);
+      setTransactions([]);
     }
   };
 
   const handleDeposit = async () => {
     if (!amount || isNaN(amount)) return;
     try {
-      await api.post('/wallet/deposit', { amount: parseFloat(amount) });
-      alert('Deposit initiated via M-Pesa');
+      const response = await api.post('/wallet/mpesa-deposit', { 
+        amount: parseFloat(amount),
+        phoneNumber: user?.phone || ''
+      });
+      alert(response.data.message || 'M-Pesa STK Push initiated');
       setAmount('');
       fetchWalletData();
     } catch (error) {
@@ -94,8 +57,11 @@ const WalletPage = () => {
   const handleWithdraw = async () => {
     if (!amount || isNaN(amount)) return;
     try {
-      await api.post('/wallet/withdraw', { amount: parseFloat(amount) });
-      alert('Withdrawal request submitted');
+      const response = await api.post('/wallet/mpesa-withdraw', { 
+        amount: parseFloat(amount),
+        phoneNumber: user?.phone || ''
+      });
+      alert(response.data.message || 'Withdrawal request submitted');
       setAmount('');
       fetchWalletData();
     } catch (error) {
