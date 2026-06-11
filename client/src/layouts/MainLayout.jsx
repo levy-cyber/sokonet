@@ -15,7 +15,7 @@ const MainLayout = ({ title }) => {
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-25 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -26,7 +26,7 @@ const MainLayout = ({ title }) => {
         <Navbar title={title} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
         {/* Content Container */}
-        <main className="flex-1 pt-14 lg:pt-16 px-0 overflow-x-hidden">
+        <main className="flex-1 pt-14 lg:pt-16 px-0 overflow-x-auto">
           <Outlet />
         </main>
       </div>

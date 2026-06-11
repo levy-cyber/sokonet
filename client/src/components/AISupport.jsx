@@ -133,7 +133,7 @@ const AISupport = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-brand text-black rounded-full shadow-lg shadow-brand/25 flex items-center justify-center hover:bg-brand/90 transition-all z-50 group"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-brand text-black rounded-full shadow-lg shadow-brand/25 flex items-center justify-center hover:bg-brand/90 transition-all z-40 lg:z-50 group"
         title="AI Support"
       >
         <FiCpu className="text-xl group-hover:scale-110 transition-transform" />
@@ -143,7 +143,7 @@ const AISupport = () => {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 w-96 max-w-[calc(100vw-3rem)] h-[500px] bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col z-50">
+    <div className="fixed bottom-6 right-6 w-96 max-w-[calc(100vw-3rem)] h-[500px] bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col z-40 lg:z-50">
       {/* Header */}
       <div className="bg-gradient-to-r from-brand to-green-600 p-4 rounded-t-2xl">
         <div className="flex items-center justify-between">
