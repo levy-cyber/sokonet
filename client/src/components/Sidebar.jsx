@@ -46,6 +46,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { path: '/settings', label: 'Settings', icon: FiSliders },
   ];
 
+  const externalPortals = [
+    { url: 'https://www.kra.go.ke', label: 'KRA Portal', icon: FiShieldIcon },
+    { url: 'https://www.ecitizen.go.ke', label: 'eCitizen', icon: FiLayoutIcon },
+    { url: 'https://www.kcb.co.ke', label: 'KCB Bank', icon: FiCreditCard },
+    { url: 'https://www.equitygroupholdings.com', label: 'Equity Bank', icon: FiTrendingUp },
+    { url: 'https://www.mpesa.co.ke', label: 'M-Pesa', icon: FiGrid },
+  ];
+
   const allNavigationLinks = [
     { name: 'Dashboard', path: '/', icon: FiHome, description: 'Home dashboard with stats', role: 'all' },
     { name: 'Marketplace', path: '/marketplace', icon: FiShoppingBag, description: 'Browse products and shops', role: 'all' },
@@ -175,6 +183,27 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                             <Icon className="w-3 h-3 lg:w-4 lg:h-4" />
                             <span>{link.label}</span>
                           </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* External Portals */}
+                    <p className="text-[10px] text-gray-500 mb-2 font-medium border-t border-dark-border/50 pt-2">External Portals</p>
+                    <div className="space-y-1 mb-3">
+                      {externalPortals.map((portal) => {
+                        const Icon = portal.icon;
+                        return (
+                          <a
+                            key={portal.url}
+                            href={portal.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full flex items-center gap-2 px-2 py-1.5 text-[10px] lg:text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-colors"
+                          >
+                            <Icon className="w-3 h-3 lg:w-4 lg:h-4" />
+                            <span>{portal.label}</span>
+                            <span className="text-[8px] text-gray-500 ml-auto">↗</span>
+                          </a>
                         );
                       })}
                     </div>
