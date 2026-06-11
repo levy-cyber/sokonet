@@ -160,7 +160,8 @@ const BuyerDashboard = ({ stats, revenueData, activityData }) => (
           ))}
         </div>
       </motion.div>
-    </>
+    </div>
+  </>
 );
 
 const SellerDashboard = ({ stats, revenueData }) => (

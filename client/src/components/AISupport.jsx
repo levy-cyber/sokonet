@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FiMessageSquare, FiSend, FiX, FiBot, FiHelpCircle } from 'react-icons/fi';
+import { FiMessageSquare, FiSend, FiX, FiCpu, FiHelpCircle } from 'react-icons/fi';
 
 const AISupport = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -136,7 +136,7 @@ const AISupport = () => {
         className="fixed bottom-6 right-6 w-14 h-14 bg-brand text-black rounded-full shadow-lg shadow-brand/25 flex items-center justify-center hover:bg-brand/90 transition-all z-50 group"
         title="AI Support"
       >
-        <FiBot className="text-xl group-hover:scale-110 transition-transform" />
+        <FiCpu className="text-xl group-hover:scale-110 transition-transform" />
         <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
       </button>
     );
@@ -149,7 +149,7 @@ const AISupport = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <FiBot className="text-white text-lg" />
+              <FiCpu className="text-white text-lg" />
             </div>
             <div>
               <h3 className="text-white font-semibold">SokoNet AI</h3>
