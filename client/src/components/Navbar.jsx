@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../context/CartContext';
 import { SocketContext } from '../context/SocketContext';
@@ -8,6 +8,7 @@ import { FiBell, FiDollarSign, FiSearch, FiSettings, FiMenu, FiShoppingCart } fr
 
 const Navbar = ({ title, onMenuToggle }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { cartItems, getCartCount } = useCart();
   const { socket } = useContext(SocketContext);
   const [balance, setBalance] = useState(0);
@@ -149,7 +150,10 @@ const Navbar = ({ title, onMenuToggle }) => {
         </div>
 
         {/* Settings shortcut */}
-        <button className="hidden lg:flex w-10 h-10 rounded-xl bg-dark-card border border-dark-border items-center justify-center text-dark-muted hover:text-white transition-colors">
+        <button
+          onClick={() => navigate('/settings')}
+          className="hidden lg:flex w-10 h-10 rounded-xl bg-dark-card border border-dark-border items-center justify-center text-dark-muted hover:text-white transition-colors"
+        >
           <FiSettings className="text-lg" />
         </button>
       </div>
