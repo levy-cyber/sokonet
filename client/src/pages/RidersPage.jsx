@@ -9,6 +9,46 @@ const RidersPage = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [isOnline, setIsOnline] = useState(true);
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+
+  useEffect(() => {
+    getCurrentLocation();
+    // Update location every 30 seconds
+    const locationInterval = setInterval(getCurrentLocation, 30000);
+    return () => clearInterval(locationInterval);
+  }, []);
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      console.error('Geolocation is not supported by your browser');
+      return;
+    }
+
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const location = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: new Date(),
+        };
+        setCurrentLocation(location);
+        setLocationLoading(false);
+        console.log('Current location:', location);
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+        setLocationLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
 
   useEffect(() => {
     // Mock data for rider deliveries and requests
@@ -180,17 +220,30 @@ const RidersPage = () => {
           <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">Delivery Partner Console</h1>
           <p className="text-gray-400 text-sm lg:text-base">Manage your deliveries and earnings</p>
         </div>
-        <button
-          onClick={toggleOnlineStatus}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-            isOnline 
-              ? 'bg-green-500 text-black' 
-              : 'bg-gray-700 text-gray-400'
-          }`}
-        >
-          <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-black' : 'bg-gray-400'}`} />
-          {isOnline ? 'Online' : 'Offline'}
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={toggleOnlineStatus}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+              isOnline 
+                ? 'bg-green-500 text-black' 
+                : 'bg-gray-700 text-gray-400'
+            }`}
+          >
+            {isOnline ? 'Online' : 'Offline'}
+          </button>
+          <button
+            onClick={getCurrentLocation}
+            disabled={locationLoading}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+              locationLoading 
+                ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
+                : 'bg-blue-500 text-white hover:bg-blue-600'
+            }`}
+          >
+            <FiRefreshCw className={`w-4 h-4 ${locationLoading ? 'animate-spin' : ''}`} />
+            {locationLoading ? 'Updating...' : 'Update Location'}
+          </button>
+        </div>
       </motion.div>
 
       {/* Stats */}
@@ -200,6 +253,30 @@ const RidersPage = () => {
         <StatCard title="Total Earnings" value={`KES ${totalEarnings.toLocaleString()}`} icon={FiDollarSign} trend="+28.3%" trendUp={true} />
         <StatCard title="Average Rating" value="4.9/5.0" icon={FiNavigation} trend="+2.3%" trendUp={true} />
       </div>
+
+      {/* Current Location Display */}
+      {currentLocation && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 mb-6"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-green-500/10 rounded-lg">
+              <FiMapPin className="w-5 h-5 text-green-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-white font-medium">Current Location</p>
+              <p className="text-gray-400 text-sm">
+                Lat: {currentLocation.latitude.toFixed(6)}, Lng: {currentLocation.longitude.toFixed(6)}
+              </p>
+              <p className="text-gray-500 text-xs">
+                Accuracy: ±{currentLocation.accuracy.toFixed(0)}m • Updated: {currentLocation.timestamp.toLocaleTimeString()}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Pending Delivery Requests */}
       {pendingRequests.length > 0 && (
