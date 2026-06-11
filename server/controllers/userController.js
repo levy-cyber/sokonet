@@ -35,7 +35,11 @@ const updateUserProfile = async (req, res) => {
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
       user.phone = req.body.phone || user.phone;
-      user.avatar = req.body.avatar || user.avatar;
+      
+      // Only update avatar if provided (not empty string)
+      if (req.body.avatar !== undefined && req.body.avatar !== '') {
+        user.avatar = req.body.avatar;
+      }
 
       if (req.body.password) {
         user.password = req.body.password;
@@ -60,6 +64,7 @@ const updateUserProfile = async (req, res) => {
       res.status(404).json({ success: false, message: 'User not found' });
     }
   } catch (error) {
+    console.error('Profile update error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
