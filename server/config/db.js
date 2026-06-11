@@ -11,7 +11,9 @@ const mockDB = {
   notifications: [],
   riders: [],
   shops: [],
-  jobs: []
+  jobs: [],
+  services: [],
+  bookings: []
 };
 
 // Enable mock mode if no MONGODB_URI or MOCK_MODE=true
@@ -49,7 +51,7 @@ function initializeMockData() {
       email: 'test@example.com',
       phone: '+254712345678',
       password: '$2a$10$hash', // Would be bcrypt hash in real
-      role: 'user',
+      role: 'buyer',
       avatar: 'https://i.pravatar.cc/150?img=1',
       rating: 4.5,
       createdAt: new Date()
@@ -63,6 +65,39 @@ function initializeMockData() {
       role: 'seller',
       avatar: 'https://i.pravatar.cc/150?img=2',
       rating: 4.8,
+      createdAt: new Date()
+    },
+    {
+      _id: 'provider1',
+      name: 'QuickFix Services',
+      email: 'provider@example.com',
+      phone: '+254700000001',
+      password: '$2a$10$hash',
+      role: 'service_provider',
+      avatar: 'https://i.pravatar.cc/150?img=3',
+      rating: 4.6,
+      createdAt: new Date()
+    },
+    {
+      _id: 'rider1',
+      name: 'John Rider',
+      email: 'rider@example.com',
+      phone: '+254711223344',
+      password: '$2a$10$hash',
+      role: 'rider',
+      avatar: 'https://i.pravatar.cc/150?img=4',
+      rating: 4.9,
+      createdAt: new Date()
+    },
+    {
+      _id: 'freelancer1',
+      name: 'Creative Freelancer',
+      email: 'freelancer@example.com',
+      phone: '+254755556666',
+      password: '$2a$10$hash',
+      role: 'freelancer',
+      avatar: 'https://i.pravatar.cc/150?img=5',
+      rating: 4.7,
       createdAt: new Date()
     }
   ];
@@ -182,6 +217,51 @@ function initializeMockData() {
     }
   ];
 
+  // Mock Services (for service providers)
+  mockDB.services = [
+    {
+      _id: 'service1',
+      provider: 'provider1',
+      name: 'Plumbing Repair',
+      description: 'Expert plumbing services for homes and businesses',
+      category: 'Home Services',
+      price: 2500,
+      images: ['https://images.unsplash.com/photo-1585704032915-c3400ca1e126?w=400'],
+      ratings: [{ user: 'user1', rating: 5, comment: 'Excellent service!' }],
+      available: true,
+      createdAt: new Date()
+    }
+  ];
+
+  // Mock Bookings (for service providers)
+  mockDB.bookings = [
+    {
+      _id: 'booking1',
+      service: 'service1',
+      customer: 'user1',
+      provider: 'provider1',
+      date: new Date(Date.now() + 86400000),
+      status: 'confirmed',
+      amount: 2500,
+      createdAt: new Date()
+    }
+  ];
+
+  // Mock Jobs (for freelancers)
+  mockDB.jobs = [
+    {
+      _id: 'job1',
+      title: 'Web Development Project',
+      description: 'Looking for a React developer for e-commerce site',
+      budget: 50000,
+      category: 'Development',
+      client: 'seller1',
+      status: 'open',
+      applications: [],
+      createdAt: new Date()
+    }
+  ];
+
   console.log('✅ Mock data initialized with test data');
 }
 
@@ -282,6 +362,57 @@ const mockHelpers = {
     };
     mockDB.messages.push(newMessage);
     return newMessage;
+  },
+
+  // Service operations (for service providers)
+  findServices: (query = {}) => {
+    let results = [...mockDB.services];
+    if (query.category) results = results.filter(s => s.category === query.category);
+    if (query.provider) results = results.filter(s => s.provider === query.provider);
+    return results;
+  },
+
+  createService: (serviceData) => {
+    const newService = {
+      _id: 'service' + Date.now(),
+      ...serviceData,
+      createdAt: new Date()
+    };
+    mockDB.services.push(newService);
+    return newService;
+  },
+
+  // Booking operations
+  findBookings: (userId) => {
+    return mockDB.bookings.filter(b => b.customer === userId || b.provider === userId);
+  },
+
+  createBooking: (bookingData) => {
+    const newBooking = {
+      _id: 'booking' + Date.now(),
+      ...bookingData,
+      createdAt: new Date()
+    };
+    mockDB.bookings.push(newBooking);
+    return newBooking;
+  },
+
+  // Job operations (for freelancers)
+  findJobs: (query = {}) => {
+    let results = [...mockDB.jobs];
+    if (query.category) results = results.filter(j => j.category === query.category);
+    if (query.status) results = results.filter(j => j.status === query.status);
+    return results;
+  },
+
+  createJob: (jobData) => {
+    const newJob = {
+      _id: 'job' + Date.now(),
+      ...jobData,
+      createdAt: new Date()
+    };
+    mockDB.jobs.push(newJob);
+    return newJob;
   }
 };
 

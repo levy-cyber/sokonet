@@ -2,9 +2,9 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { SocketContext } from '../context/SocketContext';
 import api from '../services/api';
-import { FiBell, FiDollarSign, FiSearch, FiSettings } from 'react-icons/fi';
+import { FiBell, FiDollarSign, FiSearch, FiSettings, FiMenu } from 'react-icons/fi';
 
-const Navbar = ({ title }) => {
+const Navbar = ({ title, onMenuToggle }) => {
   const { user } = useAuth();
   const { socket } = useContext(SocketContext);
   const [balance, setBalance] = useState(0);
@@ -46,19 +46,27 @@ const Navbar = ({ title }) => {
   }, [socket]);
 
   return (
-    <header className="h-16 fixed top-0 right-0 left-64 glass-panel border-b border-dark-border flex items-center justify-between px-8 z-20">
-      {/* Title */}
-      <div>
+    <header className="h-16 fixed top-0 right-0 left-0 lg:left-64 glass-panel border-b border-dark-border flex items-center justify-between px-4 lg:px-8 z-20">
+      <div className="flex items-center gap-4">
+        {/* Mobile Menu Toggle */}
+        <button
+          onClick={onMenuToggle}
+          className="lg:hidden w-10 h-10 rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors"
+        >
+          <FiMenu className="text-lg" />
+        </button>
+
+        {/* Title */}
         <h2 className="text-lg font-semibold text-white tracking-wide">{title || 'Dashboard'}</h2>
       </div>
 
       {/* Utilities */}
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-4 lg:gap-6">
         {/* Wallet Balance Badge */}
         {user && (
           <div className="flex items-center gap-2 bg-dark-card border border-dark-border px-3 py-1.5 rounded-xl">
             <FiDollarSign className="text-brand font-bold text-lg" />
-            <div>
+            <div className="hidden sm:block">
               <span className="text-xs text-dark-muted block leading-none font-mono">KES Wallet</span>
               <span className="text-sm font-bold text-white font-mono">{balance.toLocaleString()}</span>
             </div>
@@ -67,7 +75,7 @@ const Navbar = ({ title }) => {
 
         {/* Notifications Icon */}
         <div className="relative">
-          <button 
+          <button
             onClick={() => setShowNotifications(!showNotifications)}
             className="w-10 h-10 rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors"
           >
@@ -83,7 +91,7 @@ const Navbar = ({ title }) => {
               <div className="px-4 py-2 border-b border-dark-border flex justify-between items-center">
                 <span className="font-semibold text-sm text-white">Notifications</span>
                 {notifications.length > 0 && (
-                  <button 
+                  <button
                     onClick={() => setNotifications([])}
                     className="text-xs text-brand hover:underline font-mono"
                   >
@@ -110,7 +118,7 @@ const Navbar = ({ title }) => {
         </div>
 
         {/* Settings shortcut */}
-        <button className="w-10 h-10 rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors">
+        <button className="hidden lg:flex w-10 h-10 rounded-xl bg-dark-card border border-dark-border items-center justify-center text-dark-muted hover:text-white transition-colors">
           <FiSettings className="text-lg" />
         </button>
       </div>

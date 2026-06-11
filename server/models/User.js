@@ -33,8 +33,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'seller', 'rider', 'admin'],
-      default: 'user',
+      enum: ['buyer', 'seller', 'service_provider', 'rider', 'freelancer', 'admin'],
+      default: 'buyer',
     },
     avatar: {
       type: String,

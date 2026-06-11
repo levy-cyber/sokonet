@@ -47,10 +47,10 @@ const AuthPage = ({ isLogin }) => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-8 shadow-2xl">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">SokoNet</h1>
-            <p className="text-gray-400">{isLogin ? 'Welcome back' : 'Create your account'}</p>
+        <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6 lg:p-8 shadow-2xl">
+          <div className="text-center mb-6 lg:mb-8">
+            <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">SokoNet</h1>
+            <p className="text-gray-400 text-sm lg:text-base">{isLogin ? 'Welcome back' : 'Create your account'}</p>
           </div>
 
           {error && (
@@ -59,7 +59,7 @@ const AuthPage = ({ isLogin }) => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-5">
             {!isLogin && (
               <>
                 <div>
@@ -95,16 +95,18 @@ const AuthPage = ({ isLogin }) => {
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">Role</label>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">I want to...</label>
                   <select
                     name="role"
                     value={formData.role}
                     onChange={handleChange}
                     className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all"
                   >
-                    <option value="buyer">Buyer</option>
-                    <option value="seller">Seller</option>
-                    <option value="rider">Rider</option>
+                    <option value="buyer">Buyer (Shop for products)</option>
+                    <option value="seller">Seller (Sell products)</option>
+                    <option value="service_provider">Service Provider (Offer services)</option>
+                    <option value="rider">Rider (Handle deliveries)</option>
+                    <option value="freelancer">Freelancer (Find jobs)</option>
                   </select>
                 </div>
               </>
@@ -138,7 +140,7 @@ const AuthPage = ({ isLogin }) => {
                   required
                   minLength="6"
                   className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all"
-                  placeholder="••••••••"
+                  placeholder="•••••••••"
                 />
               </div>
             </div>
@@ -155,7 +157,7 @@ const AuthPage = ({ isLogin }) => {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-gray-400">
+            <p className="text-gray-400 text-sm">
               {isLogin ? "Don't have an account? " : 'Already have an account? '}
               <a
                 href={isLogin ? '/register' : '/login'}
