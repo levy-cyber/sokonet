@@ -226,6 +226,17 @@ const AuthPage = ({ isLogin }) => {
                 {isLogin ? 'Sign up' : 'Log in'}
               </button>
             </p>
+            {isLogin && (
+              <button
+                onClick={() => {
+                  navigate('/forgot-password');
+                  setError('');
+                }}
+                className="block mt-3 text-gray-400 text-sm hover:text-brand transition-colors"
+              >
+                Forgot password?
+              </button>
+            )}
           </div>
         </div>
       </motion.div>

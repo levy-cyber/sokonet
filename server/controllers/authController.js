@@ -4,6 +4,18 @@ const Shop = require('../models/Shop');
 const generateToken = require('../utils/generateToken');
 const { USE_MOCK, mockHelpers } = require('../config/db');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const emailService = require('../services/emailService');
+
+// Helper function to generate OTP
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Helper function to generate reset token
+const generateResetToken = () => {
+  return crypto.randomBytes(32).toString('hex');
+};
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -169,8 +181,209 @@ const getUserProfile = async (req, res) => {
   }
 };
 
+// @desc    Send OTP for email verification
+// @route   POST /api/auth/send-otp
+// @access  Public
+const sendOTP = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    let user;
+    if (USE_MOCK) {
+      user = mockHelpers.findUser({ email });
+    } else {
+      user = await User.findOne({ email });
+    }
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found with this email' });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    if (USE_MOCK) {
+      user.otp = otp;
+      user.otpExpiry = otpExpiry;
+    } else {
+      user.otp = await bcrypt.hash(otp, 10);
+      user.otpExpiry = otpExpiry;
+      await user.save();
+    }
+
+    // Send OTP email
+    await emailService.sendOTP(email, otp, user.name);
+
+    res.json({
+      success: true,
+      message: 'OTP sent successfully. Please check your email.',
+      // For development, return OTP in response (remove in production)
+      otp: process.env.NODE_ENV === 'development' ? otp : undefined
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// @desc    Verify OTP
+// @route   POST /api/auth/verify-otp
+// @access  Public
+const verifyOTP = async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+    let user;
+    if (USE_MOCK) {
+      user = mockHelpers.findUser({ email });
+    } else {
+      user = await User.findOne({ email });
+    }
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found with this email' });
+    }
+
+    // Check if OTP is expired
+    if (user.otpExpiry < new Date()) {
+      return res.status(400).json({ success: false, message: 'OTP has expired. Please request a new one.' });
+    }
+
+    let isValidOTP;
+    if (USE_MOCK) {
+      isValidOTP = user.otp === otp;
+    } else {
+      isValidOTP = await bcrypt.compare(otp, user.otp);
+    }
+
+    if (!isValidOTP) {
+      return res.status(400).json({ success: false, message: 'Invalid OTP. Please try again.' });
+    }
+
+    // Mark email as verified
+    user.isEmailVerified = true;
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+
+    if (!USE_MOCK) {
+      await user.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully!',
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// @desc    Request password reset
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    let user;
+    if (USE_MOCK) {
+      user = mockHelpers.findUser({ email });
+    } else {
+      user = await User.findOne({ email });
+    }
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found with this email' });
+    }
+
+    // Generate reset token
+    const resetToken = generateResetToken();
+    const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    if (USE_MOCK) {
+      user.resetPasswordToken = resetToken;
+      user.resetPasswordExpiry = resetExpiry;
+    } else {
+      user.resetPasswordToken = await bcrypt.hash(resetToken, 10);
+      user.resetPasswordExpiry = resetExpiry;
+      await user.save();
+    }
+
+    // Create reset link
+    const resetLink = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+
+    // Send password reset email
+    await emailService.sendPasswordReset(email, resetLink, user.name);
+
+    res.json({
+      success: true,
+      message: 'Password reset link sent to your email.',
+      // For development, return reset link in response (remove in production)
+      resetLink: process.env.NODE_ENV === 'development' ? resetLink : undefined
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// @desc    Reset password with token
+// @route   POST /api/auth/reset-password
+// @access  Public
+const resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  try {
+    let user;
+    if (USE_MOCK) {
+      // In mock mode, find user by token (simplified)
+      user = Object.values(mockHelpers.users).find(u => u.resetPasswordToken === token);
+    } else {
+      // In production, we need to find user and verify token hash
+      user = await User.findOne({
+        resetPasswordExpiry: { $gt: new Date() }
+      });
+
+      if (user && user.resetPasswordToken) {
+        const isValidToken = await bcrypt.compare(token, user.resetPasswordToken);
+        if (!isValidToken) {
+          user = null;
+        }
+      }
+    }
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired reset token' });
+    }
+
+    // Check if token is expired
+    if (user.resetPasswordExpiry < new Date()) {
+      return res.status(400).json({ success: false, message: 'Reset token has expired. Please request a new one.' });
+    }
+
+    // Update password
+    user.password = newPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpiry = undefined;
+
+    if (!USE_MOCK) {
+      await user.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Password reset successful. You can now login with your new password.',
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   authUser,
   getUserProfile,
+  sendOTP,
+  verifyOTP,
+  forgotPassword,
+  resetPassword,
 };

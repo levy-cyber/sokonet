@@ -23,6 +23,9 @@ import ServicesMarketplace from '../pages/ServicesMarketplace';
 import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import SettingsPage from '../pages/SettingsPage';
+import OTPVerificationPage from '../pages/OTPVerificationPage';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage';
+import ResetPasswordPage from '../pages/ResetPasswordPage';
 
 const AppRoutes = () => {
   return (
@@ -32,6 +35,11 @@ const AppRoutes = () => {
         <Route path="/login" element={<AuthPage isLogin={true} />} />
         <Route path="/register" element={<AuthPage isLogin={false} />} />
       </Route>
+
+      {/* Public auth-related routes */}
+      <Route path="/verify-otp" element={<OTPVerificationPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
       {/* Protected Main Layout routes - All accessible to authenticated users */}
       <Route element={<ProtectedRoute />}>
