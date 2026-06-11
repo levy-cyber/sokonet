@@ -37,6 +37,7 @@ app.use('/api/messages', require('./routes/messageRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/jobs', require('./routes/jobRoutes'));
 app.use('/api/shops', require('./routes/shopRoutes'));
+app.use('/api/ai', require('./routes/ai'));
 
 // Error Handler Middleware
 app.use(errorHandler);

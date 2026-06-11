@@ -4,70 +4,29 @@ import { useAuth } from '../hooks/useAuth';
 import {
   FiHome, FiShoppingBag, FiLock, FiCreditCard, FiInbox,
   FiBriefcase, FiUser, FiSliders, FiUsers, FiActivity, FiLogOut, FiX,
-  FiTool, FiBriefcase as FiJob, FiCalendar
+  FiTool, FiBriefcase as FiJob, FiCalendar, FiTruck
 } from 'react-icons/fi';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const { user, logout } = useAuth();
 
-  const baseLinks = [
-    { name: 'Dashboard', path: '/', icon: FiHome },
+  const navigationLinks = [
+    { name: 'Dashboard', path: '/', icon: FiHome, description: 'Home dashboard with stats', role: 'all' },
+    { name: 'Marketplace', path: '/marketplace', icon: FiShoppingBag, description: 'Browse products and shops', role: 'all' },
+    { name: 'Services', path: '/services', icon: FiTool, description: 'Book professional services', role: 'all' },
+    { name: 'My Shop', path: '/shop/mine', icon: FiUser, description: 'Manage your seller shop', role: 'seller' },
+    { name: 'Business Analytics', path: '/analytics', icon: FiActivity, description: 'View business performance', role: 'seller' },
+    { name: 'My Orders', path: '/orders', icon: FiInbox, description: 'View order history', role: 'all' },
+    { name: 'Escrow Lock', path: '/escrow', icon: FiLock, description: 'Secure payment protection', role: 'all' },
+    { name: 'My Wallet', path: '/wallet', icon: FiCreditCard, description: 'Manage wallet balance', role: 'all' },
+    { name: 'Jobs Hub', path: '/jobs', icon: FiJob, description: 'Find freelance work', role: 'all' },
+    { name: 'My Services', path: '/services/mine', icon: FiTool, description: 'Manage service listings', role: 'service_provider' },
+    { name: 'Bookings', path: '/bookings', icon: FiCalendar, description: 'View service bookings', role: 'service_provider' },
+    { name: 'Rider Console', path: '/rider/dashboard', icon: FiTruck, description: 'Delivery partner dashboard', role: 'rider' },
+    { name: 'Chat Room', path: '/chat', icon: FiUsers, description: 'Real-time messaging', role: 'all' },
+    { name: 'Admin Console', path: '/admin', icon: FiSliders, description: 'System administration', role: 'admin' },
+    { name: 'Analytics', path: '/analytics', icon: FiActivity, description: 'Platform analytics', role: 'admin' },
   ];
-
-  const buyerLinks = [
-    { name: 'Marketplace', path: '/marketplace', icon: FiShoppingBag },
-    { name: 'My Orders', path: '/orders', icon: FiInbox },
-    { name: 'Escrow Lock', path: '/escrow', icon: FiLock },
-    { name: 'Services', path: '/services', icon: FiTool },
-    { name: 'My Wallet', path: '/wallet', icon: FiCreditCard },
-    { name: 'Chat Room', path: '/chat', icon: FiUsers },
-  ];
-
-  const sellerLinks = [
-    { name: 'Marketplace', path: '/marketplace', icon: FiShoppingBag },
-    { name: 'My Shop', path: '/shop/mine', icon: FiUser },
-    { name: 'Business Analytics', path: '/analytics', icon: FiActivity },
-    { name: 'My Orders', path: '/orders', icon: FiInbox },
-    { name: 'My Wallet', path: '/wallet', icon: FiCreditCard },
-    { name: 'Chat Room', path: '/chat', icon: FiUsers },
-  ];
-
-  const serviceProviderLinks = [
-    { name: 'My Services', path: '/services/mine', icon: FiTool },
-    { name: 'Bookings', path: '/bookings', icon: FiCalendar },
-    { name: 'My Wallet', path: '/wallet', icon: FiCreditCard },
-    { name: 'Chat Room', path: '/chat', icon: FiUsers },
-  ];
-
-  const riderLinks = [
-    { name: 'Deliveries', path: '/rider/dashboard', icon: FiSliders },
-    { name: 'My Earnings', path: '/wallet', icon: FiCreditCard },
-    { name: 'Chat Room', path: '/chat', icon: FiUsers },
-  ];
-
-  const freelancerLinks = [
-    { name: 'Find Jobs', path: '/jobs', icon: FiJob },
-    { name: 'My Projects', path: '/projects', icon: FiBriefcase },
-    { name: 'My Wallet', path: '/wallet', icon: FiCreditCard },
-    { name: 'Chat Room', path: '/chat', icon: FiUsers },
-  ];
-
-  const adminLinks = [
-    { name: 'Admin Console', path: '/admin', icon: FiSliders },
-  ];
-
-  const getLinks = () => {
-    let links = [...baseLinks];
-    
-    if (user?.role === 'buyer') links = [...links, ...buyerLinks];
-    else if (user?.role === 'seller') links = [...links, ...sellerLinks];
-    else if (user?.role === 'service_provider') links = [...links, ...serviceProviderLinks];
-    else if (user?.role === 'rider') links = [...links, ...riderLinks];
-    else if (user?.role === 'freelancer') links = [...links, ...freelancerLinks];
-    else if (user?.role === 'admin') links = [...links, ...adminLinks];
-    
-    return links;
-  };
 
   const getRoleBadge = () => {
     const roleColors = {
@@ -83,7 +42,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       buyer: 'Buyer',
       seller: 'Seller',
       service_provider: 'Service Provider',
-      rider: 'Delivery Partner',
+      rider: 'Rider',
       freelancer: 'Freelancer',
       admin: 'Admin',
     };
@@ -92,6 +51,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       className: roleColors[user?.role] || roleColors.buyer,
       text: roleNames[user?.role] || 'Buyer',
     };
+  };
+
+  const getLinkClass = (linkRole, userRole) => {
+    if (linkRole === 'all') return ''; // Show all links normally
+    if (linkRole === userRole) return 'text-white'; // Highlight role-specific links
+    return 'text-gray-500'; // Dim links for other roles
   };
 
   return (
@@ -143,9 +108,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             </div>
           )}
 
-          {/* Navigation links */}
+          {/* Navigation links - Now shows all links to all users */}
           <nav className="px-3 space-y-1">
-            {getLinks().map((link) => {
+            {navigationLinks.map((link) => {
               const Icon = link.icon;
               return (
                 <NavLink
@@ -156,12 +121,22 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
                     ${isActive
                       ? 'bg-brand/10 border-l-4 border-brand text-brand shadow-glow-green/5'
-                      : 'text-dark-muted hover:text-white hover:bg-dark-cardMuted/30 hover:translate-x-1'
+                      : 'hover:bg-dark-cardMuted/30 hover:translate-x-1'
                     }
+                    ${getLinkClass(link.role, user?.role)}
                   `}
+                  title={link.description}
                 >
                   <Icon className="text-lg shrink-0" />
-                  <span>{link.name}</span>
+                  <span className="flex-1">{link.name}</span>
+                  {link.role !== 'all' && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full border border-gray-600 text-gray-500">
+                      {link.role === 'seller' && '🏪'}
+                      {link.role === 'service_provider' && '🔧'}
+                      {link.role === 'rider' && '🚚'}
+                      {link.role === 'admin' && '⚙️'}
+                    </span>
+                  )}
                 </NavLink>
               );
             })}

@@ -90,7 +90,7 @@ const Dashboard = () => {
         return <FreelancerDashboard stats={stats} />;
       case 'buyer':
       default:
-        return <BuyerDashboard stats={stats} />;
+        return <BuyerDashboard stats={stats} revenueData={revenueData} activityData={activityData} />;
     }
   };
 
@@ -118,7 +118,7 @@ const Dashboard = () => {
   );
 };
 
-const BuyerDashboard = ({ stats, revenueData }) => (
+const BuyerDashboard = ({ stats, revenueData, activityData }) => (
   <>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
       <StatCard title="Total Orders" value={stats.totalOrders} icon={FiShoppingBag} trend="+12.5%" trendUp={true} />
@@ -160,8 +160,7 @@ const BuyerDashboard = ({ stats, revenueData }) => (
           ))}
         </div>
       </motion.div>
-    </div>
-  </>
+    </>
 );
 
 const SellerDashboard = ({ stats, revenueData }) => (

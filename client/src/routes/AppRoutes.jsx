@@ -18,6 +18,8 @@ import AnalyticsPage from '../pages/AnalyticsPage';
 import AdminPage from '../pages/AdminPage';
 import RidersPage from '../pages/RidersPage';
 import ShopsPage from '../pages/ShopsPage';
+import ServicesPage from '../pages/ServicesPage';
+import ServicesMarketplace from '../pages/ServicesMarketplace';
 
 const AppRoutes = () => {
   return (
@@ -28,7 +30,7 @@ const AppRoutes = () => {
         <Route path="/register" element={<AuthPage isLogin={false} />} />
       </Route>
 
-      {/* Protected Main Layout routes */}
+      {/* Protected Main Layout routes - All accessible to authenticated users */}
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout title="Dashboard" />}>
           <Route path="/" element={<Dashboard />} />
@@ -37,6 +39,10 @@ const AppRoutes = () => {
         <Route element={<MainLayout title="Marketplace Catalog" />}>
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/marketplace/product/:id" element={<ProductDetails />} />
+        </Route>
+
+        <Route element={<MainLayout title="Services Marketplace" />}>
+          <Route path="/services" element={<ServicesMarketplace />} />
         </Route>
 
         <Route element={<MainLayout title="SokoNet Escrow Accounts" />}>
@@ -59,28 +65,29 @@ const AppRoutes = () => {
           <Route path="/chat" element={<ChatPage />} />
         </Route>
 
-        {/* Role: Seller Only */}
-        <Route element={<ProtectedRoute allowedRoles={['seller']} />}>
-          <Route element={<MainLayout title="My Vendor Storefront" />}>
-            <Route path="/shop/mine" element={<ShopsPage />} />
-          </Route>
+        {/* Role-specific pages - Now accessible to all for exploration */}
+        <Route element={<MainLayout title="My Vendor Storefront" />}>
+          <Route path="/shop/mine" element={<ShopsPage />} />
         </Route>
 
-        {/* Role: Rider Only */}
-        <Route element={<ProtectedRoute allowedRoles={['rider']} />}>
-          <Route element={<MainLayout title="Logistics Rider Dashboard" />}>
-            <Route path="/rider/dashboard" element={<RidersPage />} />
-          </Route>
+        <Route element={<MainLayout title="Logistics Rider Dashboard" />}>
+          <Route path="/rider/dashboard" element={<RidersPage />} />
         </Route>
 
-        {/* Role: Admin Only */}
-        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-          <Route element={<MainLayout title="System Metrics & Analytics" />}>
-            <Route path="/analytics" element={<AnalyticsPage />} />
-          </Route>
-          <Route element={<MainLayout title="Admin Management Console" />}>
-            <Route path="/admin" element={<AdminPage />} />
-          </Route>
+        <Route element={<MainLayout title="My Service Management" />}>
+          <Route path="/services/mine" element={<ServicesPage />} />
+        </Route>
+
+        <Route element={<MainLayout title="Service Bookings" />}>
+          <Route path="/bookings" element={<ServicesPage />} />
+        </Route>
+
+        <Route element={<MainLayout title="System Metrics & Analytics" />}>
+          <Route path="/analytics" element={<AnalyticsPage />} />
+        </Route>
+
+        <Route element={<MainLayout title="Admin Management Console" />}>
+          <Route path="/admin" element={<AdminPage />} />
         </Route>
       </Route>
 

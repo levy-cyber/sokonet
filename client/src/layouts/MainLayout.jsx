@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
+import AISupport from '../components/AISupport';
 
 const MainLayout = ({ title }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -29,6 +30,9 @@ const MainLayout = ({ title }) => {
           <Outlet />
         </main>
       </div>
+
+      {/* AI Support Chat */}
+      <AISupport />
     </div>
   );
 };
