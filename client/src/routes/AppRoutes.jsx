@@ -22,6 +22,7 @@ import ServicesPage from '../pages/ServicesPage';
 import ServicesMarketplace from '../pages/ServicesMarketplace';
 import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
+import SettingsPage from '../pages/SettingsPage';
 
 const AppRoutes = () => {
   return (
@@ -73,6 +74,10 @@ const AppRoutes = () => {
 
         <Route element={<MainLayout title="Checkout" />}>
           <Route path="/checkout" element={<CheckoutPage />} />
+        </Route>
+
+        <Route element={<MainLayout title="Settings" />}>
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>
 

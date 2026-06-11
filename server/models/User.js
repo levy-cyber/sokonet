@@ -36,6 +36,16 @@ const userSchema = new mongoose.Schema(
       enum: ['buyer', 'seller', 'service_provider', 'rider', 'freelancer', 'admin'],
       default: 'buyer',
     },
+    roles: {
+      type: [String],
+      enum: ['buyer', 'seller', 'service_provider', 'rider', 'freelancer', 'admin'],
+      default: ['buyer'],
+    },
+    activeRole: {
+      type: String,
+      enum: ['buyer', 'seller', 'service_provider', 'rider', 'freelancer', 'admin'],
+      default: 'buyer',
+    },
     avatar: {
       type: String,
       default: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150',

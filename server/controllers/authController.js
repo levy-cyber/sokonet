@@ -9,7 +9,7 @@ const bcrypt = require('bcryptjs');
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
-  const { name, email, phone, password, role } = req.body;
+  const { name, email, phone, password, roles, activeRole } = req.body;
 
   try {
     let userExists;
@@ -24,6 +24,10 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ success: false, message: 'User already exists with this email or phone' });
     }
 
+    // Handle multiple roles
+    const userRoles = Array.isArray(roles) && roles.length > 0 ? roles : ['buyer'];
+    const userActiveRole = activeRole || userRoles[0] || 'buyer';
+
     let user;
     if (USE_MOCK) {
       // Simple password check for mock (in real app would be bcrypt)
@@ -32,7 +36,9 @@ const registerUser = async (req, res) => {
         email,
         phone,
         password: 'hashed_password', // Mock hashed password
-        role: role || 'user',
+        role: userRoles[0], // Primary role for backward compatibility
+        roles: userRoles,
+        activeRole: userActiveRole,
         avatar: `https://i.pravatar.cc/150?u=${Date.now()}`,
         rating: 5.0
       });
@@ -42,7 +48,9 @@ const registerUser = async (req, res) => {
         email,
         phone,
         password,
-        role,
+        role: userRoles[0], // Primary role for backward compatibility
+        roles: userRoles,
+        activeRole: userActiveRole,
       });
 
       // Create user wallet immediately
@@ -52,7 +60,7 @@ const registerUser = async (req, res) => {
       });
 
       // If user is a seller, auto-create a Shop
-      if (role === 'seller') {
+      if (userRoles.includes('seller')) {
         await Shop.create({
           seller: user._id,
           name: `${name}'s Store`,
@@ -70,6 +78,8 @@ const registerUser = async (req, res) => {
         email: user.email,
         phone: user.phone || '',
         role: user.role,
+        roles: user.roles,
+        activeRole: user.activeRole,
         avatar: user.avatar,
         token: generateToken(user._id),
       });
@@ -112,6 +122,8 @@ const authUser = async (req, res) => {
         email: user.email,
         phone: user.phone || '',
         role: user.role,
+        roles: user.roles || [user.role],
+        activeRole: user.activeRole || user.role,
         avatar: user.avatar,
         token: generateToken(user._id),
       });
@@ -144,6 +156,8 @@ const getUserProfile = async (req, res) => {
         email: user.email,
         phone: user.phone || '',
         role: user.role,
+        roles: user.roles || [user.role],
+        activeRole: user.activeRole || user.role,
         avatar: user.avatar,
         rating: user.rating || 5.0,
       });

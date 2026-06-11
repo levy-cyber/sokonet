@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import StatCard from '../components/StatCard';
+import RoleSwitcher from '../components/RoleSwitcher';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { FiShoppingBag, FiDollarSign, FiPackage, FiUsers, FiTrendingUp, FiClock, FiTruck, FiCalendar, FiTool, FiBriefcase } from 'react-icons/fi';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, switchRole } = useAuth();
   const [stats, setStats] = useState({});
 
   useEffect(() => {
@@ -58,18 +59,18 @@ const Dashboard = () => {
           averageRating: 4.7,
         },
       };
-      setStats(roleStats[user?.role] || roleStats.buyer);
+      setStats(roleStats[user?.activeRole || 'buyer'] || roleStats.buyer);
     };
     fetchStats();
-  }, [user]);
+  }, [user, user?.activeRole]);
 
   const revenueData = [
-    { name: 'Jan', revenue: user?.role === 'seller' ? 45000 : 15000 },
-    { name: 'Feb', revenue: user?.role === 'seller' ? 52000 : 18000 },
-    { name: 'Mar', revenue: user?.role === 'seller' ? 48000 : 22000 },
-    { name: 'Apr', revenue: user?.role === 'seller' ? 61000 : 25000 },
-    { name: 'May', revenue: user?.role === 'seller' ? 55000 : 28000 },
-    { name: 'Jun', revenue: user?.role === 'seller' ? 67000 : 32000 },
+    { name: 'Jan', revenue: user?.activeRole === 'seller' ? 45000 : 15000 },
+    { name: 'Feb', revenue: user?.activeRole === 'seller' ? 52000 : 18000 },
+    { name: 'Mar', revenue: user?.activeRole === 'seller' ? 48000 : 22000 },
+    { name: 'Apr', revenue: user?.activeRole === 'seller' ? 61000 : 25000 },
+    { name: 'May', revenue: user?.activeRole === 'seller' ? 55000 : 28000 },
+    { name: 'Jun', revenue: user?.activeRole === 'seller' ? 67000 : 32000 },
   ];
 
   const activityData = [
@@ -79,7 +80,8 @@ const Dashboard = () => {
   ];
 
   const getRoleDashboard = () => {
-    switch (user?.role) {
+    const currentRole = user?.activeRole || user?.role || 'buyer';
+    switch (currentRole) {
       case 'seller':
         return <SellerDashboard stats={stats} revenueData={revenueData} />;
       case 'service_provider':
@@ -99,18 +101,27 @@ const Dashboard = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-6 lg:mb-8"
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 lg:mb-8"
       >
-        <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">
-          Welcome back, {user?.name || 'User'}
-        </h1>
-        <p className="text-gray-400 text-sm lg:text-base">
-          {user?.role === 'seller' && 'Here\'s your business performance overview.'}
-          {user?.role === 'service_provider' && 'Here\'s your service booking overview.'}
-          {user?.role === 'rider' && 'Here\'s your delivery performance overview.'}
-          {user?.role === 'freelancer' && 'Here\'s your freelance projects overview.'}
-          {(user?.role === 'buyer' || !user?.role) && 'Here\'s what\'s happening with your SokoNet account today.'}
-        </p>
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">
+            Welcome back, {user?.name || 'User'}
+          </h1>
+          <p className="text-gray-400 text-sm lg:text-base">
+            {user?.activeRole === 'seller' && 'Here\'s your business performance overview.'}
+            {user?.activeRole === 'service_provider' && 'Here\'s your service booking overview.'}
+            {user?.activeRole === 'rider' && 'Here\'s your delivery performance overview.'}
+            {user?.activeRole === 'freelancer' && 'Here\'s your freelance projects overview.'}
+            {user?.activeRole === 'buyer' && 'Here\'s what\'s happening with your SokoNet account today.'}
+          </p>
+        </div>
+        {user?.roles && user.roles.length > 1 && (
+          <RoleSwitcher
+            currentRole={user.activeRole}
+            availableRoles={user.roles}
+            onRoleSwitch={switchRole}
+          />
+        )}
       </motion.div>
 
       {getRoleDashboard()}

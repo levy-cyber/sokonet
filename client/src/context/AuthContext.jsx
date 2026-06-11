@@ -12,7 +12,15 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem('sokonet_token');
     
     if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
+      const userData = JSON.parse(storedUser);
+      // Ensure roles is an array and set active role if not set
+      if (!userData.roles || !Array.isArray(userData.roles)) {
+        userData.roles = [userData.role || 'buyer'];
+      }
+      if (!userData.activeRole) {
+        userData.activeRole = userData.roles[0] || 'buyer';
+      }
+      setUser(userData);
     }
     setLoading(false);
   }, []);
@@ -26,7 +34,9 @@ export const AuthProvider = ({ children }) => {
           name: data.name,
           email: data.email,
           phone: data.phone,
-          role: data.role,
+          role: data.role || 'buyer',
+          roles: data.roles || [data.role || 'buyer'],
+          activeRole: data.activeRole || data.role || 'buyer',
           avatar: data.avatar,
         };
         setUser(userData);
@@ -40,14 +50,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, phone, password, role) => {
+  const register = async (name, email, phone, password, selectedRoles) => {
     try {
       const { data } = await api.post('/auth/register', {
         name,
         email,
         phone,
         password,
-        role,
+        roles: selectedRoles.length > 0 ? selectedRoles : ['buyer'],
+        activeRole: selectedRoles[0] || 'buyer',
       });
       if (data.success) {
         const userData = {
@@ -55,7 +66,9 @@ export const AuthProvider = ({ children }) => {
           name: data.name,
           email: data.email,
           phone: data.phone,
-          role: data.role,
+          role: data.role || 'buyer',
+          roles: data.roles || selectedRoles || ['buyer'],
+          activeRole: data.activeRole || selectedRoles[0] || 'buyer',
           avatar: data.avatar,
         };
         setUser(userData);
@@ -69,6 +82,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const switchRole = (newRole) => {
+    if (user && user.roles && user.roles.includes(newRole)) {
+      const updatedUser = {
+        ...user,
+        activeRole: newRole,
+        role: newRole, // Keep role for backward compatibility
+      };
+      setUser(updatedUser);
+      localStorage.setItem('sokonet_user', JSON.stringify(updatedUser));
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('sokonet_token');
@@ -76,7 +101,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, setUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, setUser, switchRole }}>
       {children}
     </AuthContext.Provider>
   );

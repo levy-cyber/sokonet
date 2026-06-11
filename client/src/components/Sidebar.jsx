@@ -24,17 +24,18 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Bookings', path: '/bookings', icon: FiCalendar, description: 'View service bookings', role: 'service_provider' },
     { name: 'Rider Console', path: '/rider/dashboard', icon: FiTruck, description: 'Delivery partner dashboard', role: 'rider' },
     { name: 'Chat Room', path: '/chat', icon: FiUsers, description: 'Real-time messaging', role: 'all' },
+    { name: 'Settings', path: '/settings', icon: FiSliders, description: 'Account settings', role: 'all' },
     { name: 'Admin Console', path: '/admin', icon: FiSliders, description: 'System administration', role: 'admin' },
   ];
 
   // Filter navigation links based on user role
   const navigationLinks = allNavigationLinks.filter(link => {
     if (link.role === 'all') return true;
-    if (link.role === 'seller' && user?.role === 'seller') return true;
-    if (link.role === 'freelancer' && user?.role === 'freelancer') return true;
-    if (link.role === 'service_provider' && user?.role === 'service_provider') return true;
-    if (link.role === 'rider' && user?.role === 'rider') return true;
-    if (link.role === 'admin' && user?.role === 'admin') return true;
+    if (link.role === 'seller' && user?.activeRole === 'seller') return true;
+    if (link.role === 'freelancer' && user?.activeRole === 'freelancer') return true;
+    if (link.role === 'service_provider' && user?.activeRole === 'service_provider') return true;
+    if (link.role === 'rider' && user?.activeRole === 'rider') return true;
+    if (link.role === 'admin' && user?.activeRole === 'admin') return true;
     return false;
   });
 
@@ -58,8 +59,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     };
 
     return {
-      className: roleColors[user?.role] || roleColors.buyer,
-      text: roleNames[user?.role] || 'Buyer',
+      className: roleColors[user?.activeRole] || roleColors.buyer,
+      text: roleNames[user?.activeRole] || 'Buyer',
     };
   };
 

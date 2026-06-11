@@ -45,12 +45,16 @@ const updateUserProfile = async (req, res) => {
 
       res.json({
         success: true,
-        _id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        phone: updatedUser.phone,
-        role: updatedUser.role,
-        avatar: updatedUser.avatar,
+        user: {
+          _id: updatedUser._id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          phone: updatedUser.phone,
+          role: updatedUser.role,
+          roles: updatedUser.roles,
+          activeRole: updatedUser.activeRole,
+          avatar: updatedUser.avatar,
+        },
       });
     } else {
       res.status(404).json({ success: false, message: 'User not found' });
