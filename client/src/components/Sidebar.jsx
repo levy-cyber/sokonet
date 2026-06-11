@@ -34,6 +34,18 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     ],
   };
 
+  const generalLinks = [
+    { path: '/', label: 'Dashboard', icon: FiHome },
+    { path: '/marketplace', label: 'Marketplace', icon: FiShoppingBag },
+    { path: '/services', label: 'Services', icon: FiTool },
+    { path: '/orders', label: 'My Orders', icon: FiInbox },
+    { path: '/wallet', label: 'My Wallet', icon: FiCreditCard },
+    { path: '/escrow', label: 'Escrow', icon: FiLock },
+    { path: '/jobs', label: 'Jobs', icon: FiJob },
+    { path: '/chat', label: 'Chat Room', icon: FiUsers },
+    { path: '/settings', label: 'Settings', icon: FiSliders },
+  ];
+
   const allNavigationLinks = [
     { name: 'Dashboard', path: '/', icon: FiHome, description: 'Home dashboard with stats', role: 'all' },
     { name: 'Marketplace', path: '/marketplace', icon: FiShoppingBag, description: 'Browse products and shops', role: 'all' },
@@ -145,27 +157,55 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 {showRoleMenu && (
                   <div className="mt-2 pt-2 border-t border-dark-border/50">
                     <p className="text-[10px] text-gray-500 mb-2 font-medium">Quick Access</p>
-                    {user?.roles?.map((role) => (
-                      <div key={role} className="space-y-1">
-                        {roleLinks[role]?.map((link) => {
-                          const Icon = link.icon;
-                          return (
-                            <button
-                              key={link.path}
-                              onClick={() => {
-                                navigate(link.path);
-                                setShowRoleMenu(false);
-                                setIsOpen(false);
-                              }}
-                              className="w-full flex items-center gap-2 px-2 py-1.5 text-[10px] lg:text-xs text-gray-400 hover:text-white hover:bg-dark-card/50 rounded-lg transition-colors"
-                            >
-                              <Icon className="w-3 h-3 lg:w-4 lg:h-4" />
-                              <span>{link.label}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ))}
+                    
+                    {/* General Links */}
+                    <div className="space-y-1 mb-3">
+                      {generalLinks.map((link) => {
+                        const Icon = link.icon;
+                        return (
+                          <button
+                            key={link.path}
+                            onClick={() => {
+                              navigate(link.path);
+                              setShowRoleMenu(false);
+                              setIsOpen(false);
+                            }}
+                            className="w-full flex items-center gap-2 px-2 py-1.5 text-[10px] lg:text-xs text-gray-400 hover:text-white hover:bg-dark-card/50 rounded-lg transition-colors"
+                          >
+                            <Icon className="w-3 h-3 lg:w-4 lg:h-4" />
+                            <span>{link.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Role-specific Links */}
+                    {user?.roles?.length > 0 && (
+                      <>
+                        <p className="text-[10px] text-gray-500 mb-2 font-medium border-t border-dark-border/50 pt-2">Your Roles</p>
+                        {user?.roles?.map((role) => (
+                          <div key={role} className="space-y-1">
+                            {roleLinks[role]?.map((link) => {
+                              const Icon = link.icon;
+                              return (
+                                <button
+                                  key={link.path}
+                                  onClick={() => {
+                                    navigate(link.path);
+                                    setShowRoleMenu(false);
+                                    setIsOpen(false);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-2 py-1.5 text-[10px] lg:text-xs text-brand hover:text-white hover:bg-brand/20 rounded-lg transition-colors"
+                                >
+                                  <Icon className="w-3 h-3 lg:w-4 lg:h-4" />
+                                  <span>{link.label}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ))}
+                      </>
+                    )}
                   </div>
                 )}
               </div>
