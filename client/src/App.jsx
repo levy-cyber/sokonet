@@ -2,15 +2,18 @@ import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
+import { CartProvider } from './context/CartContext';
 import AppRoutes from './routes/AppRoutes';
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <SocketProvider>
-          <AppRoutes />
-        </SocketProvider>
+        <CartProvider>
+          <SocketProvider>
+            <AppRoutes />
+          </SocketProvider>
+        </CartProvider>
       </AuthProvider>
     </BrowserRouter>
   );

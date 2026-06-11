@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Star, MapPin, Phone, Mail, Package, TrendingUp, X, Image } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, MapPin, Phone, Mail, Package, TrendingUp, X, Image, Upload } from 'lucide-react';
 import api from '../services/api';
 
 const ShopsPage = () => {
@@ -27,6 +27,8 @@ const ShopsPage = () => {
     category: '',
     image: '',
   });
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
     fetchShopData();
@@ -92,6 +94,34 @@ const ShopsPage = () => {
     }
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    
+    try {
+      // Create local preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+        setNewProduct({ ...newProduct, image: reader.result });
+        setUploadingImage(false);
+      };
+      reader.readAsDataURL(file);
+      
+      // In production, you would upload to a server
+      // const formData = new FormData();
+      // formData.append('image', file);
+      // const response = await api.post('/upload', formData);
+      // setNewProduct({ ...newProduct, image: response.data.url });
+      
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setUploadingImage(false);
+    }
+  };
+
   const handleAddProduct = async (e) => {
     e.preventDefault();
     
@@ -109,7 +139,7 @@ const ShopsPage = () => {
         price: parseFloat(newProduct.price),
         stock: parseInt(newProduct.stock),
         category: newProduct.category,
-        image: newProduct.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+        image: newProduct.image || imagePreview || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
         status: parseInt(newProduct.stock) > 0 ? 'active' : 'out_of_stock',
       });
 
@@ -124,6 +154,7 @@ const ShopsPage = () => {
           category: '',
           image: '',
         });
+        setImagePreview(null);
         fetchShopData();
       }
     } catch (error) {
@@ -136,7 +167,7 @@ const ShopsPage = () => {
         price: parseFloat(newProduct.price),
         stock: parseInt(newProduct.stock),
         category: newProduct.category,
-        image: newProduct.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+        image: newProduct.image || imagePreview || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
         status: parseInt(newProduct.stock) > 0 ? 'active' : 'out_of_stock',
         sales: 0,
         rating: 0,
@@ -153,6 +184,7 @@ const ShopsPage = () => {
         category: '',
         image: '',
       });
+      setImagePreview(null);
     }
   };
 
@@ -391,7 +423,18 @@ const ShopsPage = () => {
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-white">Add New Product</h3>
               <button
-                onClick={() => setShowAddProduct(false)}
+                onClick={() => {
+                  setShowAddProduct(false);
+                  setImagePreview(null);
+                  setNewProduct({
+                    name: '',
+                    description: '',
+                    price: '',
+                    stock: '',
+                    category: '',
+                    image: '',
+                  });
+                }}
                 className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-gray-400" />
@@ -477,47 +520,76 @@ const ShopsPage = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Image URL
+                  Product Image *
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    value={newProduct.image}
-                    onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
-                    className="flex-1 bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-green-500 transition-colors"
-                    placeholder="https://example.com/image.jpg"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setNewProduct({
-                      ...newProduct,
-                      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400'
-                    })}
-                    className="p-2 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 transition-colors"
-                    title="Use default image"
-                  >
-                    <Image className="w-5 h-5 text-gray-400" />
-                  </button>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <label className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg hover:bg-gray-700 transition-colors cursor-pointer">
+                      <Upload className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm">Upload Image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                    <input
+                      type="url"
+                      value={newProduct.image}
+                      onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
+                      className="flex-1 bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-green-500 transition-colors"
+                      placeholder="Or enter image URL"
+                    />
+                  </div>
+                  
+                  {(imagePreview || newProduct.image) && (
+                    <div className="relative">
+                      <img
+                        src={imagePreview || newProduct.image}
+                        alt="Preview"
+                        className="w-full h-48 object-cover rounded-lg border border-gray-700"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImagePreview(null);
+                          setNewProduct({ ...newProduct, image: '' });
+                        }}
+                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  
+                  {uploadingImage && (
+                    <div className="flex items-center justify-center gap-2 py-3 bg-gray-800 rounded-lg">
+                      <div className="w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-sm text-gray-400">Uploading image...</span>
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {newProduct.image && (
-                <div className="mt-2">
-                  <img
-                    src={newProduct.image}
-                    alt="Preview"
-                    className="w-full h-32 object-cover rounded-lg border border-gray-700"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                </div>
-              )}
 
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowAddProduct(false)}
+                  onClick={() => {
+                    setShowAddProduct(false);
+                    setImagePreview(null);
+                    setNewProduct({
+                      name: '',
+                      description: '',
+                      price: '',
+                      stock: '',
+                      category: '',
+                      image: '',
+                    });
+                  }}
                   className="flex-1 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
                   Cancel

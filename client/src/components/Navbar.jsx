@@ -1,11 +1,14 @@
 import React, { useContext, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useCart } from '../context/CartContext';
 import { SocketContext } from '../context/SocketContext';
 import api from '../services/api';
-import { FiBell, FiDollarSign, FiSearch, FiSettings, FiMenu } from 'react-icons/fi';
+import { FiBell, FiDollarSign, FiSearch, FiSettings, FiMenu, FiShoppingCart } from 'react-icons/fi';
 
 const Navbar = ({ title, onMenuToggle }) => {
   const { user } = useAuth();
+  const { cartItems, getCartCount } = useCart();
   const { socket } = useContext(SocketContext);
   const [balance, setBalance] = useState(0);
   const [notifications, setNotifications] = useState([]);
@@ -45,6 +48,8 @@ const Navbar = ({ title, onMenuToggle }) => {
     };
   }, [socket]);
 
+  const cartCount = getCartCount();
+
   return (
     <header className="h-16 fixed top-0 right-0 left-0 lg:left-64 glass-panel border-b border-dark-border flex items-center justify-between px-4 lg:px-8 z-20">
       <div className="flex items-center gap-4">
@@ -62,6 +67,20 @@ const Navbar = ({ title, onMenuToggle }) => {
 
       {/* Utilities */}
       <div className="flex items-center gap-4 lg:gap-6">
+        {/* Shopping Cart */}
+        {user && (
+          <Link to="/cart" className="relative">
+            <button className="w-10 h-10 rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors">
+              <FiShoppingCart className="text-lg" />
+              {cartCount > 0 && (
+                <span className="absolute top-1 right-1 w-5 h-5 bg-brand rounded-full text-black text-xs font-bold flex items-center justify-center ring-2 ring-dark-bg">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+          </Link>
+        )}
+
         {/* Wallet Balance Badge */}
         {user && (
           <div className="flex items-center gap-2 bg-dark-card border border-dark-border px-3 py-1.5 rounded-xl">

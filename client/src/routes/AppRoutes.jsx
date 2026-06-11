@@ -20,6 +20,8 @@ import RidersPage from '../pages/RidersPage';
 import ShopsPage from '../pages/ShopsPage';
 import ServicesPage from '../pages/ServicesPage';
 import ServicesMarketplace from '../pages/ServicesMarketplace';
+import CartPage from '../pages/CartPage';
+import CheckoutPage from '../pages/CheckoutPage';
 
 const AppRoutes = () => {
   return (
@@ -65,27 +67,41 @@ const AppRoutes = () => {
           <Route path="/chat" element={<ChatPage />} />
         </Route>
 
-        {/* Role-specific pages - Now accessible to all for exploration */}
+        <Route element={<MainLayout title="Shopping Cart" />}>
+          <Route path="/cart" element={<CartPage />} />
+        </Route>
+
+        <Route element={<MainLayout title="Checkout" />}>
+          <Route path="/checkout" element={<CheckoutPage />} />
+        </Route>
+      </Route>
+
+      {/* Role-specific pages - Protected by role */}
+      <Route element={<ProtectedRoute allowedRoles={['seller']} />}>
         <Route element={<MainLayout title="My Vendor Storefront" />}>
           <Route path="/shop/mine" element={<ShopsPage />} />
         </Route>
+        <Route element={<MainLayout title="Business Analytics" />}>
+          <Route path="/analytics" element={<AnalyticsPage />} />
+        </Route>
+      </Route>
 
+      <Route element={<ProtectedRoute allowedRoles={['rider']} />}>
         <Route element={<MainLayout title="Logistics Rider Dashboard" />}>
           <Route path="/rider/dashboard" element={<RidersPage />} />
         </Route>
+      </Route>
 
+      <Route element={<ProtectedRoute allowedRoles={['service_provider', 'freelancer']} />}>
         <Route element={<MainLayout title="My Service Management" />}>
           <Route path="/services/mine" element={<ServicesPage />} />
         </Route>
-
         <Route element={<MainLayout title="Service Bookings" />}>
           <Route path="/bookings" element={<ServicesPage />} />
         </Route>
+      </Route>
 
-        <Route element={<MainLayout title="System Metrics & Analytics" />}>
-          <Route path="/analytics" element={<AnalyticsPage />} />
-        </Route>
-
+      <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
         <Route element={<MainLayout title="Admin Management Console" />}>
           <Route path="/admin" element={<AdminPage />} />
         </Route>

@@ -1,8 +1,23 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiShoppingBag, FiStar } from 'react-icons/fi';
+import { FiShoppingBag, FiStar, FiPlus, FiShoppingCart } from 'react-icons/fi';
+import { useCart } from '../context/CartContext';
 
 const ProductCard = ({ product, onBuyNow }) => {
+  const { addToCart, isInCart } = useCart();
+  
+  const handleAddToCart = () => {
+    addToCart({
+      _id: product._id,
+      name: product.name,
+      price: product.price,
+      image: product.images?.[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&h=400',
+      category: product.category,
+      description: product.description,
+      stock: product.stock,
+    });
+  };
+
   return (
     <div className="glass-panel rounded-2xl overflow-hidden flex flex-col justify-between group hover:border-brand/40 transition-all duration-300">
       {/* Product Image */}
@@ -61,14 +76,24 @@ const ProductCard = ({ product, onBuyNow }) => {
             Details
           </Link>
           <button
-            onClick={() => onBuyNow && onBuyNow(product)}
+            onClick={handleAddToCart}
             disabled={product.stock <= 0}
-            className="col-span-3 flex items-center justify-center gap-1.5 py-2 bg-brand hover:bg-brand-dark disabled:bg-dark-cardMuted disabled:text-dark-muted disabled:border-dark-border disabled:shadow-none text-black text-xs font-bold rounded-xl transition-all shadow-glow-green/10 hover:shadow-glow-green"
+            className="col-span-3 flex items-center justify-center gap-1.5 py-2 bg-green-600 hover:bg-green-700 disabled:bg-dark-cardMuted disabled:text-dark-muted disabled:border-dark-border disabled:shadow-none text-white text-xs font-bold rounded-xl transition-all"
           >
-            <FiShoppingBag />
-            <span>Secure Buy</span>
+            <FiShoppingCart />
+            <span>{isInCart(product._id) ? 'In Cart' : 'Add to Cart'}</span>
           </button>
         </div>
+        
+        {/* Alternative buy now button */}
+        <button
+          onClick={() => onBuyNow && onBuyNow(product)}
+          disabled={product.stock <= 0}
+          className="w-full mt-2 flex items-center justify-center gap-1.5 py-2 bg-brand hover:bg-brand-dark disabled:bg-dark-cardMuted disabled:text-dark-muted disabled:border-dark-border disabled:shadow-none text-black text-xs font-bold rounded-xl transition-all shadow-glow-green/10 hover:shadow-glow-green"
+        >
+          <FiShoppingBag />
+          <span>Buy Now</span>
+        </button>
       </div>
     </div>
   );
