@@ -38,11 +38,11 @@ services:
       - key: EMAIL_SERVICE
         value: true
       - key: EMAIL_USER
-        sync: false
+        value: egemmanuelgichuki@gmail.com
       - key: EMAIL_PASS
-        sync: false
+        value: ldoo bvdf zlsn aata
       - key: EMAIL_FROM
-        sync: false
+        value: egemmanuelgichuki@gmail.com
 
   # ─── Frontend (React + Vite) ───────────────────────────────────────────────
   - type: web
