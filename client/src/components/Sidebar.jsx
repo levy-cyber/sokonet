@@ -1,14 +1,38 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
   FiHome, FiShoppingBag, FiLock, FiCreditCard, FiInbox,
   FiBriefcase, FiUser, FiSliders, FiUsers, FiActivity, FiLogOut, FiX,
-  FiTool, FiBriefcase as FiJob, FiCalendar, FiTruck
+  FiTool, FiBriefcase as FiJob, FiCalendar, FiTruck, FiChevronDown,
+  FiStore, FiBarChart2, FiLayout, FiShield
 } from 'react-icons/fi';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [showRoleMenu, setShowRoleMenu] = useState(false);
+
+  const roleLinks = {
+    seller: [
+      { path: '/shop/mine', label: 'My Shop', icon: FiStore },
+      { path: '/analytics', label: 'Analytics', icon: FiBarChart2 },
+    ],
+    rider: [
+      { path: '/rider/dashboard', label: 'Rider Dashboard', icon: FiTruck },
+    ],
+    service_provider: [
+      { path: '/services/mine', label: 'My Services', icon: FiTool },
+      { path: '/bookings', label: 'Service Bookings', icon: FiCalendar },
+    ],
+    freelancer: [
+      { path: '/services/mine', label: 'My Services', icon: FiTool },
+      { path: '/bookings', label: 'Service Bookings', icon: FiCalendar },
+    ],
+    admin: [
+      { path: '/admin', label: 'Admin Console', icon: FiShield },
+    ],
+  };
 
   const allNavigationLinks = [
     { name: 'Dashboard', path: '/', icon: FiHome, description: 'Home dashboard with stats', role: 'all' },
@@ -98,18 +122,52 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           {/* User Card */}
           {user && (
             <div className="px-3 lg:px-4 mb-4 lg:mb-6">
-              <div className="p-2 lg:p-3 bg-dark-cardMuted/50 border border-dark-border rounded-xl flex items-center gap-2 lg:gap-3">
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover border border-brand/35"
-                />
-                <div className="overflow-hidden">
-                  <p className="text-xs lg:text-sm font-semibold text-white truncate">{user.name}</p>
-                  <span className={`inline-block px-1.5 lg:px-2 py-0.5 text-[9px] lg:text-[10px] uppercase font-mono rounded font-semibold border ${getRoleBadge().className}`}>
-                    {getRoleBadge().text}
-                  </span>
+              <div className="p-2 lg:p-3 bg-dark-cardMuted/50 border border-dark-border rounded-xl">
+                <div className="flex items-center gap-2 lg:gap-3">
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover border border-brand/35"
+                  />
+                  <div className="flex-1 overflow-hidden">
+                    <p className="text-xs lg:text-sm font-semibold text-white truncate">{user.name}</p>
+                    <button
+                      onClick={() => setShowRoleMenu(!showRoleMenu)}
+                      className="flex items-center gap-1 text-[9px] lg:text-[10px] uppercase font-mono rounded font-semibold border transition-colors hover:bg-dark-card/50"
+                    >
+                      <span className={getRoleBadge().className}>{getRoleBadge().text}</span>
+                      <FiChevronDown className={`w-3 h-3 transition-transform ${showRoleMenu ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
                 </div>
+
+                {/* Role Menu Dropdown */}
+                {showRoleMenu && (
+                  <div className="mt-2 pt-2 border-t border-dark-border/50">
+                    <p className="text-[10px] text-gray-500 mb-2 font-medium">Quick Access</p>
+                    {user?.roles?.map((role) => (
+                      <div key={role} className="space-y-1">
+                        {roleLinks[role]?.map((link) => {
+                          const Icon = link.icon;
+                          return (
+                            <button
+                              key={link.path}
+                              onClick={() => {
+                                navigate(link.path);
+                                setShowRoleMenu(false);
+                                setIsOpen(false);
+                              }}
+                              className="w-full flex items-center gap-2 px-2 py-1.5 text-[10px] lg:text-xs text-gray-400 hover:text-white hover:bg-dark-card/50 rounded-lg transition-colors"
+                            >
+                              <Icon className="w-3 h-3 lg:w-4 lg:h-4" />
+                              <span>{link.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
