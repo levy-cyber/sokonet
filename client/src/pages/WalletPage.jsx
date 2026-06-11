@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, ArrowUpRight, ArrowDownLeft, History, CreditCard, Smartphone } from 'lucide-react';
+import { Wallet, ArrowUpRight, ArrowDownLeft, History, CreditCard, Smartphone, X } from 'lucide-react';
 import WalletCard from '../components/WalletCard';
 import api from '../services/api';
 
@@ -14,6 +14,9 @@ const WalletPage = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showBankModal, setShowBankModal] = useState(false);
+  const [bankDetails, setBankDetails] = useState({ accountNumber: '' });
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     fetchWalletData();
@@ -98,6 +101,39 @@ const WalletPage = () => {
     } catch (error) {
       console.error('Withdrawal error:', error);
       alert('Withdrawal failed');
+    }
+  };
+
+  const handleBankTransfer = async () => {
+    if (!amount || isNaN(amount)) {
+      alert('Please enter a valid amount');
+      return;
+    }
+    if (!bankDetails.accountNumber) {
+      alert('Please enter bank account number');
+      return;
+    }
+    if (parseFloat(amount) > wallet.balance) {
+      alert('Insufficient balance');
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      await api.post('/wallet/bank-transfer', {
+        amount: parseFloat(amount),
+        accountNumber: bankDetails.accountNumber
+      });
+      alert(`Transfer of KES ${amount} to account ${bankDetails.accountNumber} initiated via Paybill 247247`);
+      setShowBankModal(false);
+      setBankDetails({ accountNumber: '' });
+      setAmount('');
+      fetchWalletData();
+    } catch (error) {
+      console.error('Bank transfer error:', error);
+      alert('Bank transfer failed');
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -192,7 +228,10 @@ const WalletPage = () => {
                   <p className="text-gray-400 text-sm">Instant deposit</p>
                 </div>
               </button>
-              <button className="flex items-center justify-center gap-3 p-4 bg-gray-800/50 border border-gray-700 rounded-lg hover:bg-gray-700/50 transition-all">
+              <button 
+                onClick={() => setShowBankModal(true)}
+                className="flex items-center justify-center gap-3 p-4 bg-gray-800/50 border border-gray-700 rounded-lg hover:bg-gray-700/50 transition-all"
+              >
                 <CreditCard className="w-6 h-6 text-blue-500" />
                 <div className="text-left">
                   <p className="text-white font-medium">Card Payment</p>
@@ -242,7 +281,10 @@ const WalletPage = () => {
                   <p className="text-gray-400 text-sm">To your phone</p>
                 </div>
               </button>
-              <button className="flex items-center justify-center gap-3 p-4 bg-gray-800/50 border border-gray-700 rounded-lg hover:bg-gray-700/50 transition-all">
+              <button 
+                onClick={() => setShowBankModal(true)}
+                className="flex items-center justify-center gap-3 p-4 bg-gray-800/50 border border-gray-700 rounded-lg hover:bg-gray-700/50 transition-all"
+              >
                 <CreditCard className="w-6 h-6 text-blue-500" />
                 <div className="text-left">
                   <p className="text-white font-medium">Bank Transfer</p>
@@ -307,6 +349,70 @@ const WalletPage = () => {
             </div>
           )}
         </motion.div>
+      )}
+
+      {/* Bank Details Modal */}
+      {showBankModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-white">Bank Transfer Details</h3>
+              <button
+                onClick={() => setShowBankModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
+                <p className="text-gray-400 text-sm mb-2">Paybill Number</p>
+                <p className="text-white font-mono text-lg">247247</p>
+                <p className="text-gray-400 text-sm mt-2">Account Number</p>
+                <p className="text-white font-mono text-lg">0870185429080</p>
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">Your Bank Account Number</label>
+                <input
+                  type="text"
+                  value={bankDetails.accountNumber}
+                  onChange={(e) => setBankDetails({ accountNumber: e.target.value })}
+                  placeholder="Enter your bank account number"
+                  className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">Amount (KES)</label>
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  max={wallet.balance}
+                  className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"
+                />
+                <p className="text-gray-400 text-sm mt-2">Available: KES {wallet.balance.toLocaleString()}</p>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleBankTransfer}
+                disabled={processing}
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {processing ? 'Processing...' : 'Transfer Funds'}
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
       )}
     </div>
   );
