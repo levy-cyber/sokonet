@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       match: [
         /^(?:\+254|0)?(7|1)\d{8}$/,
-        'Please add a valid Kenyan phone number (+254 or 07...)',
+        'Please add a valid Kenyan phone number (+254, 07..., or 01...)',
       ],
     },
     password: {
