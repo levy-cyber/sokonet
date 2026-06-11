@@ -45,63 +45,19 @@ const AdminPage = () => {
       setLoading(false);
       // Mock data
       if (activeTab === 'users') {
-        setUsers([
-          { 
-            _id: '1', 
-            name: 'John Doe', 
-            email: 'john@example.com', 
-            phone: '0712345678',
-            role: 'buyer', 
-            roles: ['buyer'],
-            activeRole: 'buyer',
-            status: 'active', 
-            createdAt: '2024-01-15',
-            wallet: { balance: 50000, currency: 'KES' },
-            bankAccount: { paybill: '247247', account: '0870185429080' }
-          },
-          { 
-            _id: '2', 
-            name: 'TechStore Kenya', 
-            email: 'tech@store.com', 
-            phone: '0723456789',
-            role: 'seller', 
-            roles: ['seller'],
-            activeRole: 'seller',
-            status: 'active', 
-            createdAt: '2024-01-10',
-            wallet: { balance: 125000, currency: 'KES' },
-            bankAccount: { paybill: '247247', account: '0870185429080' }
-          },
-        ]);
+        setUsers([]);
       } else if (activeTab === 'till') {
         setCompanyTill({
           _id: 'till1',
           name: 'Company Till',
-          balance: 5000000,
+          balance: 0,
           currency: 'KES',
-          transactions: [
-            {
-              type: 'deposit',
-              amount: 1000000,
-              description: 'Initial deposit',
-              reference: 'INIT_DEP',
-              status: 'completed',
-              createdAt: new Date(),
-            },
-          ],
+          transactions: [],
         });
       } else {
-        setUsers([
-          { _id: '1', name: 'John Doe', email: 'john@example.com', role: 'buyer', status: 'active', createdAt: '2024-01-15' },
-          { _id: '2', name: 'TechStore Kenya', email: 'tech@store.com', role: 'seller', status: 'active', createdAt: '2024-01-10' },
-        ]);
-        setProducts([
-          { _id: '1', name: 'iPhone 15 Pro Max', seller: 'TechStore Kenya', status: 'approved', price: 185000 },
-          { _id: '2', name: 'Fake Product', seller: 'Spam Seller', status: 'pending', price: 50000 },
-        ]);
-        setReports([
-          { _id: '1', type: 'product', item: 'Fake Product', reporter: 'John Doe', reason: 'Counterfeit item', status: 'pending' },
-        ]);
+        setUsers([]);
+        setProducts([]);
+        setReports([]);
       }
     }
   };

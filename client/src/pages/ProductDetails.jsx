@@ -28,35 +28,7 @@ const ProductDetails = () => {
     } catch (error) {
       console.error('Error fetching product:', error);
       setLoading(false);
-      // Mock data
-      setProduct({
-        _id: id,
-        name: 'iPhone 15 Pro Max',
-        description: 'The most powerful iPhone ever. Featuring A17 Pro chip, titanium design, and advanced camera system.',
-        price: 185000,
-        category: 'electronics',
-        images: [
-          'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=600',
-          'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600',
-          'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600',
-        ],
-        rating: 4.8,
-        reviews: 234,
-        stock: 15,
-        seller: {
-          _id: 'seller1',
-          name: 'TechStore Kenya',
-          rating: 4.9,
-          avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100',
-        },
-        specifications: {
-          'Display': '6.7" Super Retina XDR',
-          'Processor': 'A17 Pro chip',
-          'Storage': '256GB',
-          'Camera': '48MP Main + 12MP Ultra Wide',
-          'Battery': '4422 mAh',
-        },
-      });
+      setProduct(null);
     }
   };
 

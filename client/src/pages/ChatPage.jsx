@@ -42,45 +42,7 @@ const ChatPage = () => {
     } catch (error) {
       console.error('Error fetching conversations:', error);
       setLoading(false);
-      // Mock data
-      setConversations([
-        {
-          _id: '1',
-          participant: {
-            _id: 'user1',
-            name: 'TechStore Kenya',
-            avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100',
-            online: true,
-          },
-          lastMessage: 'Your order has been shipped!',
-          lastMessageTime: '2024-01-20T10:30:00Z',
-          unreadCount: 2,
-        },
-        {
-          _id: '2',
-          participant: {
-            _id: 'user2',
-            name: 'John Doe',
-            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
-            online: false,
-          },
-          lastMessage: 'Thanks for the quick response',
-          lastMessageTime: '2024-01-19T14:20:00Z',
-          unreadCount: 0,
-        },
-        {
-          _id: '3',
-          participant: {
-            _id: 'user3',
-            name: 'Audio World',
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
-            online: true,
-          },
-          lastMessage: 'Is the product still available?',
-          lastMessageTime: '2024-01-18T09:15:00Z',
-          unreadCount: 1,
-        },
-      ]);
+      setConversations([]);
     }
   };
 

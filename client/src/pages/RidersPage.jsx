@@ -52,92 +52,10 @@ const RidersPage = () => {
 
   useEffect(() => {
     // Mock data for rider deliveries and requests
-    setPendingRequests([
-      {
-        id: 101,
-        orderId: 'ORD-NEW-001',
-        pickupLocation: 'Nairobi, Westlands Mall',
-        pickupAddress: 'Shoprite Westlands, Parklands Road',
-        deliveryLocation: 'Nairobi, Kilimani',
-        deliveryAddress: 'Yaya Centre, Argwings Kodhek Road',
-        customerName: 'John Kamau',
-        customerPhone: '+254712345678',
-        estimatedTime: '25 min',
-        distance: '8.5 km',
-        payment: 500,
-        packageSize: 'Medium',
-        packageWeight: '2.5kg',
-        packageDescription: 'Electronics box',
-        requestedAt: new Date(),
-        expiresAt: new Date(Date.now() + 300000) // 5 minutes
-      },
-      {
-        id: 102,
-        orderId: 'ORD-NEW-002',
-        pickupLocation: 'Nairobi, CBD',
-        pickupAddress: 'Kenya Commercial Bank, Moi Avenue',
-        deliveryLocation: 'Nairobi, Karen',
-        deliveryAddress: 'Karen Shopping Centre, Karen Road',
-        customerName: 'Mary Wanjiku',
-        customerPhone: '+254723456789',
-        estimatedTime: '30 min',
-        distance: '12.3 km',
-        payment: 650,
-        packageSize: 'Large',
-        packageWeight: '5.0kg',
-        packageDescription: 'Furniture delivery',
-        requestedAt: new Date(Date.now() - 60000), // 1 minute ago
-        expiresAt: new Date(Date.now() + 240000) // 4 minutes
-      }
-    ]);
-
-    setActiveDeliveries([
-      {
-        id: 1,
-        orderId: 'ORD-003',
-        pickupLocation: 'Nairobi, Eastleigh',
-        pickupAddress: 'Eastleigh Mall, Juja Road',
-        deliveryLocation: 'Nairobi, Roysambu',
-        deliveryAddress: 'Roysambu Shopping Centre, Thika Road',
-        customerName: 'James Omondi',
-        customerPhone: '+254734567890',
-        estimatedTime: '20 min',
-        distance: '6.2 km',
-        payment: 450,
-        packageSize: 'Small',
-        packageWeight: '1.0kg',
-        packageDescription: 'Food delivery',
-        status: 'assigned',
-        acceptedAt: new Date(Date.now() - 300000),
-        createdAt: new Date()
-      }
-    ]);
-
-    setCompletedDeliveries([
-      {
-        id: 4,
-        orderId: 'ORD-004',
-        pickupLocation: 'Nairobi, Upper Hill',
-        pickupAddress: 'Upper Hill Medical Centre',
-        deliveryLocation: 'Nairobi, Lavington',
-        deliveryAddress: 'Lavington Green Mall',
-        customerName: 'Sarah Mwangi',
-        customerPhone: '+254745678901',
-        estimatedTime: '15 min',
-        distance: '4.1 km',
-        payment: 350,
-        packageSize: 'Small',
-        packageWeight: '0.5kg',
-        packageDescription: 'Medicine',
-        status: 'delivered',
-        createdAt: new Date(),
-        completedAt: new Date(Date.now() - 3600000),
-        rating: 5,
-        customerFeedback: 'Excellent service, very punctual!'
-      }
-    ]);
-
-    setTotalEarnings(145000);
+    setPendingRequests([]);
+    setActiveDeliveries([]);
+    setCompletedDeliveries([]);
+    setTotalEarnings(0);
   }, []);
 
   const toggleOnlineStatus = () => {
