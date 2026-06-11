@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
-import { User, Mail, Phone, Camera, Save, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { User, Mail, Phone, Camera, Save, X, ArrowRight, Store, Bike, Briefcase, Shield, LayoutDashboard, BarChart3 } from 'lucide-react';
 
 const SettingsPage = () => {
   const { user, setUser } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -15,6 +17,27 @@ const SettingsPage = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [previewImage, setPreviewImage] = useState(null);
+
+  const roleLinks = {
+    seller: [
+      { path: '/shop/mine', label: 'My Shop', icon: Store },
+      { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+    ],
+    rider: [
+      { path: '/rider/dashboard', label: 'Rider Dashboard', icon: Bike },
+    ],
+    service_provider: [
+      { path: '/services/mine', label: 'My Services', icon: Briefcase },
+      { path: '/bookings', label: 'Service Bookings', icon: LayoutDashboard },
+    ],
+    freelancer: [
+      { path: '/services/mine', label: 'My Services', icon: Briefcase },
+      { path: '/bookings', label: 'Service Bookings', icon: LayoutDashboard },
+    ],
+    admin: [
+      { path: '/admin', label: 'Admin Console', icon: Shield },
+    ],
+  };
 
   useEffect(() => {
     if (user) {
@@ -196,7 +219,7 @@ const SettingsPage = () => {
             {/* Role Information */}
             <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
               <h3 className="text-white font-semibold mb-3">Account Roles</h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mb-4">
                 {user?.roles?.map((role) => (
                   <span
                     key={role}
@@ -209,6 +232,33 @@ const SettingsPage = () => {
                     {role.charAt(0).toUpperCase() + role.slice(1)}
                     {role === user?.activeRole && ' (Active)'}
                   </span>
+                ))}
+              </div>
+
+              {/* Role-specific navigation links */}
+              <div className="space-y-3">
+                <h4 className="text-gray-400 text-sm font-medium">Quick Access to Your Roles</h4>
+                {user?.roles?.map((role) => (
+                  <div key={role} className="space-y-2">
+                    {roleLinks[role]?.map((link) => {
+                      const Icon = link.icon;
+                      return (
+                        <button
+                          key={link.path}
+                          onClick={() => navigate(link.path)}
+                          className="w-full flex items-center justify-between p-3 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg transition-colors group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon className="w-5 h-5 text-brand" />
+                            <span className="text-gray-300 group-hover:text-white transition-colors">
+                              {link.label}
+                            </span>
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-brand transition-colors" />
+                        </button>
+                      );
+                    })}
+                  </div>
                 ))}
               </div>
             </div>
