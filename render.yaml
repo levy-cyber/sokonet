@@ -14,7 +14,7 @@ services:
       - key: PORT
         value: 10000           # Render assigns this automatically; 10000 is the default
       - key: MONGO_URI
-        value: mongodb+srv://Lev:<db_password>@cluster0.4fwnktm.mongodb.net/?appName=Cluster0
+        value: mongodb+srv://Lev:tkp7cZ3I02U3C8ds@cluster0.4fwnktm.mongodb.net/?appName=Cluster0
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRE
