@@ -5,7 +5,7 @@ import {
   FiHome, FiShoppingBag, FiLock, FiCreditCard, FiInbox,
   FiBriefcase, FiUser, FiSliders, FiUsers, FiActivity, FiLogOut, FiX,
   FiTool, FiBriefcase as FiJob, FiCalendar, FiTruck, FiChevronDown,
-  FiStore, FiBarChart2, FiLayout, FiShield
+  FiGrid, FiTrendingUp, FiLayout as FiLayoutIcon, FiShield as FiShieldIcon
 } from 'react-icons/fi';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -15,8 +15,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   const roleLinks = {
     seller: [
-      { path: '/shop/mine', label: 'My Shop', icon: FiStore },
-      { path: '/analytics', label: 'Analytics', icon: FiBarChart2 },
+      { path: '/shop/mine', label: 'My Shop', icon: FiShoppingBag },
+      { path: '/analytics', label: 'Analytics', icon: FiTrendingUp },
     ],
     rider: [
       { path: '/rider/dashboard', label: 'Rider Dashboard', icon: FiTruck },
@@ -30,7 +30,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       { path: '/bookings', label: 'Service Bookings', icon: FiCalendar },
     ],
     admin: [
-      { path: '/admin', label: 'Admin Console', icon: FiShield },
+      { path: '/admin', label: 'Admin Console', icon: FiShieldIcon },
     ],
   };
 
