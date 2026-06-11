@@ -7,6 +7,9 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const emailService = require('../services/emailService');
 
+// Admin credentials
+const ADMIN_PASSWORD = 'sokonet234';
+
 // Helper function to generate OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -378,6 +381,26 @@ const resetPassword = async (req, res) => {
   }
 };
 
+// @desc    Admin login
+// @route   POST /api/auth/admin-login
+// @access  Public
+const adminLogin = async (req, res) => {
+  const { password } = req.body;
+
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ success: false, message: 'Invalid admin password' });
+  }
+
+  // Generate admin token
+  const token = generateToken('admin');
+
+  res.json({
+    success: true,
+    token,
+    isAdmin: true,
+  });
+};
+
 module.exports = {
   registerUser,
   authUser,
@@ -386,4 +409,5 @@ module.exports = {
   verifyOTP,
   forgotPassword,
   resetPassword,
+  adminLogin,
 };

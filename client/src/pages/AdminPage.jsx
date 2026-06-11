@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, ShoppingBag, DollarSign, AlertTriangle, CheckCircle, XCircle, Search, Filter, MoreVertical, Ban, Shield } from 'lucide-react';
+import { Users, ShoppingBag, DollarSign, AlertTriangle, CheckCircle, XCircle, Search, Filter, MoreVertical, Ban, Shield, Wallet, Plus } from 'lucide-react';
 import api from '../services/api';
 
 const AdminPage = () => {
@@ -8,7 +8,11 @@ const AdminPage = () => {
   const [users, setUsers] = useState([]);
   const [products, setProducts] = useState([]);
   const [reports, setReports] = useState([]);
+  const [companyTill, setCompanyTill] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [depositAmount, setDepositAmount] = useState('');
+  const [depositDescription, setDepositDescription] = useState('');
+  const [depositing, setDepositing] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -17,35 +21,112 @@ const AdminPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // In a real app, fetch based on activeTab
-      const [usersRes, productsRes, reportsRes] = await Promise.all([
-        api.get('/users'),
-        api.get('/products'),
-        api.get('/reports'),
-      ]);
-      setUsers(usersRes.data.data || []);
-      setProducts(productsRes.data.data || []);
-      setReports(reportsRes.data.data || []);
+      
+      if (activeTab === 'users') {
+        const usersRes = await api.get('/admin/users');
+        setUsers(usersRes.data.data || []);
+      } else if (activeTab === 'till') {
+        const tillRes = await api.get('/admin/till');
+        setCompanyTill(tillRes.data.data || null);
+      } else {
+        const [usersRes, productsRes, reportsRes] = await Promise.all([
+          api.get('/admin/users'),
+          api.get('/products'),
+          api.get('/reports'),
+        ]);
+        setUsers(usersRes.data.data || []);
+        setProducts(productsRes.data.data || []);
+        setReports(reportsRes.data.data || []);
+      }
+      
       setLoading(false);
     } catch (error) {
       console.error('Error fetching admin data:', error);
       setLoading(false);
       // Mock data
-      setUsers([
-        { _id: '1', name: 'John Doe', email: 'john@example.com', role: 'buyer', status: 'active', createdAt: '2024-01-15' },
-        { _id: '2', name: 'TechStore Kenya', email: 'tech@store.com', role: 'seller', status: 'active', createdAt: '2024-01-10' },
-        { _id: '3', name: 'Mike Rider', email: 'mike@rider.com', role: 'rider', status: 'active', createdAt: '2024-01-08' },
-        { _id: '4', name: 'Spam User', email: 'spam@bad.com', role: 'buyer', status: 'suspended', createdAt: '2024-01-05' },
-      ]);
-      setProducts([
-        { _id: '1', name: 'iPhone 15 Pro Max', seller: 'TechStore Kenya', status: 'approved', price: 185000 },
-        { _id: '2', name: 'Fake Product', seller: 'Spam Seller', status: 'pending', price: 50000 },
-        { _id: '3', name: 'Samsung Galaxy S24', seller: 'Mobile Hub', status: 'approved', price: 175000 },
-      ]);
-      setReports([
-        { _id: '1', type: 'product', item: 'Fake Product', reporter: 'John Doe', reason: 'Counterfeit item', status: 'pending' },
-        { _id: '2', type: 'user', item: 'Spam User', reporter: 'Jane Smith', reason: 'Fraudulent activity', status: 'resolved' },
-      ]);
+      if (activeTab === 'users') {
+        setUsers([
+          { 
+            _id: '1', 
+            name: 'John Doe', 
+            email: 'john@example.com', 
+            phone: '0712345678',
+            role: 'buyer', 
+            roles: ['buyer'],
+            activeRole: 'buyer',
+            status: 'active', 
+            createdAt: '2024-01-15',
+            wallet: { balance: 50000, currency: 'KES' },
+            bankAccount: { paybill: '247247', account: '0870185429080' }
+          },
+          { 
+            _id: '2', 
+            name: 'TechStore Kenya', 
+            email: 'tech@store.com', 
+            phone: '0723456789',
+            role: 'seller', 
+            roles: ['seller'],
+            activeRole: 'seller',
+            status: 'active', 
+            createdAt: '2024-01-10',
+            wallet: { balance: 125000, currency: 'KES' },
+            bankAccount: { paybill: '247247', account: '0870185429080' }
+          },
+        ]);
+      } else if (activeTab === 'till') {
+        setCompanyTill({
+          _id: 'till1',
+          name: 'Company Till',
+          balance: 5000000,
+          currency: 'KES',
+          transactions: [
+            {
+              type: 'deposit',
+              amount: 1000000,
+              description: 'Initial deposit',
+              reference: 'INIT_DEP',
+              status: 'completed',
+              createdAt: new Date(),
+            },
+          ],
+        });
+      } else {
+        setUsers([
+          { _id: '1', name: 'John Doe', email: 'john@example.com', role: 'buyer', status: 'active', createdAt: '2024-01-15' },
+          { _id: '2', name: 'TechStore Kenya', email: 'tech@store.com', role: 'seller', status: 'active', createdAt: '2024-01-10' },
+        ]);
+        setProducts([
+          { _id: '1', name: 'iPhone 15 Pro Max', seller: 'TechStore Kenya', status: 'approved', price: 185000 },
+          { _id: '2', name: 'Fake Product', seller: 'Spam Seller', status: 'pending', price: 50000 },
+        ]);
+        setReports([
+          { _id: '1', type: 'product', item: 'Fake Product', reporter: 'John Doe', reason: 'Counterfeit item', status: 'pending' },
+        ]);
+      }
+    }
+  };
+
+  const handleDepositToTill = async () => {
+    if (!depositAmount || isNaN(depositAmount)) {
+      alert('Please enter a valid amount');
+      return;
+    }
+
+    setDepositing(true);
+    try {
+      await api.post('/admin/till/deposit', {
+        amount: parseFloat(depositAmount),
+        description: depositDescription || 'Manual deposit',
+      });
+      alert('Deposit successful');
+      setDepositAmount('');
+      setDepositDescription('');
+      fetchData();
+    } catch (error) {
+      console.error('Deposit error:', error);
+      alert('Deposit failed');
+    } finally {
+      setDepositing(false);
     }
   };
 
@@ -95,6 +176,7 @@ const AdminPage = () => {
   const tabs = [
     { id: 'overview', label: 'Overview', icon: <Shield className="w-5 h-5" /> },
     { id: 'users', label: 'Users', icon: <Users className="w-5 h-5" /> },
+    { id: 'till', label: 'Company Till', icon: <Wallet className="w-5 h-5" /> },
     { id: 'products', label: 'Products', icon: <ShoppingBag className="w-5 h-5" /> },
     { id: 'reports', label: 'Reports', icon: <AlertTriangle className="w-5 h-5" /> },
   ];
@@ -194,15 +276,26 @@ const AdminPage = () => {
             {users.map((user) => (
               <div key={user._id} className="flex items-center justify-between p-4 bg-gray-800/30 rounded-lg">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {user.name.charAt(0)}
-                  </div>
+                  <img
+                    src={user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150'}
+                    alt={user.name}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
                   <div>
                     <p className="text-white font-medium">{user.name}</p>
                     <p className="text-gray-400 text-sm">{user.email}</p>
+                    <p className="text-gray-500 text-xs">{user.phone}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-gray-400 text-xs">Wallet Balance</p>
+                    <p className="text-white font-semibold">KES {user.wallet?.balance?.toLocaleString() || 0}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-gray-400 text-xs">Bank Account</p>
+                    <p className="text-white font-mono text-xs">{user.bankAccount?.account || 'N/A'}</p>
+                  </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize border ${getStatusColor(user.status)}`}>
                     {user.status}
                   </span>
@@ -234,6 +327,108 @@ const AdminPage = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Company Till Tab */}
+      {activeTab === 'till' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="space-y-6"
+        >
+          <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-white">Company Till</h3>
+              <Wallet className="w-6 h-6 text-green-500" />
+            </div>
+            {companyTill ? (
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-xl p-6 border border-green-500/30">
+                  <p className="text-gray-400 text-sm mb-2">Total Balance</p>
+                  <p className="text-4xl font-bold text-white">KES {companyTill.balance?.toLocaleString() || 0}</p>
+                  <p className="text-gray-400 text-sm mt-2">{companyTill.currency || 'KES'}</p>
+                </div>
+
+                <div className="bg-gray-800/50 rounded-xl p-6">
+                  <h4 className="text-lg font-semibold text-white mb-4">Deposit Funds</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-gray-300 text-sm font-medium mb-2">Amount (KES)</label>
+                      <input
+                        type="number"
+                        value={depositAmount}
+                        onChange={(e) => setDepositAmount(e.target.value)}
+                        placeholder="Enter amount"
+                        className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-300 text-sm font-medium mb-2">Description</label>
+                      <input
+                        type="text"
+                        value={depositDescription}
+                        onChange={(e) => setDepositDescription(e.target.value)}
+                        placeholder="Enter description (optional)"
+                        className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"
+                      />
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleDepositToTill}
+                      disabled={depositing}
+                      className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      <Plus className="w-5 h-5" />
+                      {depositing ? 'Processing...' : 'Deposit to Till'}
+                    </motion.button>
+                  </div>
+                </div>
+
+                <div className="bg-gray-800/50 rounded-xl p-6">
+                  <h4 className="text-lg font-semibold text-white mb-4">Recent Transactions</h4>
+                  <div className="space-y-3">
+                    {companyTill.transactions?.slice(0, 5).map((transaction, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${transaction.type === 'deposit' ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+                            {transaction.type === 'deposit' ? (
+                              <DollarSign className="w-4 h-4 text-green-400" />
+                            ) : (
+                              <DollarSign className="w-4 h-4 text-red-400" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">{transaction.description || 'Transaction'}</p>
+                            <p className="text-gray-400 text-xs">{new Date(transaction.createdAt).toLocaleString()}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-semibold ${transaction.type === 'deposit' ? 'text-green-400' : 'text-red-400'}`}>
+                            {transaction.type === 'deposit' ? '+' : '-'}KES {transaction.amount?.toLocaleString()}
+                          </p>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            transaction.status === 'completed' ? 'bg-green-500/10 text-green-400' : 'bg-yellow-500/10 text-yellow-400'
+                          }`}>
+                            {transaction.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    {(!companyTill.transactions || companyTill.transactions.length === 0) && (
+                      <p className="text-gray-400 text-center py-4">No transactions yet</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+              </div>
+            )}
           </div>
         </motion.div>
       )}
