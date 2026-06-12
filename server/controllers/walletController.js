@@ -171,11 +171,11 @@ const withdrawFunds = async (req, res) => {
   }
 };
 
-// @desc    Bank transfer to connected account
+// @desc    Bank transfer to connected account via M-Pesa
 // @route   POST /api/wallet/bank-transfer
 // @access  Private
 const bankTransfer = async (req, res) => {
-  const { amount, accountNumber } = req.body;
+  const { amount, accountNumber, phoneNumber, pin } = req.body;
 
   if (!amount || isNaN(amount)) {
     return res.status(400).json({ success: false, message: 'Specify a valid amount' });
@@ -185,41 +185,66 @@ const bankTransfer = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Account number is required' });
   }
 
+  if (!phoneNumber) {
+    return res.status(400).json({ success: false, message: 'M-Pesa phone number is required' });
+  }
+
+  if (!pin) {
+    return res.status(400).json({ success: false, message: 'M-Pesa PIN is required' });
+  }
+
   try {
+    let wallet;
     if (USE_MOCK) {
-      let wallet = mockHelpers.findWallet(req.user._id);
+      wallet = mockHelpers.findWallet(req.user._id);
       if (!wallet || wallet.balance < Number(amount)) {
         return res.status(400).json({ success: false, message: 'Insufficient balance' });
       }
+    } else {
+      wallet = await Wallet.findOne({ user: req.user._id });
+      if (!wallet || wallet.balance < Number(amount)) {
+        return res.status(400).json({ success: false, message: 'Insufficient balance' });
+      }
+    }
 
-      wallet.balance -= Number(amount);
+    const referenceCode = `BANK${Date.now()}`;
+    const description = 'Bank Transfer via M-Pesa';
+
+    // Trigger M-Pesa STK Push for withdrawal
+    const stkPushResponse = await mpesaService.triggerStkPush(
+      phoneNumber,
+      amount,
+      referenceCode,
+      description
+    );
+
+    // Simulate successful M-Pesa transaction (in production, this would be handled by callback)
+    // For now, we'll deduct the amount from digital wallet
+    const transferAmount = Number(amount);
+    
+    if (USE_MOCK) {
+      wallet.balance -= transferAmount;
       wallet.transactions.push({
-        type: 'withdraw',
-        amount: Number(amount),
+        type: 'withdrawal',
+        amount: transferAmount,
         status: 'completed',
-        reference: `BANK_TRANSFER_${accountNumber}`,
+        reference: `BANK_TRANSFER_${referenceCode}`,
+        description: `Bank transfer to account ${accountNumber} via M-Pesa`,
+        gateway: 'M-Pesa',
+        bankAccount: accountNumber,
         createdAt: new Date()
       });
-      
       mockHelpers.updateWallet(req.user._id, wallet);
-      res.json({ 
-        success: true, 
-        balance: wallet.balance, 
-        transactions: wallet.transactions,
-        message: `Transfer of KES ${amount} to account ${accountNumber} initiated via Paybill ${process.env.BANK_PAYBILL || '247247'}`
-      });
     } else {
-      const wallet = await Wallet.findOne({ user: req.user._id });
-      if (!wallet || wallet.balance < Number(amount)) {
-        return res.status(400).json({ success: false, message: 'Insufficient balance' });
-      }
-
-      wallet.balance -= Number(amount);
+      wallet.balance -= transferAmount;
       wallet.transactions.push({
-        type: 'withdraw',
-        amount: Number(amount),
+        type: 'withdrawal',
+        amount: transferAmount,
         status: 'completed',
-        reference: `BANK_TRANSFER_${accountNumber}`,
+        reference: `BANK_TRANSFER_${referenceCode}`,
+        description: `Bank transfer to account ${accountNumber} via M-Pesa`,
+        gateway: 'M-Pesa',
+        bankAccount: accountNumber,
         createdAt: new Date()
       });
       await wallet.save();
@@ -229,22 +254,31 @@ const bankTransfer = async (req, res) => {
         wallet: wallet._id,
         user: req.user._id,
         type: 'Withdrawal',
-        amount: Number(amount),
+        amount: transferAmount,
         currency: 'KES',
         status: 'Completed',
-        gateway: 'Wallet_Internal',
-        referenceCode: `BK${Date.now()}`,
-        description: `Bank transfer to account ${accountNumber} via Paybill ${process.env.BANK_PAYBILL || '247247'}`
-      });
-
-      res.json({ 
-        success: true, 
-        balance: wallet.balance, 
-        transactions: wallet.transactions,
-        message: `Transfer of KES ${amount} to account ${accountNumber} initiated via Paybill ${process.env.BANK_PAYBILL || '247247'}`
+        gateway: 'M-Pesa',
+        referenceCode: referenceCode,
+        description: `Bank transfer to account ${accountNumber} via M-Pesa from ${phoneNumber}`,
+        metadata: {
+          phoneNumber: phoneNumber,
+          merchantRequestID: stkPushResponse.MerchantRequestID,
+          checkoutRequestID: stkPushResponse.CheckoutRequestID,
+          bankAccount: accountNumber
+        }
       });
     }
+
+    res.json({
+      success: true,
+      message: `Bank transfer of KES ${amount} to account ${accountNumber} initiated via M-Pesa`,
+      balance: wallet.balance,
+      merchantRequestID: stkPushResponse.MerchantRequestID,
+      checkoutRequestID: stkPushResponse.CheckoutRequestID,
+      isMock: stkPushResponse.isMock || false,
+    });
   } catch (error) {
+    console.error('Bank transfer error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 };

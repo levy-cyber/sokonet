@@ -22,6 +22,9 @@ const WalletPage = () => {
   const [showMpesaModal, setShowMpesaModal] = useState(false);
   const [mpesaPhone, setMpesaPhone] = useState('');
   const [mpesaPin, setMpesaPin] = useState('');
+  const [showBankMpesaModal, setShowBankMpesaModal] = useState(false);
+  const [bankMpesaPhone, setBankMpesaPhone] = useState('');
+  const [bankMpesaPin, setBankMpesaPin] = useState('');
 
   useEffect(() => {
     fetchWalletData();
@@ -102,21 +105,34 @@ const WalletPage = () => {
       alert('Insufficient balance');
       return;
     }
+    setShowBankMpesaModal(true);
+  };
 
+  const handleBankMpesaTransfer = async () => {
+    if (!bankMpesaPhone || !bankMpesaPin) {
+      alert('Please enter M-Pesa phone number and PIN');
+      return;
+    }
+    
     setProcessing(true);
     try {
-      await api.post('/wallet/bank-transfer', {
+      const response = await api.post('/wallet/bank-transfer', { 
         amount: parseFloat(amount),
-        accountNumber: bankDetails.accountNumber
+        accountNumber: bankDetails.accountNumber,
+        phoneNumber: bankMpesaPhone,
+        pin: bankMpesaPin
       });
-      alert(`Transfer of KES ${amount} to account ${bankDetails.accountNumber} initiated via Paybill 247247`);
+      alert(response.data.message || 'Bank transfer initiated successfully');
+      setShowBankMpesaModal(false);
       setShowBankModal(false);
+      setBankMpesaPhone('');
+      setBankMpesaPin('');
       setBankDetails({ accountNumber: '' });
       setAmount('');
       fetchWalletData();
     } catch (error) {
       console.error('Bank transfer error:', error);
-      alert('Bank transfer failed');
+      alert('Bank transfer failed: ' + (error.response?.data?.message || error.message));
     } finally {
       setProcessing(false);
     }
@@ -393,7 +409,79 @@ const WalletPage = () => {
                 disabled={processing}
                 className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {processing ? 'Processing...' : 'Transfer Funds'}
+                {processing ? 'Processing...' : 'Continue to M-Pesa'}
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Bank M-Pesa Transfer Modal */}
+      {showBankMpesaModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-white">Bank Transfer via M-Pesa</h3>
+              <button
+                onClick={() => setShowBankMpesaModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">M-Pesa Phone Number</label>
+                <input
+                  type="tel"
+                  value={bankMpesaPhone}
+                  onChange={(e) => setBankMpesaPhone(e.target.value)}
+                  placeholder="07XXXXXXXX"
+                  className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">M-Pesa PIN</label>
+                <input
+                  type="password"
+                  value={bankMpesaPin}
+                  onChange={(e) => setBankMpesaPin(e.target.value)}
+                  placeholder="Enter your M-Pesa PIN"
+                  maxLength={4}
+                  className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"
+                />
+              </div>
+
+              <div className="bg-gray-800/50 rounded-lg p-4">
+                <p className="text-gray-400 text-sm mb-2">Transfer Amount</p>
+                <p className="text-white font-mono text-2xl">KES {parseFloat(amount || 0).toLocaleString()}</p>
+              </div>
+
+              <div className="bg-gray-800/50 rounded-lg p-4">
+                <p className="text-gray-400 text-sm mb-2">Destination Account</p>
+                <p className="text-white font-mono text-lg">{bankDetails.accountNumber}</p>
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <p className="text-blue-400 text-sm">
+                  <strong>Note:</strong> The amount will be transferred from your digital wallet to your bank account via M-Pesa.
+                </p>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleBankMpesaTransfer}
+                disabled={processing}
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {processing ? 'Processing...' : 'Confirm Transfer'}
               </motion.button>
             </div>
           </motion.div>
