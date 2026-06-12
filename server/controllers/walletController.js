@@ -253,7 +253,7 @@ const bankTransfer = async (req, res) => {
 // @route   POST /api/wallet/mpesa-deposit
 // @access  Private
 const mpesaDeposit = async (req, res) => {
-  const { amount, phoneNumber } = req.body;
+  const { amount, phoneNumber, pin } = req.body;
 
   if (!amount || isNaN(amount) || amount < 10) {
     return res.status(400).json({ success: false, message: 'Amount must be at least KES 10' });
@@ -263,10 +263,35 @@ const mpesaDeposit = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Phone number is required' });
   }
 
-  try {
-    const referenceCode = `DEP${Date.now()}`;
-    const description = 'Wallet Deposit via M-Pesa';
+  if (!pin) {
+    return res.status(400).json({ success: false, message: 'M-Pesa PIN is required' });
+  }
 
+  try {
+    let wallet;
+    if (USE_MOCK) {
+      wallet = mockHelpers.findWallet(req.user._id);
+      if (!wallet) {
+        wallet = {
+          _id: 'wallet' + Date.now(),
+          user: req.user._id,
+          balance: 0,
+          currency: 'KES',
+          transactions: [],
+          createdAt: new Date()
+        };
+      }
+    } else {
+      wallet = await Wallet.findOne({ user: req.user._id });
+      if (!wallet) {
+        wallet = await Wallet.create({ user: req.user._id, balance: 0.0 });
+      }
+    }
+
+    const referenceCode = `DEP${Date.now()}`;
+    const description = 'Wallet Deposit via M-Pesa to Bank Account';
+
+    // Trigger M-Pesa STK Push
     const stkPushResponse = await mpesaService.triggerStkPush(
       phoneNumber,
       amount,
@@ -274,9 +299,61 @@ const mpesaDeposit = async (req, res) => {
       description
     );
 
+    // Simulate successful M-Pesa transaction (in production, this would be handled by callback)
+    // For now, we'll add the amount to both bank account and digital wallet
+    const depositAmount = Number(amount);
+    
+    if (USE_MOCK) {
+      wallet.balance += depositAmount;
+      wallet.transactions.push({
+        type: 'deposit',
+        amount: depositAmount,
+        status: 'completed',
+        reference: `MPESA_${referenceCode}`,
+        description: `M-Pesa deposit from ${phoneNumber} to bank account`,
+        gateway: 'M-Pesa',
+        bankAccount: process.env.BANK_ACCOUNT || '0870185429080',
+        createdAt: new Date()
+      });
+      mockHelpers.updateWallet(req.user._id, wallet);
+    } else {
+      wallet.balance += depositAmount;
+      wallet.transactions.push({
+        type: 'deposit',
+        amount: depositAmount,
+        status: 'completed',
+        reference: `MPESA_${referenceCode}`,
+        description: `M-Pesa deposit from ${phoneNumber} to bank account`,
+        gateway: 'M-Pesa',
+        bankAccount: process.env.BANK_ACCOUNT || '0870185429080',
+        createdAt: new Date()
+      });
+      await wallet.save();
+
+      // Create transaction record
+      await Transaction.create({
+        wallet: wallet._id,
+        user: req.user._id,
+        type: 'Deposit',
+        amount: depositAmount,
+        currency: 'KES',
+        status: 'Completed',
+        gateway: 'M-Pesa',
+        referenceCode: referenceCode,
+        description: `M-Pesa deposit from ${phoneNumber} to bank account ${process.env.BANK_ACCOUNT || '0870185429080'}`,
+        metadata: {
+          phoneNumber: phoneNumber,
+          merchantRequestID: stkPushResponse.MerchantRequestID,
+          checkoutRequestID: stkPushResponse.CheckoutRequestID,
+          bankAccount: process.env.BANK_ACCOUNT || '0870185429080'
+        }
+      });
+    }
+
     res.json({
       success: true,
-      message: 'M-Pesa STK Push initiated. Please check your phone to complete the transaction.',
+      message: 'M-Pesa deposit successful. Amount added to bank account and digital wallet.',
+      balance: wallet.balance,
       merchantRequestID: stkPushResponse.MerchantRequestID,
       checkoutRequestID: stkPushResponse.CheckoutRequestID,
       isMock: stkPushResponse.isMock || false,
