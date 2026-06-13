@@ -1,19 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, ArrowUpRight, ArrowDownLeft, History, CreditCard, Smartphone } from 'lucide-react';
+import { Wallet, ArrowUpRight, ArrowDownLeft, History, CreditCard, Smartphone, X } from 'lucide-react';
 import WalletCard from '../components/WalletCard';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const WalletPage = () => {
+  const { user } = useAuth();
   const [wallet, setWallet] = useState({
-    balance: 125000,
+    balance: 0,
     currency: 'KES',
-    pendingBalance: 15000,
+    pendingBalance: 0,
   });
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showBankModal, setShowBankModal] = useState(false);
+  const [bankDetails, setBankDetails] = useState({ accountNumber: '' });
+  const [processing, setProcessing] = useState(false);
+  const [showMpesaModal, setShowMpesaModal] = useState(false);
+  const [mpesaPhone, setMpesaPhone] = useState('');
+  const [mpesaPin, setMpesaPin] = useState('');
+  const [showBankMpesaModal, setShowBankMpesaModal] = useState(false);
+  const [bankMpesaPhone, setBankMpesaPhone] = useState('');
+  const [bankMpesaPin, setBankMpesaPin] = useState('');
 
   useEffect(() => {
     fetchWalletData();
@@ -29,75 +40,101 @@ const WalletPage = () => {
     } catch (error) {
       console.error('Error fetching wallet data:', error);
       setLoading(false);
-      // Mock data
-      setTransactions([
-        {
-          _id: '1',
-          type: 'deposit',
-          amount: 50000,
-          status: 'completed',
-          description: 'M-Pesa Deposit',
-          createdAt: '2024-01-20T10:30:00Z',
-        },
-        {
-          _id: '2',
-          type: 'withdrawal',
-          amount: 20000,
-          status: 'completed',
-          description: 'Bank Withdrawal',
-          createdAt: '2024-01-18T14:20:00Z',
-        },
-        {
-          _id: '3',
-          type: 'payment',
-          amount: 185000,
-          status: 'completed',
-          description: 'Order Payment - iPhone 15 Pro Max',
-          createdAt: '2024-01-15T09:15:00Z',
-        },
-        {
-          _id: '4',
-          type: 'refund',
-          amount: 45000,
-          status: 'pending',
-          description: 'Escrow Refund',
-          createdAt: '2024-01-12T16:45:00Z',
-        },
-        {
-          _id: '5',
-          type: 'deposit',
-          amount: 100000,
-          status: 'completed',
-          description: 'M-Pesa Deposit',
-          createdAt: '2024-01-10T11:00:00Z',
-        },
-      ]);
+      setTransactions([]);
     }
   };
 
   const handleDeposit = async () => {
     if (!amount || isNaN(amount)) return;
+    setShowMpesaModal(true);
+  };
+
+  const handleMpesaDeposit = async () => {
+    if (!mpesaPhone || !mpesaPin) {
+      alert('Please enter M-Pesa phone number and PIN');
+      return;
+    }
+    
+    setProcessing(true);
     try {
-      await api.post('/wallet/deposit', { amount: parseFloat(amount) });
-      alert('Deposit initiated via M-Pesa');
+      const response = await api.post('/wallet/mpesa-deposit', { 
+        amount: parseFloat(amount),
+        phoneNumber: mpesaPhone,
+        pin: mpesaPin
+      });
+      alert(response.data.message || 'M-Pesa deposit initiated successfully');
+      setShowMpesaModal(false);
+      setMpesaPhone('');
+      setMpesaPin('');
       setAmount('');
       fetchWalletData();
     } catch (error) {
       console.error('Deposit error:', error);
-      alert('Deposit failed');
+      alert('Deposit failed: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setProcessing(false);
     }
   };
 
   const handleWithdraw = async () => {
     if (!amount || isNaN(amount)) return;
     try {
-      await api.post('/wallet/withdraw', { amount: parseFloat(amount) });
-      alert('Withdrawal request submitted');
+      const response = await api.post('/wallet/mpesa-withdraw', { 
+        amount: parseFloat(amount),
+        phoneNumber: user?.phone || ''
+      });
+      alert(response.data.message || 'Withdrawal request submitted');
       setAmount('');
       fetchWalletData();
     } catch (error) {
       console.error('Withdrawal error:', error);
       alert('Withdrawal failed');
+    }
+  };
+
+  const handleBankTransfer = async () => {
+    if (!amount || isNaN(amount)) {
+      alert('Please enter a valid amount');
+      return;
+    }
+    if (!bankDetails.accountNumber) {
+      alert('Please enter bank account number');
+      return;
+    }
+    if (parseFloat(amount) > wallet.balance) {
+      alert('Insufficient balance');
+      return;
+    }
+    setShowBankMpesaModal(true);
+  };
+
+  const handleBankMpesaTransfer = async () => {
+    if (!bankMpesaPhone || !bankMpesaPin) {
+      alert('Please enter M-Pesa phone number and PIN');
+      return;
+    }
+    
+    setProcessing(true);
+    try {
+      const response = await api.post('/wallet/bank-transfer', { 
+        amount: parseFloat(amount),
+        accountNumber: bankDetails.accountNumber,
+        phoneNumber: bankMpesaPhone,
+        pin: bankMpesaPin
+      });
+      alert(response.data.message || 'Bank transfer initiated successfully');
+      setShowBankMpesaModal(false);
+      setShowBankModal(false);
+      setBankMpesaPhone('');
+      setBankMpesaPin('');
+      setBankDetails({ accountNumber: '' });
+      setAmount('');
+      fetchWalletData();
+    } catch (error) {
+      console.error('Bank transfer error:', error);
+      alert('Bank transfer failed: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -192,7 +229,10 @@ const WalletPage = () => {
                   <p className="text-gray-400 text-sm">Instant deposit</p>
                 </div>
               </button>
-              <button className="flex items-center justify-center gap-3 p-4 bg-gray-800/50 border border-gray-700 rounded-lg hover:bg-gray-700/50 transition-all">
+              <button 
+                onClick={() => setShowBankModal(true)}
+                className="flex items-center justify-center gap-3 p-4 bg-gray-800/50 border border-gray-700 rounded-lg hover:bg-gray-700/50 transition-all"
+              >
                 <CreditCard className="w-6 h-6 text-blue-500" />
                 <div className="text-left">
                   <p className="text-white font-medium">Card Payment</p>
@@ -242,7 +282,10 @@ const WalletPage = () => {
                   <p className="text-gray-400 text-sm">To your phone</p>
                 </div>
               </button>
-              <button className="flex items-center justify-center gap-3 p-4 bg-gray-800/50 border border-gray-700 rounded-lg hover:bg-gray-700/50 transition-all">
+              <button 
+                onClick={() => setShowBankModal(true)}
+                className="flex items-center justify-center gap-3 p-4 bg-gray-800/50 border border-gray-700 rounded-lg hover:bg-gray-700/50 transition-all"
+              >
                 <CreditCard className="w-6 h-6 text-blue-500" />
                 <div className="text-left">
                   <p className="text-white font-medium">Bank Transfer</p>
@@ -255,7 +298,7 @@ const WalletPage = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleWithdraw}
-              className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all"
+              className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold py-3 rounded-lg hover:from-red-600 hover:to-red-700 transition-all"
             >
               Withdraw Now
             </motion.button>
@@ -307,6 +350,209 @@ const WalletPage = () => {
             </div>
           )}
         </motion.div>
+      )}
+
+      {/* Bank Details Modal */}
+      {showBankModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-white">Bank Transfer Details</h3>
+              <button
+                onClick={() => setShowBankModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
+                <p className="text-gray-400 text-sm mb-2">Paybill Number</p>
+                <p className="text-white font-mono text-lg">247247</p>
+                <p className="text-gray-400 text-sm mt-2">Account Number</p>
+                <p className="text-white font-mono text-lg">0870185429080</p>
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">Your Bank Account Number</label>
+                <input
+                  type="text"
+                  value={bankDetails.accountNumber}
+                  onChange={(e) => setBankDetails({ accountNumber: e.target.value })}
+                  placeholder="Enter your bank account number"
+                  className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">Amount (KES)</label>
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  max={wallet.balance}
+                  className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"
+                />
+                <p className="text-gray-400 text-sm mt-2">Available: KES {wallet.balance.toLocaleString()}</p>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleBankTransfer}
+                disabled={processing}
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {processing ? 'Processing...' : 'Continue to M-Pesa'}
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Bank M-Pesa Transfer Modal */}
+      {showBankMpesaModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-white">Bank Transfer via M-Pesa</h3>
+              <button
+                onClick={() => setShowBankMpesaModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">M-Pesa Phone Number</label>
+                <input
+                  type="tel"
+                  value={bankMpesaPhone}
+                  onChange={(e) => setBankMpesaPhone(e.target.value)}
+                  placeholder="07XXXXXXXX"
+                  className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">M-Pesa PIN</label>
+                <input
+                  type="password"
+                  value={bankMpesaPin}
+                  onChange={(e) => setBankMpesaPin(e.target.value)}
+                  placeholder="Enter your M-Pesa PIN"
+                  maxLength={4}
+                  className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"
+                />
+              </div>
+
+              <div className="bg-gray-800/50 rounded-lg p-4">
+                <p className="text-gray-400 text-sm mb-2">Transfer Amount</p>
+                <p className="text-white font-mono text-2xl">KES {parseFloat(amount || 0).toLocaleString()}</p>
+              </div>
+
+              <div className="bg-gray-800/50 rounded-lg p-4">
+                <p className="text-gray-400 text-sm mb-2">Destination Account</p>
+                <p className="text-white font-mono text-lg">{bankDetails.accountNumber}</p>
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <p className="text-blue-400 text-sm">
+                  <strong>Note:</strong> The amount will be transferred from your digital wallet to your bank account via M-Pesa.
+                </p>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleBankMpesaTransfer}
+                disabled={processing}
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {processing ? 'Processing...' : 'Confirm Transfer'}
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* M-Pesa Deposit Modal */}
+      {showMpesaModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-white">M-Pesa Deposit</h3>
+              <button
+                onClick={() => setShowMpesaModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">M-Pesa Phone Number</label>
+                <input
+                  type="tel"
+                  value={mpesaPhone}
+                  onChange={(e) => setMpesaPhone(e.target.value)}
+                  placeholder="07XXXXXXXX"
+                  className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">M-Pesa PIN</label>
+                <input
+                  type="password"
+                  value={mpesaPin}
+                  onChange={(e) => setMpesaPin(e.target.value)}
+                  placeholder="Enter your M-Pesa PIN"
+                  maxLength={4}
+                  className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"
+                />
+              </div>
+
+              <div className="bg-gray-800/50 rounded-lg p-4">
+                <p className="text-gray-400 text-sm mb-2">Deposit Amount</p>
+                <p className="text-white font-mono text-2xl">KES {parseFloat(amount || 0).toLocaleString()}</p>
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <p className="text-blue-400 text-sm">
+                  <strong>Note:</strong> The amount will be deposited to your bank account and added to your digital wallet balance for use within the platform.
+                </p>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleMpesaDeposit}
+                disabled={processing}
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {processing ? 'Processing...' : 'Deposit via M-Pesa'}
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
       )}
     </div>
   );

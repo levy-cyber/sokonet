@@ -1,14 +1,58 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
   FiHome, FiShoppingBag, FiLock, FiCreditCard, FiInbox,
   FiBriefcase, FiUser, FiSliders, FiUsers, FiActivity, FiLogOut, FiX,
-  FiTool, FiBriefcase as FiJob, FiCalendar, FiTruck
+  FiTool, FiBriefcase as FiJob, FiCalendar, FiTruck, FiChevronDown,
+  FiGrid, FiTrendingUp, FiLayout as FiLayoutIcon, FiShield as FiShieldIcon
 } from 'react-icons/fi';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [showRoleMenu, setShowRoleMenu] = useState(false);
+
+  const roleLinks = {
+    seller: [
+      { path: '/shop/mine', label: 'My Shop', icon: FiShoppingBag },
+      { path: '/analytics', label: 'Analytics', icon: FiTrendingUp },
+    ],
+    rider: [
+      { path: '/rider/dashboard', label: 'Rider Dashboard', icon: FiTruck },
+    ],
+    service_provider: [
+      { path: '/services/mine', label: 'My Services', icon: FiTool },
+      { path: '/bookings', label: 'Service Bookings', icon: FiCalendar },
+    ],
+    freelancer: [
+      { path: '/services/mine', label: 'My Services', icon: FiTool },
+      { path: '/bookings', label: 'Service Bookings', icon: FiCalendar },
+    ],
+    admin: [
+      { path: '/admin', label: 'Admin Console', icon: FiShieldIcon },
+    ],
+  };
+
+  const generalLinks = [
+    { path: '/', label: 'Dashboard', icon: FiHome },
+    { path: '/marketplace', label: 'Marketplace', icon: FiShoppingBag },
+    { path: '/services', label: 'Services', icon: FiTool },
+    { path: '/orders', label: 'My Orders', icon: FiInbox },
+    { path: '/wallet', label: 'My Wallet', icon: FiCreditCard },
+    { path: '/escrow', label: 'Escrow', icon: FiLock },
+    { path: '/jobs', label: 'Jobs', icon: FiJob },
+    { path: '/chat', label: 'Chat Room', icon: FiUsers },
+    { path: '/settings', label: 'Settings', icon: FiSliders },
+  ];
+
+  const externalPortals = [
+    { url: 'https://www.kra.go.ke', label: 'KRA Portal', icon: FiShieldIcon },
+    { url: 'https://www.ecitizen.go.ke', label: 'eCitizen', icon: FiLayoutIcon },
+    { url: 'https://www.kcb.co.ke', label: 'KCB Bank', icon: FiCreditCard },
+    { url: 'https://www.equitygroupholdings.com', label: 'Equity Bank', icon: FiTrendingUp },
+    { url: 'https://www.mpesa.co.ke', label: 'M-Pesa', icon: FiGrid },
+  ];
 
   const allNavigationLinks = [
     { name: 'Dashboard', path: '/', icon: FiHome, description: 'Home dashboard with stats', role: 'all' },
@@ -98,18 +142,101 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           {/* User Card */}
           {user && (
             <div className="px-3 lg:px-4 mb-4 lg:mb-6">
-              <div className="p-2 lg:p-3 bg-dark-cardMuted/50 border border-dark-border rounded-xl flex items-center gap-2 lg:gap-3">
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover border border-brand/35"
-                />
-                <div className="overflow-hidden">
-                  <p className="text-xs lg:text-sm font-semibold text-white truncate">{user.name}</p>
-                  <span className={`inline-block px-1.5 lg:px-2 py-0.5 text-[9px] lg:text-[10px] uppercase font-mono rounded font-semibold border ${getRoleBadge().className}`}>
-                    {getRoleBadge().text}
-                  </span>
+              <div className="p-2 lg:p-3 bg-dark-cardMuted/50 border border-dark-border rounded-xl">
+                <div className="flex items-center gap-2 lg:gap-3">
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover border border-brand/35"
+                  />
+                  <div className="flex-1 overflow-hidden">
+                    <p className="text-xs lg:text-sm font-semibold text-white truncate">{user.name}</p>
+                    <button
+                      onClick={() => setShowRoleMenu(!showRoleMenu)}
+                      className="flex items-center gap-1 text-[9px] lg:text-[10px] uppercase font-mono rounded font-semibold border transition-colors hover:bg-dark-card/50"
+                    >
+                      <span className={getRoleBadge().className}>{getRoleBadge().text}</span>
+                      <FiChevronDown className={`w-3 h-3 transition-transform ${showRoleMenu ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
                 </div>
+
+                {/* Role Menu Dropdown */}
+                {showRoleMenu && (
+                  <div className="mt-2 pt-2 border-t border-dark-border/50">
+                    <p className="text-[10px] text-gray-500 mb-2 font-medium">Quick Access</p>
+                    
+                    {/* General Links */}
+                    <div className="space-y-1 mb-3">
+                      {generalLinks.map((link) => {
+                        const Icon = link.icon;
+                        return (
+                          <button
+                            key={link.path}
+                            onClick={() => {
+                              navigate(link.path);
+                              setShowRoleMenu(false);
+                              setIsOpen(false);
+                            }}
+                            className="w-full flex items-center gap-2 px-2 py-1.5 text-[10px] lg:text-xs text-gray-400 hover:text-white hover:bg-dark-card/50 rounded-lg transition-colors"
+                          >
+                            <Icon className="w-3 h-3 lg:w-4 lg:h-4" />
+                            <span>{link.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* External Portals */}
+                    <p className="text-[10px] text-gray-500 mb-2 font-medium border-t border-dark-border/50 pt-2">External Portals</p>
+                    <div className="space-y-1 mb-3">
+                      {externalPortals.map((portal) => {
+                        const Icon = portal.icon;
+                        return (
+                          <a
+                            key={portal.url}
+                            href={portal.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full flex items-center gap-2 px-2 py-1.5 text-[10px] lg:text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-colors"
+                          >
+                            <Icon className="w-3 h-3 lg:w-4 lg:h-4" />
+                            <span>{portal.label}</span>
+                            <span className="text-[8px] text-gray-500 ml-auto">↗</span>
+                          </a>
+                        );
+                      })}
+                    </div>
+
+                    {/* Role-specific Links */}
+                    {user?.roles?.length > 0 && (
+                      <>
+                        <p className="text-[10px] text-gray-500 mb-2 font-medium border-t border-dark-border/50 pt-2">Your Roles</p>
+                        {user?.roles?.map((role) => (
+                          <div key={role} className="space-y-1">
+                            {roleLinks[role]?.map((link) => {
+                              const Icon = link.icon;
+                              return (
+                                <button
+                                  key={link.path}
+                                  onClick={() => {
+                                    navigate(link.path);
+                                    setShowRoleMenu(false);
+                                    setIsOpen(false);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-2 py-1.5 text-[10px] lg:text-xs text-brand hover:text-white hover:bg-brand/20 rounded-lg transition-colors"
+                                >
+                                  <Icon className="w-3 h-3 lg:w-4 lg:h-4" />
+                                  <span>{link.label}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}

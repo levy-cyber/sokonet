@@ -38,6 +38,8 @@ app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/jobs', require('./routes/jobRoutes'));
 app.use('/api/shops', require('./routes/shopRoutes'));
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/ride-requests', require('./routes/rideRequestRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // Error Handler Middleware
 app.use(errorHandler);

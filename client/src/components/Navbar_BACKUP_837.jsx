@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../context/CartContext';
 import { SocketContext } from '../context/SocketContext';
@@ -150,10 +150,7 @@ const Navbar = ({ title, onMenuToggle }) => {
         </div>
 
         {/* Settings shortcut */}
-        <button
-          onClick={() => navigate('/settings')}
-          className="hidden lg:flex w-10 h-10 rounded-xl bg-dark-card border border-dark-border items-center justify-center text-dark-muted hover:text-white transition-colors"
-        >
+        <button className="hidden lg:flex w-10 h-10 rounded-xl bg-dark-card border border-dark-border items-center justify-center text-dark-muted hover:text-white transition-colors">
           <FiSettings className="text-lg" />
         </button>
       </div>

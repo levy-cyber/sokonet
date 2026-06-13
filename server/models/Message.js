@@ -10,7 +10,9 @@ const messageSchema = new mongoose.Schema(
     receiver: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: function() {
+        return !this.isPublic;
+      },
     },
     content: {
       type: String,
@@ -19,6 +21,14 @@ const messageSchema = new mongoose.Schema(
     isRead: {
       type: Boolean,
       default: false,
+    },
+    isPublic: {
+      type: Boolean,
+      default: false,
+    },
+    room: {
+      type: String,
+      default: 'general',
     },
   },
   {

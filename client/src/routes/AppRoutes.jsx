@@ -16,6 +16,7 @@ import WalletPage from '../pages/WalletPage';
 import ChatPage from '../pages/ChatPage';
 import AnalyticsPage from '../pages/AnalyticsPage';
 import AdminPage from '../pages/AdminPage';
+import AdminLoginPage from '../pages/AdminLoginPage';
 import RidersPage from '../pages/RidersPage';
 import ShopsPage from '../pages/ShopsPage';
 import ServicesPage from '../pages/ServicesPage';
@@ -40,6 +41,7 @@ const AppRoutes = () => {
       <Route path="/verify-otp" element={<OTPVerificationPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+      <Route path="/admin-login" element={<AdminLoginPage />} />
 
       {/* Protected Main Layout routes - All accessible to authenticated users */}
       <Route element={<ProtectedRoute />}>

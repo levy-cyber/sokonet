@@ -1,0 +1,151 @@
+[33mcommit 20b29b9604ed133618c72f4717db7bae7d885617[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: lavi-dee <lavidee2@gmail.com>
+Date:   Fri Jun 12 11:28:03 2026 +0300
+
+    Integrate email verification into registration flow
+    
+    - Updated AuthContext register to require email verification
+    - Added OTP sending automatically during registration
+    - Updated login to check email verification status
+    - Added verifyEmail function for post-registration verification
+    - Users redirected to OTP page after registration
+    - Login blocked until email is verified
+    - Added pending user storage for verification flow
+    - Clean up pending data after successful verification
+    
+    Users must now verify their email before accessing the platform, ensuring account security and valid email addresses.
+    
+    Generated with Devin CLI
+    
+    Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.com>
+
+[1mdiff --git a/client/src/context/AuthContext.jsx b/client/src/context/AuthContext.jsx[m
+[1mindex 1363bd4..9095faf 100644[m
+[1m--- a/client/src/context/AuthContext.jsx[m
+[1m+++ b/client/src/context/AuthContext.jsx[m
+[36m@@ -29,11 +29,22 @@[m [mexport const AuthProvider = ({ children }) => {[m
+     try {[m
+       const { data } = await api.post('/auth/login', { email, password });[m
+       if (data.success) {[m
+[32m+[m[32m        // Check if email is verified[m
+[32m+[m[32m        const profileResponse = await api.get('/auth/profile');[m
+[32m+[m[32m        if (!profileResponse.data.isEmailVerified) {[m
+[32m+[m[32m          return {[m[41m [m
+[32m+[m[32m            success: false,[m[41m [m
+[32m+[m[32m            needsVerification: true,[m[41m [m
+[32m+[m[32m            email: email,[m
+[32m+[m[32m            message: 'Please verify your email before logging in'[m[41m [m
+[32m+[m[32m          };[m
+[32m+[m[32m        }[m
+[32m+[m[41m        [m
+         const userData = {[m
+           _id: data._id,[m
+           name: data.name,[m
+           email: data.email,[m
+[31m-          phone: data.phone,[m
+[32m+[m[32m          phone: data.phone || '',[m
+           role: data.role || 'buyer',[m
+           roles: data.roles || [data.role || 'buyer'],[m
+           activeRole: data.activeRole || data.role || 'buyer',[m
+[36m@@ -42,6 +53,7 @@[m [mexport const AuthProvider = ({ children }) => {[m
+         setUser(userData);[m
+         localStorage.setItem('sokonet_token', data.token);[m
+         localStorage.setItem('sokonet_user', JSON.stringify(userData));[m
+[32m+[m[32m        return { success: true };[m
+       } else {[m
+         throw new Error(data.message || 'Login failed');[m
+       }[m
+[36m@@ -61,24 +73,69 @@[m [mexport const AuthProvider = ({ children }) => {[m
+         activeRole: selectedRoles[0] || 'buyer',[m
+       });[m
+       if (data.success) {[m
+[32m+[m[32m        // Send OTP for email verification[m
+[32m+[m[32m        const otpResponse = await api.post('/auth/send-otp', { email });[m
+[32m+[m[41m        [m
+[32m+[m[32m        if (otpResponse.data.success) {[m
+[32m+[m[32m          // Return user data but don't log them in[m
+[32m+[m[32m          const userData = {[m
+[32m+[m[32m            _id: data._id,[m
+[32m+[m[32m            name: data.name,[m
+[32m+[m[32m            email: data.email,[m
+[32m+[m[32m            phone: data.phone,[m
+[32m+[m[32m            role: data.role || 'buyer',[m
+[32m+[m[32m            roles: data.roles || selectedRoles || ['buyer'],[m
+[32m+[m[32m            activeRole: data.activeRole || selectedRoles[0] || 'buyer',[m
+[32m+[m[32m            avatar: data.avatar,[m
+[32m+[m[32m          };[m
+[32m+[m[41m          [m
+[32m+[m[32m          // Store temp data for verification[m
+[32m+[m[32m          localStorage.setItem('sokonet_pending_user', JSON.stringify(userData));[m
+[32m+[m[32m          localStorage.setItem('sokonet_token', data.token); // Store token for OTP verification[m
+[32m+[m[41m          [m
+[32m+[m[32m          return {[m[41m [m
+[32m+[m[32m            success: true,[m[41m [m
+[32m+[m[32m            needsVerification: true,[m
+[32m+[m[32m            email: email,[m
+[32m+[m[32m            otp: otpResponse.data.otp // For development[m
+[32m+[m[32m          };[m
+[32m+[m[32m        }[m
+[32m+[m[32m      }[m
+[32m+[m[32m      throw new Error(data.message || 'Registration failed');[m
+[32m+[m[32m    } catch (error) {[m
+[32m+[m[32m      throw new Error(error.response?.data?.message || error.response?.data?.error || error.message || 'Registration failed.');[m
+[32m+[m[32m    }[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const verifyEmail = async (email, otp) => {[m
+[32m+[m[32m    try {[m
+[32m+[m[32m      const { data } = await api.post('/auth/verify-otp', { email, otp });[m
+[32m+[m[32m      if (data.success) {[m
+[32m+[m[32m        // Get the pending user data[m
+[32m+[m[32m        const pendingUser = JSON.parse(localStorage.getItem('sokonet_pending_user') || '{}');[m
+[32m+[m[41m        [m
+[32m+[m[32m        // Now log the user in after verification[m
+         const userData = {[m
+[31m-          _id: data._id,[m
+[31m-          name: data.name,[m
+[31m-          email: data.email,[m
+[31m-          phone: data.phone,[m
+[31m-          role: data.role || 'buyer',[m
+[31m-          roles: data.roles || selectedRoles || ['buyer'],[m
+[31m-          activeRole: data.activeRole || selectedRoles[0] || 'buyer',[m
+[31m-          avatar: data.avatar,[m
+[32m+[m[32m          _id: pendingUser._id,[m
+[32m+[m[32m          name: pendingUser.name,[m
+[32m+[m[32m          email: pendingUser.email,[m
+[32m+[m[32m          phone: pendingUser.phone,[m
+[32m+[m[32m          role: pendingUser.role,[m
+[32m+[m[32m          roles: pendingUser.roles,[m
+[32m+[m[32m          activeRole: pendingUser.activeRole,[m
+[32m+[m[32m          avatar: pendingUser.avatar,[m
+         };[m
+[32m+[m[41m        [m
+         setUser(userData);[m
+[31m-        localStorage.setItem('sokonet_token', data.token);[m
+         localStorage.setItem('sokonet_user', JSON.stringify(userData));[m
+[32m+[m[32m        localStorage.removeItem('sokonet_pending_user');[m
+[32m+[m[41m        [m
+[32m+[m[32m        return { success: true };[m
+       } else {[m
+[31m-        throw new Error(data.message || 'Registration failed');[m
+[32m+[m[32m        throw new Error(data.message || 'Verification failed');[m
+       }[m
+     } catch (error) {[m
+[31m-      throw new Error(error.response?.data?.message || error.response?.data?.error || error.message || 'Registration failed.');[m
+[32m+[m[32m      throw new Error(error.response?.data?.message || error.message || 'Verification failed');[m
+     }[m
+   };[m
+ [m
+[36m@@ -98,10 +155,11 @@[m [mexport const AuthProvider = ({ children }) => {[m
+     setUser(null);[m
+     localStorage.removeItem('sokonet_token');[m
+     localStorage.removeItem('sokonet_user');[m
+[32m+[m[32m    localStorage.removeItem('sokonet_pending_user');[m
+   };[m
+ [m
+   return ([m
+[31m-    <AuthContext.Provider value={{ user, loading, login, register, logout, setUser, switchRole }}>[m
+[32m+[m[32m    <AuthContext.Provider value={{ user, loading, login, register, logout, setUser, switchRole, verifyEmail }}>[m
+       {children}[m
+     </AuthContext.Provider>[m
+   );[m

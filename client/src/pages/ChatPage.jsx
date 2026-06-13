@@ -10,6 +10,9 @@ const ChatPage = () => {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showChatList, setShowChatList] = useState(false);
+  const [isPublicChat, setIsPublicChat] = useState(false);
+  const [publicMessage, setPublicMessage] = useState('');
   const { socket } = useSocket();
 
   useEffect(() => {
@@ -39,45 +42,7 @@ const ChatPage = () => {
     } catch (error) {
       console.error('Error fetching conversations:', error);
       setLoading(false);
-      // Mock data
-      setConversations([
-        {
-          _id: '1',
-          participant: {
-            _id: 'user1',
-            name: 'TechStore Kenya',
-            avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100',
-            online: true,
-          },
-          lastMessage: 'Your order has been shipped!',
-          lastMessageTime: '2024-01-20T10:30:00Z',
-          unreadCount: 2,
-        },
-        {
-          _id: '2',
-          participant: {
-            _id: 'user2',
-            name: 'John Doe',
-            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
-            online: false,
-          },
-          lastMessage: 'Thanks for the quick response',
-          lastMessageTime: '2024-01-19T14:20:00Z',
-          unreadCount: 0,
-        },
-        {
-          _id: '3',
-          participant: {
-            _id: 'user3',
-            name: 'Audio World',
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
-            online: true,
-          },
-          lastMessage: 'Is the product still available?',
-          lastMessageTime: '2024-01-18T09:15:00Z',
-          unreadCount: 1,
-        },
-      ]);
+      setConversations([]);
     }
   };
 
@@ -98,6 +63,23 @@ const ChatPage = () => {
     return `${diffDays}d ago`;
   };
 
+  const handleSendPublicMessage = () => {
+    if (!publicMessage.trim()) return;
+    
+    if (socket) {
+      socket.emit('publicMessage', {
+        content: publicMessage,
+        sender: 'user',
+        timestamp: new Date(),
+      });
+      setPublicMessage('');
+    }
+  };
+
+  const toggleChatList = () => {
+    setShowChatList(!showChatList);
+  };
+
   return (
     <div className="p-6 h-[calc(100vh-120px)]">
       <motion.div
@@ -105,7 +87,57 @@ const ChatPage = () => {
         animate={{ opacity: 1, y: 0 }}
         className="h-full flex gap-6"
       >
-        {/* Conversations List */}
+        {/* Mobile Chat Toggle */}
+        <button
+          onClick={toggleChatList}
+          className="md:hidden fixed bottom-20 right-4 z-50 bg-green-500 text-white p-4 rounded-full shadow-lg"
+        >
+          <Send className="w-6 h-6" />
+        </button>
+
+        {/* Conversations List - Mobile Pop-up */}
+        <div className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden ${showChatList ? 'block' : 'hidden'}`} onClick={toggleChatList}>
+          <div className="absolute right-0 top-0 h-full w-80 bg-gray-900/95 backdrop-blur-xl border-l border-gray-700/50 p-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">Messages</h2>
+              <button onClick={toggleChatList} className="text-gray-400 hover:text-white">
+                <MoreVertical className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search conversations..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-green-500 transition-all"
+              />
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {filteredConversations.map((conversation) => (
+                <div
+                  key={conversation._id}
+                  onClick={() => {
+                    setSelectedConversation(conversation);
+                    setShowChatList(false);
+                  }}
+                  className="p-4 border-b border-gray-700 cursor-pointer hover:bg-gray-800/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <img src={conversation.participant.avatar} alt={conversation.participant.name} className="w-10 h-10 rounded-full" />
+                    <div>
+                      <p className="text-white font-medium">{conversation.participant.name}</p>
+                      <p className="text-gray-400 text-sm truncate">{conversation.lastMessage}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Conversations List - Desktop */}
         <div className={`bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl flex flex-col ${selectedConversation ? 'w-80 hidden md:flex' : 'w-full md:w-80'}`}>
           <div className="p-4 border-b border-gray-700">
             <h2 className="text-xl font-bold text-white mb-4">Messages</h2>
@@ -211,14 +243,60 @@ const ChatPage = () => {
             <ChatBox conversationId={selectedConversation._id} participant={selectedConversation.participant} />
           </div>
         ) : (
-          <div className="flex-1 bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Send className="w-10 h-10 text-gray-600" />
+          <div className="flex-1 bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-gray-700">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-semibold text-white">Public Chatroom</h3>
+                <button
+                  onClick={() => setIsPublicChat(!isPublicChat)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    isPublicChat 
+                      ? 'bg-green-500 text-black' 
+                      : 'bg-gray-700 text-gray-400'
+                  }`}
+                >
+                  {isPublicChat ? 'Public Mode' : 'Private Mode'}
+                </button>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Select a conversation</h3>
-              <p className="text-gray-400">Choose a conversation from the list to start messaging</p>
             </div>
+
+            {isPublicChat ? (
+              <div className="flex-1 flex flex-col p-4">
+                <div className="flex-1 overflow-y-auto mb-4 space-y-4">
+                  <div className="text-center text-gray-400 text-sm">
+                    <p>Public chatroom - All users can see these messages</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={publicMessage}
+                    onChange={(e) => setPublicMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendPublicMessage()}
+                    placeholder="Post a message for all users..."
+                    className="flex-1 bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleSendPublicMessage}
+                    className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all"
+                  >
+                    <Send className="w-5 h-5" />
+                  </motion.button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Send className="w-10 h-10 text-gray-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2">Select a conversation</h3>
+                  <p className="text-gray-400">Choose a conversation from the list to start messaging</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </motion.div>

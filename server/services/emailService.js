@@ -87,27 +87,39 @@ class EmailService {
 
   // Real email sending (for production)
   async sendRealEmail(email, subject, html) {
-    // In production, implement with Nodemailer or SendGrid
-    // Example with Nodemailer:
-    /*
     const nodemailer = require('nodemailer');
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+    
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
+        }
+      });
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM || 'noreply@sokonet.com',
-      to: email,
-      subject: subject,
-      html: html
-    });
-    */
-    console.log('Real email sending not configured. Using console output.');
-    return true;
+      await transporter.sendMail({
+        from: process.env.EMAIL_FROM || 'noreply@sokonet.com',
+        to: email,
+        subject: subject,
+        html: html
+      });
+      
+      console.log(`Email sent successfully to ${email}`);
+      return true;
+    } catch (error) {
+      console.error('Email sending failed:', error.message);
+      // Fallback to console logging if email fails
+      console.log('='.repeat(50));
+      console.log('EMAIL SERVICE - FALLBACK MODE');
+      console.log('='.repeat(50));
+      console.log(`To: ${email}`);
+      console.log(`Subject: ${subject}`);
+      console.log('='.repeat(50));
+      console.log(html);
+      console.log('='.repeat(50));
+      return false;
+    }
   }
 }
 
