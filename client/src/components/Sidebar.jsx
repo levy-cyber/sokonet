@@ -9,9 +9,26 @@ import {
 } from 'react-icons/fi';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, switchRole } = useAuth();
   const navigate = useNavigate();
   const [showRoleMenu, setShowRoleMenu] = useState(false);
+
+  // Role → home page mapping
+  const roleHomePaths = {
+    buyer: '/',
+    seller: '/shop/mine',
+    service_provider: '/services/mine',
+    rider: '/rider/dashboard',
+    freelancer: '/services/mine',
+    admin: '/admin',
+  };
+
+  const handleRoleSwitch = (role) => {
+    switchRole(role);
+    navigate(roleHomePaths[role] || '/');
+    setShowRoleMenu(false);
+    setIsOpen(false);
+  };
 
   const roleLinks = {
     seller: [
@@ -129,11 +146,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           {/* Brand Header */}
           <div className="px-4 lg:px-6 mb-4 lg:mb-8 flex items-center gap-2 lg:gap-3">
             <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl bg-brand flex items-center justify-center font-bold text-black text-lg lg:text-xl shadow-glow-green">
-              S
+              N
             </div>
             <div className="hidden sm:block">
               <h1 className="text-lg lg:text-xl font-bold tracking-tight text-white font-sans">
-                Soko<span className="text-brand">Net</span>
+                Net<span className="text-brand">soko</span>
               </h1>
               <span className="text-[10px] lg:text-xs text-dark-muted font-mono tracking-wider">v1.0.0 PROD</span>
             </div>
@@ -161,12 +178,47 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   </div>
                 </div>
 
-                {/* Role Menu Dropdown */}
+                {/* Role Menu Dropdown — Switch Roles & Navigate (all devices) */}
                 {showRoleMenu && (
                   <div className="mt-2 pt-2 border-t border-dark-border/50">
-                    <p className="text-[10px] text-gray-500 mb-2 font-medium">Quick Access</p>
-                    
+                    {/* Switch Role Section */}
+                    {user?.roles?.length > 1 && (
+                      <>
+                        <p className="text-[10px] text-gray-500 mb-2 font-medium">Switch Role</p>
+                        <div className="space-y-1 mb-3">
+                          {user.roles.map((role) => {
+                            const isActive = role === user.activeRole;
+                            const roleLabels = {
+                              buyer: '🛒 Buyer',
+                              seller: '🏪 Seller',
+                              service_provider: '🔧 Service Provider',
+                              rider: '🚚 Rider',
+                              freelancer: '💼 Freelancer',
+                              admin: '⚙️ Admin',
+                            };
+                            return (
+                              <button
+                                key={role}
+                                onClick={() => handleRoleSwitch(role)}
+                                disabled={isActive}
+                                className={`w-full flex items-center gap-2 px-2 py-1.5 text-[10px] lg:text-xs rounded-lg transition-colors ${
+                                  isActive
+                                    ? 'bg-brand/20 text-brand border border-brand/30 cursor-default'
+                                    : 'text-gray-400 hover:text-white hover:bg-dark-card/50'
+                                }`}
+                              >
+                                <span>{roleLabels[role]}</span>
+                                {isActive && <span className="ml-auto text-[9px] text-brand">Active</span>}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="border-t border-dark-border/50 mb-2" />
+                      </>
+                    )}
+
                     {/* General Links */}
+                    <p className="text-[10px] text-gray-500 mb-2 font-medium">Quick Access</p>
                     <div className="space-y-1 mb-3">
                       {generalLinks.map((link) => {
                         const Icon = link.icon;
@@ -211,7 +263,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     {/* Role-specific Links */}
                     {user?.roles?.length > 0 && (
                       <>
-                        <p className="text-[10px] text-gray-500 mb-2 font-medium border-t border-dark-border/50 pt-2">Your Roles</p>
+                        <p className="text-[10px] text-gray-500 mb-2 font-medium border-t border-dark-border/50 pt-2">Role Pages</p>
                         {user?.roles?.map((role) => (
                           <div key={role} className="space-y-1">
                             {roleLinks[role]?.map((link) => {

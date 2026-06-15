@@ -115,16 +115,16 @@ const ProductDetails = () => {
                 className="max-w-full max-h-full object-contain rounded-lg"
               />
             </motion.div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="flex gap-4 overflow-x-auto pb-2">
               {product.images.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
-                  className={`bg-gray-900/50 border rounded-lg p-2 transition-all ${
+                  className={`flex-shrink-0 w-24 h-20 bg-gray-900/50 border rounded-lg p-2 transition-all ${
                     selectedImage === index ? 'border-green-500' : 'border-gray-700 hover:border-gray-600'
                   }`}
                 >
-                  <img src={image} alt={`${product.name} ${index + 1}`} className="w-full h-20 object-cover rounded" />
+                  <img src={image} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover rounded" />
                 </button>
               ))}
             </div>

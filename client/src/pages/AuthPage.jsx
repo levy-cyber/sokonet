@@ -57,10 +57,12 @@ const AuthPage = ({ isLogin }) => {
     try {
       if (isLogin) {
         await login(formData.email, formData.password);
+        navigate('/');
       } else {
         await register(formData.name, formData.email, formData.phone, formData.password, formData.selectedRoles);
+        // Redirect to OTP verification after registration
+        navigate(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
       }
-      navigate('/');
     } catch (err) {
       setError(err.message || 'Authentication failed');
     } finally {
@@ -84,7 +86,7 @@ const AuthPage = ({ isLogin }) => {
               {isLogin ? 'Welcome Back' : 'Create Account'}
             </h2>
             <p className="text-gray-400 text-sm lg:text-base">
-              {isLogin ? 'Login to your SokoNet account' : 'Sign up to explore endless possibilities'}
+              {isLogin ? 'Login to your Netsoko account' : 'Sign up to explore endless possibilities'}
             </p>
           </div>
 

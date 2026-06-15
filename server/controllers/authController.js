@@ -8,7 +8,7 @@ const crypto = require('crypto');
 const emailService = require('../services/emailService');
 
 // Admin credentials
-const ADMIN_PASSWORD = 'sokonet234';
+const ADMIN_PASSWORD = 'Netsoko234';
 
 // Helper function to generate OTP
 const generateOTP = () => {
@@ -79,7 +79,7 @@ const registerUser = async (req, res) => {
         await Shop.create({
           seller: user._id,
           name: `${name}'s Store`,
-          description: `Welcome to my customized storefront on SokoNet!`,
+          description: `Welcome to my customized storefront on Netsoko!`,
           address: 'Stall 4, Biashara Street, Nairobi',
         });
       }

@@ -7,7 +7,7 @@ const AISupport = () => {
     {
       id: 1,
       type: 'ai',
-      text: "Hi! I'm SokoNet AI Assistant. I can help you with questions about the platform. Try asking me about marketplace, payments, delivery, or any other feature!",
+      text: "Hi! I'm Netsoko AI Assistant. I can help you with questions about the platform. Try asking me about marketplace, payments, delivery, or any other feature!",
       timestamp: new Date()
     }
   ]);
@@ -26,55 +26,55 @@ const AISupport = () => {
   const generateAIResponse = (userMessage) => {
     const message = userMessage.toLowerCase();
     
-    // Comprehensive knowledge base for SokoNet
+    // Comprehensive knowledge base for Netsoko
     const knowledgeBase = {
       // Marketplace questions
-      'marketplace': "SokoNet marketplace is where you can buy and sell products. Browse through categories, search for specific items, and make secure purchases with escrow protection.",
-      'buy': "To buy products on SokoNet: 1) Browse the marketplace, 2) Select items you want, 3) Add to cart, 4) Complete checkout with secure payment, 5) Track your order status.",
+      'marketplace': "Netsoko marketplace is where you can buy and sell products. Browse through categories, search for specific items, and make secure purchases with escrow protection.",
+      'buy': "To buy products on Netsoko: 1) Browse the marketplace, 2) Select items you want, 3) Add to cart, 4) Complete checkout with secure payment, 5) Track your order status.",
       'sell': "To sell products: 1) Go to My Shop, 2) Add product details, 3) Set price and stock, 4) Add product images, 5) Manage orders from your dashboard.",
-      'product': "Products on SokoNet include detailed descriptions, pricing, seller ratings, and customer reviews. You can filter by category and search by keywords.",
+      'product': "Products on Netsoko include detailed descriptions, pricing, seller ratings, and customer reviews. You can filter by category and search by keywords.",
       
       // Payment and wallet
-      'payment': "SokoNet supports M-Pesa payments and wallet transactions. Your wallet balance can be used for purchases, withdrawals, and transfers.",
-      'wallet': "Your SokoNet wallet allows you to: deposit money via M-Pesa, pay for purchases, withdraw to your bank account, and transfer to other users.",
-      'mpesa': "M-Pesa integration allows you to deposit funds directly to your SokoNet wallet. Simply select your amount and confirm with your phone.",
+      'payment': "Netsoko supports M-Pesa payments and wallet transactions. Your wallet balance can be used for purchases, withdrawals, and transfers.",
+      'wallet': "Your Netsoko wallet allows you to: deposit money via M-Pesa, pay for purchases, withdraw to your bank account, and transfer to other users.",
+      'mpesa': "M-Pesa integration allows you to deposit funds directly to your Netsoko wallet. Simply select your amount and confirm with your phone.",
       'escrow': "Escrow protects both buyers and sellers. When you pay, funds are held securely until you confirm the product was received and is as described.",
       
       // Delivery
-      'delivery': "SokoNet has a delivery network of riders who handle deliveries. Once you place an order, a rider will be assigned to deliver your items safely.",
+      'delivery': "Netsoko has a delivery network of riders who handle deliveries. Once you place an order, a rider will be assigned to deliver your items safely.",
       'rider': "Delivery partners can earn money by handling deliveries. They track routes, manage earnings, and receive customer ratings.",
       'shipping': "Shipping costs vary based on distance and product type. Delivery time ranges from same-day to standard shipping depending on your location.",
       
       // Services
-      'service': "SokoNet Services allows you to book professional services like plumbing, electrical work, tech support, and more from verified providers.",
+      'service': "Netsoko Services allows you to book professional services like plumbing, electrical work, tech support, and more from verified providers.",
       'book': "To book a service: 1) Browse available services, 2) Check provider ratings, 3) Select a convenient time, 4) Confirm booking, 5) Pay securely.",
       'provider': "Service providers can list their skills, manage bookings, set prices, and build their reputation through customer reviews.",
       
       // Jobs
-      'job': "SokoNet Jobs connects freelancers with clients. You can find projects, submit proposals, and get paid for your work.",
-      'freelance': "Freelancing on SokoNet: Browse available jobs, submit proposals with your pricing, manage projects, track earnings, and build your reputation.",
+      'job': "Netsoko Jobs connects freelancers with clients. You can find projects, submit proposals, and get paid for your work.",
+      'freelance': "Freelancing on Netsoko: Browse available jobs, submit proposals with your pricing, manage projects, track earnings, and build your reputation.",
       'proposal': "To submit a proposal: 1) Find a job you're interested in, 2) Review requirements, 3) Set your proposed amount, 4) Write a cover letter, 5) Submit and wait for client response.",
       
       // User roles
-      'role': "SokoNet has 5 main user roles: Buyers (shop for products), Sellers (manage business), Service Providers (offer services), Riders (handle deliveries), and Freelancers (find jobs).",
+      'role': "Netsoko has 5 main user roles: Buyers (shop for products), Sellers (manage business), Service Providers (offer services), Riders (handle deliveries), and Freelancers (find jobs).",
       'seller': "Sellers can list products, manage inventory, track sales, view analytics, and handle customer orders with business tools.",
       'buyer': "Buyers can shop in the marketplace, track orders, manage payments, book services, and find jobs.",
       
       // Account and support
       'account': "Manage your account settings including profile information, payment methods, notifications, and security settings from your dashboard.",
       'login': "To login: 1) Go to login page, 2) Enter your email and password, 3) Click sign in, 4) Access your personalized dashboard based on your role.",
-      'register': "To register: 1) Click sign up, 2) Choose your role (Buyer, Seller, Service Provider, Rider, or Freelancer), 3) Enter your details, 4) Create account and start using SokoNet.",
-      'help': "I'm here to help! You can ask me about any SokoNet feature including marketplace, payments, delivery, services, jobs, or account management.",
+      'register': "To register: 1) Click sign up, 2) Choose your role (Buyer, Seller, Service Provider, Rider, or Freelancer), 3) Enter your details, 4) Create account and start using Netsoko.",
+      'help': "I'm here to help! You can ask me about any Netsoko feature including marketplace, payments, delivery, services, jobs, or account management.",
       
       // Technical issues
       'problem': "If you're experiencing technical issues, try: 1) Refreshing the page, 2) Clearing browser cache, 3) Check your internet connection, 4) Contact support for persistent issues.",
-      'error': "Common solutions for errors: Refresh the page, check your internet connection, ensure you're logged in, or contact SokoNet support if the issue persists.",
+      'error': "Common solutions for errors: Refresh the page, check your internet connection, ensure you're logged in, or contact Netsoko support if the issue persists.",
       
       // General
-      'sokonet': "SokoNet is Kenya's all-in-one digital ecosystem where you can shop, work, pay, deliver, and grow businesses from a single platform. Our vision is: 'One Network. Endless Possibilities.'",
-      'features': "SokoNet features include: Online marketplace, Escrow payments, Digital wallet, Delivery network, Service booking, Job marketplace, Real-time chat, Business analytics, and Multi-role support.",
-      'support': "For additional support, you can contact our customer service team through the app, email support@sokonet.ke, or visit our help center.",
-      'contact': "Contact SokoNet support: Email: support@sokonet.ke, Phone: +254 700 000 000, or use the live chat in the app.",
+      'Netsoko': "Netsoko is Kenya's all-in-one digital ecosystem where you can shop, work, pay, deliver, and grow businesses from a single platform. Our vision is: 'One Network. Endless Possibilities.'",
+      'features': "Netsoko features include: Online marketplace, Escrow payments, Digital wallet, Delivery network, Service booking, Job marketplace, Real-time chat, Business analytics, and Multi-role support.",
+      'support': "For additional support, you can contact our customer service team through the app, email support@Netsoko.ke, or visit our help center.",
+      'contact': "Contact Netsoko support: Email: support@Netsoko.ke, Phone: +254 700 000 000, or use the live chat in the app.",
     };
 
     // Find the best matching response
@@ -90,11 +90,11 @@ const AISupport = () => {
 
     // Add some contextual responses
     if (message.includes('thank') || message.includes('thanks')) {
-      response = "You're welcome! Is there anything else I can help you with regarding SokoNet?";
+      response = "You're welcome! Is there anything else I can help you with regarding Netsoko?";
     } else if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
-      response = "Hello! I'm happy to help you with SokoNet. What would you like to know about the platform?";
+      response = "Hello! I'm happy to help you with Netsoko. What would you like to know about the platform?";
     } else if (message.includes('goodbye') || message.includes('bye')) {
-      response = "Goodbye! Feel free to come back anytime if you have more questions about SokoNet. Have a great day!";
+      response = "Goodbye! Feel free to come back anytime if you have more questions about Netsoko. Have a great day!";
     }
 
     return response;
@@ -152,7 +152,7 @@ const AISupport = () => {
               <FiCpu className="text-white text-lg" />
             </div>
             <div>
-              <h3 className="text-white font-semibold">SokoNet AI</h3>
+              <h3 className="text-white font-semibold">Netsoko AI</h3>
               <p className="text-white/80 text-xs">Online • Ready to help</p>
             </div>
           </div>
@@ -207,7 +207,7 @@ const AISupport = () => {
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Ask about SokoNet..."
+            placeholder="Ask about Netsoko..."
             className="flex-1 bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-brand transition-all text-sm"
           />
           <button

@@ -8,7 +8,7 @@ async function testConnection() {
   if (!process.env.MONGODB_URI) {
     console.error('❌ MONGODB_URI not found in .env file');
     console.log('💡 Please add MONGODB_URI to your .env file');
-    console.log('💡 Example: mongodb+srv://username:password@cluster0.mongodb.net/sokonet');
+    console.log('💡 Example: mongodb+srv://username:password@cluster0.mongodb.net/Netsoko');
     process.exit(1);
   }
 

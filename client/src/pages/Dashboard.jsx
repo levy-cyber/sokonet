@@ -112,7 +112,7 @@ const Dashboard = () => {
             {user?.activeRole === 'service_provider' && 'Here\'s your service booking overview.'}
             {user?.activeRole === 'rider' && 'Here\'s your delivery performance overview.'}
             {user?.activeRole === 'freelancer' && 'Here\'s your freelance projects overview.'}
-            {user?.activeRole === 'buyer' && 'Here\'s what\'s happening with your SokoNet account today.'}
+            {user?.activeRole === 'buyer' && 'Here\'s what\'s happening with your Netsoko account today.'}
           </p>
         </div>
         {user?.roles && user.roles.length > 1 && (

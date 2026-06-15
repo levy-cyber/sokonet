@@ -14,7 +14,7 @@ const protect = async (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
 
       // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretjwtkey_sokonet_2026_prod');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretjwtkey_Netsoko_2026_prod');
 
       // Get user from the token
       let user;

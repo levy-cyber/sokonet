@@ -5,7 +5,7 @@ import { AuthContext } from './AuthContext';
 export const SocketContext = createContext();
 
 // Resolve socket server URL:
-// - In production, VITE_API_URL might be "https://sokonet-api.onrender.com/api"
+// - In production, VITE_API_URL might be "https://Netsoko-api.onrender.com/api"
 //   so we strip the path to get the server root.
 // - In dev, fall back to window.location.origin (proxied by Vite to localhost:5000).
 const getSocketUrl = () => {
@@ -13,7 +13,7 @@ const getSocketUrl = () => {
   if (apiUrl) {
     try {
       const url = new URL(apiUrl);
-      return url.origin; // e.g. "https://sokonet-api.onrender.com"
+      return url.origin; // e.g. "https://Netsoko-api.onrender.com"
     } catch {
       return window.location.origin;
     }
@@ -34,7 +34,7 @@ export const SocketProvider = ({ children }) => {
       });
 
       newSocket.on('connect', () => {
-        console.log('Connected to SokoNet Socket Server');
+        console.log('Connected to Netsoko Socket Server');
         newSocket.emit('join', user._id);
       });
 

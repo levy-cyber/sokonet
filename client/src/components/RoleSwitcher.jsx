@@ -1,8 +1,25 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiBriefcase, FiShoppingBag, FiTool, FiTruck, FiUser, FiSettings, FiChevronDown } from 'react-icons/fi';
 
 const RoleSwitcher = ({ currentRole, availableRoles, onRoleSwitch }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const roleHomePaths = {
+    buyer: '/',
+    seller: '/shop/mine',
+    service_provider: '/services/mine',
+    rider: '/rider/dashboard',
+    freelancer: '/services/mine',
+    admin: '/admin',
+  };
+
+  const handleSwitch = (role) => {
+    onRoleSwitch(role);
+    navigate(roleHomePaths[role] || '/');
+    setIsOpen(false);
+  };
 
   const roleConfig = {
     buyer: { name: 'Buyer', icon: FiShoppingBag, color: 'bg-blue-500', description: 'Shop for products' },
@@ -51,8 +68,7 @@ const RoleSwitcher = ({ currentRole, availableRoles, onRoleSwitch }) => {
                   <button
                     key={role}
                     onClick={() => {
-                      onRoleSwitch(role);
-                      setIsOpen(false);
+                      handleSwitch(role);
                     }}
                     disabled={isActive}
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${

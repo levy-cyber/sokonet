@@ -115,7 +115,7 @@ const getProductById = async (req, res) => {
 // @route   POST /api/products
 // @access  Private (Seller/Admin only)
 const createProduct = async (req, res) => {
-  const { name, description, price, category, stock, image } = req.body;
+  const { name, description, price, category, stock, image, images } = req.body;
 
   try {
     let product;
@@ -128,7 +128,7 @@ const createProduct = async (req, res) => {
         price,
         category,
         stock,
-        images: image ? [image] : undefined,
+        images: images || (image ? [image] : undefined),
       });
       res.status(201).json({ success: true, data: product });
     } else {
@@ -139,7 +139,7 @@ const createProduct = async (req, res) => {
         price,
         category,
         stock,
-        images: image ? [image] : undefined,
+        images: images || (image ? [image] : undefined),
       });
 
       res.status(201).json({ success: true, data: product });

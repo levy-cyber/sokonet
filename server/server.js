@@ -22,7 +22,7 @@ app.use(express.json());
 
 // Base check route
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'SokoNet Backend API is running successfully' });
+  res.json({ status: 'OK', message: 'Netsoko Backend API is running successfully' });
 });
 
 // Mount Routes

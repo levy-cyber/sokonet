@@ -58,7 +58,7 @@ const AppRoutes = () => {
           <Route path="/services" element={<ServicesMarketplace />} />
         </Route>
 
-        <Route element={<MainLayout title="SokoNet Escrow Accounts" />}>
+        <Route element={<MainLayout title="Netsoko Escrow Accounts" />}>
           <Route path="/escrow" element={<EscrowPage />} />
         </Route>
 

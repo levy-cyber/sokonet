@@ -75,7 +75,7 @@ class MpesaService {
       PartyA: formattedPhone,
       PartyB: this.shortcode,
       PhoneNumber: formattedPhone,
-      CallBackURL: `https://sokonet-backend-url.railway.app/api/wallet/mpesa-callback`,
+      CallBackURL: `https://Netsoko-backend-url.railway.app/api/wallet/mpesa-callback`,
       AccountReference: referenceCode,
       TransactionDesc: description,
     };
@@ -132,8 +132,8 @@ class MpesaService {
       PartyA: this.shortcode,
       PartyB: formattedPhone,
       Remarks: description,
-      QueueTimeOutURL: 'https://sokonet-backend-url.railway.app/api/wallet/mpesa-b2c-timeout',
-      ResultURL: 'https://sokonet-backend-url.railway.app/api/wallet/mpesa-b2c-result',
+      QueueTimeOutURL: 'https://Netsoko-backend-url.railway.app/api/wallet/mpesa-b2c-timeout',
+      ResultURL: 'https://Netsoko-backend-url.railway.app/api/wallet/mpesa-b2c-result',
       Occasion: 'WalletWithdrawal',
     };
 

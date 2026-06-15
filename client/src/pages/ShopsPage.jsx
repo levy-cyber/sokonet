@@ -25,10 +25,10 @@ const ShopsPage = () => {
     price: '',
     stock: '',
     category: '',
-    image: '',
+    images: [], // multiple images
   });
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imageUrlInput, setImageUrlInput] = useState('');
 
   useEffect(() => {
     fetchShopData();
@@ -95,66 +95,73 @@ const ShopsPage = () => {
   };
 
   const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    const MAX_IMAGES = 20;
+    const remaining = MAX_IMAGES - newProduct.images.length;
+    if (remaining <= 0) {
+      alert('Maximum 20 images allowed per product.');
+      return;
+    }
 
     setUploadingImage(true);
-    
-    try {
-      // Create local preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-        setNewProduct({ ...newProduct, image: reader.result });
-        setUploadingImage(false);
-      };
-      reader.readAsDataURL(file);
-      
-      // In production, you would upload to a server
-      // const formData = new FormData();
-      // formData.append('image', file);
-      // const response = await api.post('/upload', formData);
-      // setNewProduct({ ...newProduct, image: response.data.url });
-      
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      setUploadingImage(false);
+    const toProcess = files.slice(0, remaining);
+
+    const promises = toProcess.map(
+      (file) =>
+        new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(file);
+        })
+    );
+
+    const results = await Promise.all(promises);
+    setNewProduct((prev) => ({ ...prev, images: [...prev.images, ...results] }));
+    setUploadingImage(false);
+  };
+
+  const handleAddImageUrl = () => {
+    if (!imageUrlInput.trim()) return;
+    if (newProduct.images.length >= 20) {
+      alert('Maximum 20 images allowed per product.');
+      return;
     }
+    setNewProduct((prev) => ({ ...prev, images: [...prev.images, imageUrlInput.trim()] }));
+    setImageUrlInput('');
+  };
+
+  const handleRemoveImage = (idx) => {
+    setNewProduct((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }));
   };
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
     
-    // Validate form
     if (!newProduct.name || !newProduct.price || !newProduct.stock || !newProduct.category) {
       alert('Please fill in all required fields');
       return;
     }
 
+    const defaultImage = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400';
+    const finalImages = newProduct.images.length > 0 ? newProduct.images : [defaultImage];
+
     try {
-      // Try API call first
       const response = await api.post('/products', {
         name: newProduct.name,
         description: newProduct.description,
         price: parseFloat(newProduct.price),
         stock: parseInt(newProduct.stock),
         category: newProduct.category,
-        image: newProduct.image || imagePreview || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+        images: finalImages,
         status: parseInt(newProduct.stock) > 0 ? 'active' : 'out_of_stock',
       });
 
       if (response.data.success) {
         alert('Product added successfully!');
         setShowAddProduct(false);
-        setNewProduct({
-          name: '',
-          description: '',
-          price: '',
-          stock: '',
-          category: '',
-          image: '',
-        });
-        setImagePreview(null);
+        resetProductForm();
         fetchShopData();
       }
     } catch (error) {
@@ -167,7 +174,8 @@ const ShopsPage = () => {
         price: parseFloat(newProduct.price),
         stock: parseInt(newProduct.stock),
         category: newProduct.category,
-        image: newProduct.image || imagePreview || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+        image: finalImages[0],
+        images: finalImages,
         status: parseInt(newProduct.stock) > 0 ? 'active' : 'out_of_stock',
         sales: 0,
         rating: 0,
@@ -176,16 +184,13 @@ const ShopsPage = () => {
       setProducts([...products, product]);
       alert('Product added successfully! (Demo mode)');
       setShowAddProduct(false);
-      setNewProduct({
-        name: '',
-        description: '',
-        price: '',
-        stock: '',
-        category: '',
-        image: '',
-      });
-      setImagePreview(null);
+      resetProductForm();
     }
+  };
+
+  const resetProductForm = () => {
+    setNewProduct({ name: '', description: '', price: '', stock: '', category: '', images: [] });
+    setImageUrlInput('');
   };
 
   const handleDeleteProduct = async (productId) => {
@@ -425,15 +430,7 @@ const ShopsPage = () => {
               <button
                 onClick={() => {
                   setShowAddProduct(false);
-                  setImagePreview(null);
-                  setNewProduct({
-                    name: '',
-                    description: '',
-                    price: '',
-                    stock: '',
-                    category: '',
-                    image: '',
-                  });
+                  resetProductForm();
                 }}
                 className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
               >
@@ -518,78 +515,87 @@ const ShopsPage = () => {
                 </select>
               </div>
 
+              {/* Product Images — multiple up to 20 */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Product Image *
+                  Product Images <span className="text-gray-500">(up to 20)</span>
                 </label>
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <label className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg hover:bg-gray-700 transition-colors cursor-pointer">
-                      <Upload className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm">Upload Image</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                    </label>
-                    <input
-                      type="url"
-                      value={newProduct.image}
-                      onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
-                      className="flex-1 bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-green-500 transition-colors"
-                      placeholder="Or enter image URL"
-                    />
+
+                {/* Image gallery strip */}
+                {newProduct.images.length > 0 && (
+                  <div className="flex gap-2 flex-wrap mb-3">
+                    {newProduct.images.map((img, idx) => (
+                      <div key={idx} className="relative group w-20 h-20">
+                        <img
+                          src={img}
+                          alt={`Product ${idx + 1}`}
+                          className="w-full h-full object-cover rounded-lg border border-gray-700"
+                          onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400'; }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx)}
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                        {idx === 0 && (
+                          <span className="absolute bottom-0 left-0 right-0 text-center text-[9px] bg-green-500/80 text-white rounded-b-lg py-0.5">Cover</span>
+                        )}
+                      </div>
+                    ))}
+                    {newProduct.images.length < 20 && (
+                      <label className="w-20 h-20 border-2 border-dashed border-gray-600 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-green-500 transition-colors">
+                        <Upload className="w-5 h-5 text-gray-500" />
+                        <span className="text-[10px] text-gray-500 mt-1">Add</span>
+                        <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
+                      </label>
+                    )}
                   </div>
-                  
-                  {(imagePreview || newProduct.image) && (
-                    <div className="relative">
-                      <img
-                        src={imagePreview || newProduct.image}
-                        alt="Preview"
-                        className="w-full h-48 object-cover rounded-lg border border-gray-700"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setImagePreview(null);
-                          setNewProduct({ ...newProduct, image: '' });
-                        }}
-                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                  
-                  {uploadingImage && (
-                    <div className="flex items-center justify-center gap-2 py-3 bg-gray-800 rounded-lg">
-                      <div className="w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="text-sm text-gray-400">Uploading image...</span>
-                    </div>
-                  )}
+                )}
+
+                {/* Initial upload area when no images */}
+                {newProduct.images.length === 0 && (
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:border-green-500 transition-colors mb-3">
+                    <Upload className="w-8 h-8 text-gray-500 mb-2" />
+                    <span className="text-sm text-gray-400">Click or drag images here</span>
+                    <span className="text-xs text-gray-500 mt-1">Up to 20 images</span>
+                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
+                  </label>
+                )}
+
+                {/* URL input */}
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={imageUrlInput}
+                    onChange={(e) => setImageUrlInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddImageUrl())}
+                    className="flex-1 bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors"
+                    placeholder="Or paste image URL and press Add"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddImageUrl}
+                    disabled={newProduct.images.length >= 20}
+                    className="px-3 py-2 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-40"
+                  >
+                    Add
+                  </button>
                 </div>
+
+                {uploadingImage && (
+                  <div className="flex items-center gap-2 py-2 text-sm text-gray-400">
+                    <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                    Processing images...
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowAddProduct(false);
-                    setImagePreview(null);
-                    setNewProduct({
-                      name: '',
-                      description: '',
-                      price: '',
-                      stock: '',
-                      category: '',
-                      image: '',
-                    });
-                  }}
+                  onClick={() => { setShowAddProduct(false); resetProductForm(); }}
                   className="flex-1 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
                   Cancel

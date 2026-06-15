@@ -79,12 +79,11 @@ const SettingsPage = () => {
     setSuccess(false);
 
     try {
-      // Update user profile
       const response = await fetch('/api/users/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('sokonet_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('Netsoko_token')}`,
         },
         body: JSON.stringify(formData),
       });
@@ -93,6 +92,8 @@ const SettingsPage = () => {
 
       if (data.success) {
         setUser({ ...user, ...data.user });
+        // Keep localStorage in sync
+        localStorage.setItem('Netsoko_user', JSON.stringify({ ...user, ...data.user }));
         setSuccess('Profile updated successfully!');
         setTimeout(() => setSuccess(false), 3000);
       } else {

@@ -72,7 +72,7 @@ const raiseDispute = async (req, res) => {
     );
 
     // Notify admins (implied in production dashboard)
-    res.json({ success: true, message: 'Dispute raised successfully. SokoNet Admin review initiated.', data: escrow });
+    res.json({ success: true, message: 'Dispute raised successfully. Netsoko Admin review initiated.', data: escrow });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

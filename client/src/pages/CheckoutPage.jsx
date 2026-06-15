@@ -92,7 +92,7 @@ const CheckoutPage = () => {
         className="max-w-6xl mx-auto"
       >
         <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">Checkout</h1>
-        <p className="text-gray-400 mb-8">Complete your order securely with SokoNet escrow protection</p>
+        <p className="text-gray-400 mb-8">Complete your order securely with Netsoko escrow protection</p>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Checkout Form */}

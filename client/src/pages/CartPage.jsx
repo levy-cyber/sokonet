@@ -168,7 +168,7 @@ const CartPage = () => {
                   <div>
                     <p className="text-white text-sm font-medium">Secure Payment</p>
                     <p className="text-gray-400 text-xs mt-1">
-                      Your payment is protected by SokoNet escrow until you receive your order.
+                      Your payment is protected by Netsoko escrow until you receive your order.
                     </p>
                   </div>
                 </div>

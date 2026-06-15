@@ -8,18 +8,18 @@ class EmailService {
 
   // Send OTP email
   async sendOTP(email, otp, name) {
-    const subject = 'SokoNet - Email Verification Code';
+    const subject = 'Netsoko - Email Verification Code';
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #00C853;">Welcome to SokoNet!</h2>
+        <h2 style="color: #00C853;">Welcome to Netsoko!</h2>
         <p>Hi ${name},</p>
-        <p>Thank you for registering with SokoNet. Please use the following OTP to verify your email address:</p>
+        <p>Thank you for registering with Netsoko. Please use the following OTP to verify your email address:</p>
         <div style="background: #f0f0f0; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; margin: 20px 0;">
           ${otp}
         </div>
         <p>This OTP will expire in 10 minutes.</p>
         <p>If you didn't request this, please ignore this email.</p>
-        <p>Best regards,<br>The SokoNet Team</p>
+        <p>Best regards,<br>The Netsoko Team</p>
       </div>
     `;
 
@@ -45,12 +45,12 @@ class EmailService {
 
   // Send password reset email
   async sendPasswordReset(email, resetLink, name) {
-    const subject = 'SokoNet - Password Reset Request';
+    const subject = 'Netsoko - Password Reset Request';
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #00C853;">Password Reset Request</h2>
         <p>Hi ${name},</p>
-        <p>We received a request to reset your password for your SokoNet account.</p>
+        <p>We received a request to reset your password for your Netsoko account.</p>
         <p>Click the button below to reset your password:</p>
         <div style="text-align: center; margin: 20px 0;">
           <a href="${resetLink}" style="background: #00C853; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
@@ -61,7 +61,7 @@ class EmailService {
         <p style="word-break: break-all; color: #00C853;">${resetLink}</p>
         <p>This link will expire in 1 hour.</p>
         <p>If you didn't request this, please ignore this email.</p>
-        <p>Best regards,<br>The SokoNet Team</p>
+        <p>Best regards,<br>The Netsoko Team</p>
       </div>
     `;
 
@@ -99,7 +99,7 @@ class EmailService {
       });
 
       await transporter.sendMail({
-        from: process.env.EMAIL_FROM || 'noreply@sokonet.com',
+        from: process.env.EMAIL_FROM || 'noreply@netsoko.com',
         to: email,
         subject: subject,
         html: html

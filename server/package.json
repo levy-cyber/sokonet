@@ -1,7 +1,7 @@
 {
-  "name": "sokonet-server",
+  "name": "netsoko-server",
   "version": "1.0.0",
-  "description": "SokoNet Backend API",
+  "description": "Netsoko Backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

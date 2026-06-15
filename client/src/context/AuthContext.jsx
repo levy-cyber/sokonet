@@ -16,8 +16,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('sokonet_user');
-    const storedToken = localStorage.getItem('sokonet_token');
+    const storedUser = localStorage.getItem('Netsoko_user');
+    const storedToken = localStorage.getItem('Netsoko_token');
     
     if (storedUser && storedToken) {
       const userData = JSON.parse(storedUser);
@@ -48,8 +48,8 @@ export const AuthProvider = ({ children }) => {
           avatar: data.avatar,
         };
         setUser(userData);
-        localStorage.setItem('sokonet_token', data.token);
-        localStorage.setItem('sokonet_user', JSON.stringify(userData));
+        localStorage.setItem('Netsoko_token', data.token);
+        localStorage.setItem('Netsoko_user', JSON.stringify(userData));
       } else {
         throw new Error(data.message || 'Login failed');
       }
@@ -80,8 +80,14 @@ export const AuthProvider = ({ children }) => {
           avatar: data.avatar,
         };
         setUser(userData);
-        localStorage.setItem('sokonet_token', data.token);
-        localStorage.setItem('sokonet_user', JSON.stringify(userData));
+        localStorage.setItem('Netsoko_token', data.token);
+        localStorage.setItem('Netsoko_user', JSON.stringify(userData));
+        // Automatically send OTP after registration
+        try {
+          await api.post('/auth/send-otp', { email });
+        } catch (otpErr) {
+          console.log('OTP send failed (non-blocking):', otpErr.message);
+        }
       } else {
         throw new Error(data.message || 'Registration failed');
       }
@@ -98,14 +104,14 @@ export const AuthProvider = ({ children }) => {
         role: newRole, // Keep role for backward compatibility
       };
       setUser(updatedUser);
-      localStorage.setItem('sokonet_user', JSON.stringify(updatedUser));
+      localStorage.setItem('Netsoko_user', JSON.stringify(updatedUser));
     }
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('sokonet_token');
-    localStorage.removeItem('sokonet_user');
+    localStorage.removeItem('Netsoko_token');
+    localStorage.removeItem('Netsoko_user');
   };
 
   return (

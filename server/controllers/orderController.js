@@ -97,7 +97,7 @@ const createOrder = async (req, res) => {
     await notificationService.createNotification(
       sellerId,
       'New Order Received',
-      `You have received a new order for KES ${totalAmount}. Funds are secured in SokoNet Escrow.`,
+      `You have received a new order for KES ${totalAmount}. Funds are secured in Netsoko Escrow.`,
       'Order',
       `/orders/${order._id}`
     );
@@ -106,7 +106,7 @@ const createOrder = async (req, res) => {
     await notificationService.createNotification(
       req.user._id,
       'Order Placed Successfully',
-      `Your payment of KES ${totalAmount} is held securely in SokoNet Escrow.`,
+      `Your payment of KES ${totalAmount} is held securely in Netsoko Escrow.`,
       'Order',
       `/orders/${order._id}`
     );

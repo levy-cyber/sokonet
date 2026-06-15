@@ -10,7 +10,7 @@ const api = axios.create({
 // Request interceptor to automatically attach authorization header
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('sokonet_token');
+    const token = localStorage.getItem('Netsoko_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,8 +27,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       // Clear token and redirect if unauthorized
-      localStorage.removeItem('sokonet_token');
-      localStorage.removeItem('sokonet_user');
+      localStorage.removeItem('Netsoko_token');
+      localStorage.removeItem('Netsoko_user');
     }
     return Promise.reject(error);
   }

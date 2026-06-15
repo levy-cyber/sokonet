@@ -13,13 +13,13 @@ export const useCart = () => {
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState(() => {
     // Load cart from localStorage
-    const savedCart = localStorage.getItem('sokonet_cart');
+    const savedCart = localStorage.getItem('Netsoko_cart');
     return savedCart ? JSON.parse(savedCart) : [];
   });
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('sokonet_cart', JSON.stringify(cartItems));
+    localStorage.setItem('Netsoko_cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
   const addToCart = (product, quantity = 1) => {

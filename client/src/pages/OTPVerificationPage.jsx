@@ -83,7 +83,8 @@ const OTPVerificationPage = () => {
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">Verify Your Email</h2>
             <p className="text-gray-400 text-sm">
-              Enter the 6-digit code sent to {email || 'your email'}
+              A 6-digit code was sent to <span className="text-white font-medium">{email || 'your email'}</span>.
+              Please enter it below to activate your Netsoko account.
             </p>
           </div>
 
