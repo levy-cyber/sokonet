@@ -15,6 +15,14 @@ const applicationSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    skills: [{ type: String }],
+    profileInfo: {
+      type: String,
+    },
+    contactDetails: {
+      phone: String,
+      email: String,
+    },
     status: {
       type: String,
       enum: ['Applied', 'Shortlisted', 'Hired', 'Rejected'],
@@ -46,6 +54,9 @@ const jobSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'Please specify a budget'],
     },
+    salary: {
+      type: String, // e.g. "KES 50,000 - 80,000/month" or "Negotiable"
+    },
     currency: {
       type: String,
       default: 'KES',
@@ -53,15 +64,24 @@ const jobSchema = new mongoose.Schema(
     category: {
       type: String,
       required: [true, 'Please select a job category'],
-      enum: ['Logistics', 'Agriculture', 'Software Development', 'Writing', 'Design', 'Marketing', 'Manual Labor', 'Other'],
+      enum: ['Logistics', 'Agriculture', 'Software Development', 'Writing', 'Design', 'Marketing', 'Manual Labor', 'Finance', 'Healthcare', 'Education', 'Other'],
     },
+    skills: [{ type: String }],
     location: {
       type: String,
       default: 'Remote',
     },
+    deadline: {
+      type: Date,
+    },
+    contactDetails: {
+      phone: String,
+      email: String,
+      whatsapp: String,
+    },
     status: {
       type: String,
-      enum: ['Open', 'In_Progress', 'Completed', 'Closed'],
+      enum: ['Open', 'Paused', 'In_Progress', 'Completed', 'Closed'],
       default: 'Open',
     },
     applications: [applicationSchema],

@@ -4,6 +4,7 @@ SokoNet is an enterprise-grade fintech, marketplace, logistics, jobs, and social
 
 ## 🚀 Features
 
+### Core Platform Features
 - **Marketplace**: Full e-commerce platform with product listings, categories, search, and filters
 - **Escrow System**: Secure payment holding with buyer/seller protection
 - **Digital Wallet**: M-Pesa integrated wallet with deposits, withdrawals, and transfers
@@ -14,6 +15,17 @@ SokoNet is an enterprise-grade fintech, marketplace, logistics, jobs, and social
 - **Analytics Dashboard**: Comprehensive analytics for admin and sellers
 - **Multi-role System**: Buyer, Seller, Rider, and Admin roles
 - **Mobile App**: React Native Expo app for Android/iOS
+
+### Enhanced Features
+- **Super Admin System**: Full platform control with unrestricted access to users, products, jobs, chats, transactions, settings, and reports
+- **Support System**: Dedicated support ticketing with messaging, conversation history, and notifications
+- **Dynamic Wallet Balance**: Real-time wallet balance updates after all transactions (deposits, withdrawals, purchases, refunds)
+- **Registration Limits**: Maximum 2 accounts per phone number and email address with clear error messages
+- **Secure Account Deletion**: OTP verification via email/phone before deletion with confirmation warnings and admin logging
+- **Services Marketplace**: Browse and book professional services from verified providers with detailed provider profiles
+- **Jobs Hub System**: Complete job posting, application, and management system with notifications
+- **Dashboard Activity Summary**: Real-time dashboard with wallet balance, transactions, products, services, jobs, applications, messages, notifications, and recent activity
+- **Chat System Improvements**: Public chat with admin moderation, private chat with end-to-end encryption, read receipts, online status, file sharing, and user blocking
 
 ## Architecture Structure
 

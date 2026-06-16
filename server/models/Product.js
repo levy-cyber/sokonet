@@ -28,20 +28,38 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       required: [true, 'Please select a category'],
-      enum: ['Electronics', 'Agriculture', 'Fashion', 'Health & Beauty', 'Home & Living', 'Automotive', 'Other'],
+      enum: ['Electronics', 'Agriculture', 'Fashion', 'Health & Beauty', 'Home & Living', 'Automotive', 'Sports', 'Books', 'Food & Drinks', 'Other'],
+    },
+    condition: {
+      type: String,
+      required: [true, 'Please specify product condition'],
+      enum: ['New', 'Used - Like New', 'Used - Good', 'Used - Fair', 'Refurbished'],
     },
     stock: {
       type: Number,
       required: [true, 'Please add stock quantity'],
       min: [0, 'Stock cannot be negative'],
-      default: 10,
+      default: 1,
     },
     images: [
       {
         type: String,
-        default: ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&h=400'],
       },
     ],
+    location: {
+      type: String,
+      required: [true, 'Please add product location'],
+    },
+    sellerContact: {
+      phone: String,
+      email: String,
+      whatsapp: String,
+    },
+    status: {
+      type: String,
+      enum: ['active', 'sold', 'pending', 'removed'],
+      default: 'active',
+    },
     ratings: [
       {
         user: {

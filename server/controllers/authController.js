@@ -1,14 +1,12 @@
 const User = require('../models/User');
 const Wallet = require('../models/Wallet');
 const Shop = require('../models/Shop');
+const ActivityLog = require('../models/ActivityLog');
 const generateToken = require('../utils/generateToken');
 const { USE_MOCK, mockHelpers } = require('../config/db');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const emailService = require('../services/emailService');
-
-// Admin credentials
-const ADMIN_PASSWORD = 'Netsoko234';
 
 // Helper function to generate OTP
 const generateOTP = () => {
@@ -20,6 +18,15 @@ const generateResetToken = () => {
   return crypto.randomBytes(32).toString('hex');
 };
 
+// Helper to log activity
+const logActivity = async (userId, action, targetType = 'System', target = null, metadata = {}, ip = '') => {
+  try {
+    await ActivityLog.create({ user: userId, action, targetType, target, metadata, ip });
+  } catch (e) {
+    console.error('Activity log error:', e.message);
+  }
+};
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
@@ -27,80 +34,88 @@ const registerUser = async (req, res) => {
   const { name, email, phone, password, roles, activeRole } = req.body;
 
   try {
-    let userExists;
-
     if (USE_MOCK) {
-      userExists = mockHelpers.findUser({ email }) || mockHelpers.findUser({ phone });
-    } else {
-      userExists = await User.findOne({ $or: [{ email }, { phone }] });
-    }
-
-    if (userExists) {
-      return res.status(400).json({ success: false, message: 'User already exists with this email or phone' });
-    }
-
-    // Handle multiple roles
-    const userRoles = Array.isArray(roles) && roles.length > 0 ? roles : ['buyer'];
-    const userActiveRole = activeRole || userRoles[0] || 'buyer';
-
-    let user;
-    if (USE_MOCK) {
-      // Simple password check for mock (in real app would be bcrypt)
-      user = mockHelpers.createUser({
-        name,
-        email,
-        phone,
-        password: 'hashed_password', // Mock hashed password
-        role: userRoles[0], // Primary role for backward compatibility
+      const userExists = mockHelpers.findUser({ email }) || mockHelpers.findUser({ phone });
+      if (userExists) {
+        return res.status(400).json({ success: false, message: 'User already exists with this email or phone' });
+      }
+      const userRoles = Array.isArray(roles) && roles.length > 0 ? roles : ['buyer'];
+      const userActiveRole = activeRole || userRoles[0] || 'buyer';
+      const user = mockHelpers.createUser({
+        name, email, phone,
+        password: 'hashed_password',
+        role: userRoles[0],
         roles: userRoles,
         activeRole: userActiveRole,
         avatar: `https://i.pravatar.cc/150?u=${Date.now()}`,
-        rating: 5.0
+        rating: 5.0,
+        status: 'active',
       });
-    } else {
-      user = await User.create({
-        name,
-        email,
-        phone,
-        password,
-        role: userRoles[0], // Primary role for backward compatibility
-        roles: userRoles,
-        activeRole: userActiveRole,
-      });
-
-      // Create user wallet immediately
-      await Wallet.create({
-        user: user._id,
-        balance: 1000.0, // Give them 1000 KES sign up bonus to ease testing!
-      });
-
-      // If user is a seller, auto-create a Shop
-      if (userRoles.includes('seller')) {
-        await Shop.create({
-          seller: user._id,
-          name: `${name}'s Store`,
-          description: `Welcome to my customized storefront on Netsoko!`,
-          address: 'Stall 4, Biashara Street, Nairobi',
-        });
-      }
-    }
-
-    if (user) {
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone || '',
-        role: user.role,
-        roles: user.roles,
-        activeRole: user.activeRole,
-        avatar: user.avatar,
-        token: generateToken(user._id),
+        _id: user._id, name: user.name, email: user.email,
+        phone: user.phone || '', role: user.role,
+        roles: user.roles, activeRole: user.activeRole,
+        avatar: user.avatar, token: generateToken(user._id),
       });
-    } else {
-      res.status(400).json({ success: false, message: 'Invalid user data' });
     }
+
+    // === REGISTRATION LIMITS (max 2 accounts per email, max 2 per phone) ===
+    const emailCount = await User.countDocuments({ email: email.toLowerCase(), deletedAt: null });
+    if (emailCount >= 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'This email address has reached the maximum limit of 2 registered accounts.',
+      });
+    }
+
+    const phoneCount = await User.countDocuments({ phone, deletedAt: null });
+    if (phoneCount >= 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'This phone number has reached the maximum limit of 2 registered accounts.',
+      });
+    }
+
+    const userRoles = Array.isArray(roles) && roles.length > 0 ? roles : ['buyer'];
+    const userActiveRole = activeRole || userRoles[0] || 'buyer';
+
+    const user = await User.create({
+      name,
+      email: email.toLowerCase(),
+      phone,
+      password,
+      role: userRoles[0],
+      roles: userRoles,
+      activeRole: userActiveRole,
+      status: 'active',
+    });
+
+    // Create user wallet immediately with 0 balance
+    await Wallet.create({
+      user: user._id,
+      balance: 0,
+    });
+
+    // If user is a seller, auto-create a Shop
+    if (userRoles.includes('seller')) {
+      await Shop.create({
+        seller: user._id,
+        name: `${name}'s Store`,
+        description: `Welcome to my customized storefront on Netsoko!`,
+        address: 'Stall 4, Biashara Street, Nairobi',
+      });
+    }
+
+    await logActivity(user._id, 'User registered', 'User', user._id.toString(), { email, roles: userRoles }, req.ip);
+
+    res.status(201).json({
+      success: true,
+      _id: user._id, name: user.name, email: user.email,
+      phone: user.phone || '', role: user.role,
+      roles: user.roles, activeRole: user.activeRole,
+      avatar: user.avatar, token: generateToken(user._id),
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -113,38 +128,57 @@ const authUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    let user;
-
     if (USE_MOCK) {
-      user = mockHelpers.findUser({ email });
-      // Mock password check - in real app would be bcrypt.compare
+      const user = mockHelpers.findUser({ email });
       if (!user) {
         return res.status(401).json({ success: false, message: 'Invalid email or password' });
       }
-    } else {
-      user = await User.findOne({ email }).select('+password');
-
-      if (user && !(await user.matchPassword(password))) {
-        return res.status(401).json({ success: false, message: 'Invalid email or password' });
-      }
-    }
-
-    if (user) {
-      res.json({
+      return res.json({
         success: true,
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone || '',
-        role: user.role,
+        _id: user._id, name: user.name, email: user.email,
+        phone: user.phone || '', role: user.role,
         roles: user.roles || [user.role],
         activeRole: user.activeRole || user.role,
-        avatar: user.avatar,
-        token: generateToken(user._id),
+        avatar: user.avatar, token: generateToken(user._id),
+        isSuperAdmin: user.isSuperAdmin || false,
+        isSupport: user.isSupport || false,
       });
-    } else {
-      res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
+
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+
+    // Check account status
+    if (user.deletedAt) {
+      return res.status(401).json({ success: false, message: 'This account has been deleted.' });
+    }
+    if (user.status === 'suspended') {
+      return res.status(403).json({ success: false, message: 'Your account has been suspended. Contact support at support@sokonet.co.ke' });
+    }
+    if (user.status === 'blocked') {
+      return res.status(403).json({ success: false, message: 'Your account has been blocked. Contact support at support@sokonet.co.ke' });
+    }
+
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+
+    await logActivity(user._id, 'User logged in', 'User', user._id.toString(), {}, req.ip);
+
+    res.json({
+      success: true,
+      _id: user._id, name: user.name, email: user.email,
+      phone: user.phone || '', role: user.role,
+      roles: user.roles || [user.role],
+      activeRole: user.activeRole || user.role,
+      avatar: user.avatar, token: generateToken(user._id),
+      isSuperAdmin: user.isSuperAdmin || false,
+      isSupport: user.isSupport || false,
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -156,7 +190,6 @@ const authUser = async (req, res) => {
 const getUserProfile = async (req, res) => {
   try {
     let user;
-
     if (USE_MOCK) {
       user = mockHelpers.findUser({ _id: req.user._id });
     } else {
@@ -166,15 +199,14 @@ const getUserProfile = async (req, res) => {
     if (user) {
       res.json({
         success: true,
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone || '',
-        role: user.role,
+        _id: user._id, name: user.name, email: user.email,
+        phone: user.phone || '', role: user.role,
         roles: user.roles || [user.role],
         activeRole: user.activeRole || user.role,
-        avatar: user.avatar,
-        rating: user.rating || 5.0,
+        avatar: user.avatar, rating: user.rating || 5.0,
+        status: user.status || 'active',
+        isSuperAdmin: user.isSuperAdmin || false,
+        isSupport: user.isSupport || false,
       });
     } else {
       res.status(404).json({ success: false, message: 'User not found' });
@@ -189,22 +221,20 @@ const getUserProfile = async (req, res) => {
 // @access  Public
 const sendOTP = async (req, res) => {
   const { email } = req.body;
-
   try {
     let user;
     if (USE_MOCK) {
       user = mockHelpers.findUser({ email });
     } else {
-      user = await User.findOne({ email });
+      user = await User.findOne({ email: email.toLowerCase() });
     }
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found with this email' });
     }
 
-    // Generate OTP
     const otp = generateOTP();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
     if (USE_MOCK) {
       user.otp = otp;
@@ -215,14 +245,12 @@ const sendOTP = async (req, res) => {
       await user.save();
     }
 
-    // Send OTP email
     await emailService.sendOTP(email, otp, user.name);
 
     res.json({
       success: true,
       message: 'OTP sent successfully. Please check your email.',
-      // For development, return OTP in response (remove in production)
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined
+      otp: process.env.NODE_ENV === 'development' ? otp : undefined,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -234,20 +262,17 @@ const sendOTP = async (req, res) => {
 // @access  Public
 const verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
-
   try {
     let user;
     if (USE_MOCK) {
       user = mockHelpers.findUser({ email });
     } else {
-      user = await User.findOne({ email });
+      user = await User.findOne({ email: email.toLowerCase() });
     }
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found with this email' });
     }
-
-    // Check if OTP is expired
     if (user.otpExpiry < new Date()) {
       return res.status(400).json({ success: false, message: 'OTP has expired. Please request a new one.' });
     }
@@ -263,19 +288,12 @@ const verifyOTP = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid OTP. Please try again.' });
     }
 
-    // Mark email as verified
     user.isEmailVerified = true;
     user.otp = undefined;
     user.otpExpiry = undefined;
+    if (!USE_MOCK) await user.save();
 
-    if (!USE_MOCK) {
-      await user.save();
-    }
-
-    res.json({
-      success: true,
-      message: 'Email verified successfully!',
-    });
+    res.json({ success: true, message: 'Email verified successfully!' });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -286,22 +304,20 @@ const verifyOTP = async (req, res) => {
 // @access  Public
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
-
   try {
     let user;
     if (USE_MOCK) {
       user = mockHelpers.findUser({ email });
     } else {
-      user = await User.findOne({ email });
+      user = await User.findOne({ email: email.toLowerCase() });
     }
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found with this email' });
     }
 
-    // Generate reset token
     const resetToken = generateResetToken();
-    const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const resetExpiry = new Date(Date.now() + 60 * 60 * 1000);
 
     if (USE_MOCK) {
       user.resetPasswordToken = resetToken;
@@ -312,17 +328,13 @@ const forgotPassword = async (req, res) => {
       await user.save();
     }
 
-    // Create reset link
     const resetLink = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
-
-    // Send password reset email
     await emailService.sendPasswordReset(email, resetLink, user.name);
 
     res.json({
       success: true,
       message: 'Password reset link sent to your email.',
-      // For development, return reset link in response (remove in production)
-      resetLink: process.env.NODE_ENV === 'development' ? resetLink : undefined
+      resetLink: process.env.NODE_ENV === 'development' ? resetLink : undefined,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -334,23 +346,15 @@ const forgotPassword = async (req, res) => {
 // @access  Public
 const resetPassword = async (req, res) => {
   const { token, newPassword } = req.body;
-
   try {
     let user;
     if (USE_MOCK) {
-      // In mock mode, find user by token (simplified)
-      user = Object.values(mockHelpers.users).find(u => u.resetPasswordToken === token);
+      user = Object.values(mockHelpers.users || {}).find(u => u.resetPasswordToken === token);
     } else {
-      // In production, we need to find user and verify token hash
-      user = await User.findOne({
-        resetPasswordExpiry: { $gt: new Date() }
-      });
-
+      user = await User.findOne({ resetPasswordExpiry: { $gt: new Date() } });
       if (user && user.resetPasswordToken) {
         const isValidToken = await bcrypt.compare(token, user.resetPasswordToken);
-        if (!isValidToken) {
-          user = null;
-        }
+        if (!isValidToken) user = null;
       }
     }
 
@@ -358,47 +362,149 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid or expired reset token' });
     }
 
-    // Check if token is expired
-    if (user.resetPasswordExpiry < new Date()) {
-      return res.status(400).json({ success: false, message: 'Reset token has expired. Please request a new one.' });
-    }
-
-    // Update password
     user.password = newPassword;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpiry = undefined;
+    if (!USE_MOCK) await user.save();
 
-    if (!USE_MOCK) {
-      await user.save();
+    res.json({ success: true, message: 'Password reset successful. You can now login with your new password.' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// @desc    Admin / Super Admin login (by email + password)
+// @route   POST /api/auth/admin-login
+// @access  Public
+const adminLogin = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: 'Email and password are required' });
+  }
+
+  try {
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
+
+    if (!user.isSuperAdmin && !user.isSupport && user.role !== 'admin' && user.role !== 'support') {
+      return res.status(403).json({ success: false, message: 'Access denied. Not an admin or support account.' });
+    }
+
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    await logActivity(user._id, 'Admin login', 'System', null, { email }, req.ip);
 
     res.json({
       success: true,
-      message: 'Password reset successful. You can now login with your new password.',
+      token: generateToken(user._id),
+      isAdmin: user.isSuperAdmin || user.role === 'admin',
+      isSupport: user.isSupport || user.role === 'support',
+      isSuperAdmin: user.isSuperAdmin || false,
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      roles: user.roles || [user.role],
+      activeRole: user.activeRole || user.role,
+      avatar: user.avatar,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// @desc    Admin login
-// @route   POST /api/auth/admin-login
-// @access  Public
-const adminLogin = async (req, res) => {
-  const { password } = req.body;
+// @desc    Request account deletion OTP
+// @route   POST /api/auth/request-delete
+// @access  Private
+const requestAccountDeletion = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
 
-  if (password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ success: false, message: 'Invalid admin password' });
+    const otp = generateOTP();
+    const otpExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    user.deleteOtp = await bcrypt.hash(otp, 10);
+    user.deleteOtpExpiry = otpExpiry;
+    await user.save();
+
+    // Send OTP via email
+    try {
+      await emailService.sendOTP(user.email, otp, user.name, 'account deletion');
+    } catch (emailErr) {
+      console.error('Email send error:', emailErr.message);
+    }
+
+    res.json({
+      success: true,
+      message: 'A verification code has been sent to your email. Enter it to confirm account deletion.',
+      otp: process.env.NODE_ENV === 'development' ? otp : undefined,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// @desc    Confirm account deletion with OTP
+// @route   POST /api/auth/confirm-delete
+// @access  Private
+const confirmAccountDeletion = async (req, res) => {
+  const { otp, reason } = req.body;
+
+  if (!otp) {
+    return res.status(400).json({ success: false, message: 'Verification code is required' });
   }
 
-  // Generate admin token
-  const token = generateToken('admin');
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
 
-  res.json({
-    success: true,
-    token,
-    isAdmin: true,
-  });
+    if (!user.deleteOtp || !user.deleteOtpExpiry) {
+      return res.status(400).json({ success: false, message: 'No deletion request found. Please request a verification code first.' });
+    }
+
+    if (user.deleteOtpExpiry < new Date()) {
+      return res.status(400).json({ success: false, message: 'Verification code has expired. Please request a new one.' });
+    }
+
+    const isValidOTP = await bcrypt.compare(otp, user.deleteOtp);
+    if (!isValidOTP) {
+      return res.status(400).json({ success: false, message: 'Invalid verification code.' });
+    }
+
+    // Soft delete the account
+    user.deletedAt = new Date();
+    user.deletionReason = reason || 'User requested deletion';
+    user.deleteOtp = undefined;
+    user.deleteOtpExpiry = undefined;
+    user.status = 'blocked';
+    await user.save();
+
+    // Log the deletion
+    await logActivity(
+      user._id,
+      'Account deleted by user',
+      'User',
+      user._id.toString(),
+      { reason: reason || 'User requested', email: user.email },
+      req.ip
+    );
+
+    res.json({ success: true, message: 'Your account has been permanently deleted.' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 };
 
 module.exports = {
@@ -410,4 +516,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   adminLogin,
+  requestAccountDeletion,
+  confirmAccountDeletion,
 };

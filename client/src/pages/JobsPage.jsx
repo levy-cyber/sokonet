@@ -2,126 +2,75 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiBriefcase, FiDollarSign, FiClock, FiCheckCircle, FiPlus, FiStar, FiFilter, FiSearch, FiArrowRight, FiFileText, FiUsers, FiTrendingUp } from 'react-icons/fi';
 import StatCard from '../components/StatCard';
+import api from '../services/api';
 
 const JobsPage = () => {
   const [availableJobs, setAvailableJobs] = useState([]);
-  const [myProposals, setMyProposals] = useState([]);
-  const [activeProjects, setActiveProjects] = useState([]);
-  const [totalEarnings, setTotalEarnings] = useState(0);
+  const [myJobs, setMyJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [coverLetter, setCoverLetter] = useState('');
+  const [bidAmount, setBidAmount] = useState('');
 
   useEffect(() => {
-    // Mock jobs data
-    setAvailableJobs([
-      {
-        id: 1,
-        title: 'E-commerce Website Development',
-        description: 'Looking for an experienced React developer to build a full e-commerce platform with payment integration.',
-        budget: 150000,
-        category: 'Development',
-        skills: ['React', 'Node.js', 'MongoDB'],
-        duration: '4 weeks',
-        client: 'Tech Startup Kenya',
-        clientId: 'client1',
-        postedDate: new Date(Date.now() - 86400000),
-        proposals: 5,
-        status: 'open'
-      },
-      {
-        id: 2,
-        title: 'Mobile App UI Design',
-        description: 'Design a modern, user-friendly UI for a fitness tracking mobile app.',
-        budget: 75000,
-        category: 'Design',
-        skills: ['Figma', 'UI/UX', 'Mobile'],
-        duration: '2 weeks',
-        client: 'Fitness Kenya',
-        clientId: 'client2',
-        postedDate: new Date(Date.now() - 172800000),
-        proposals: 12,
-        status: 'open'
-      },
-      {
-        id: 3,
-        title: 'Content Writing - Tech Blog',
-        description: 'Write 10 SEO-optimized articles about technology trends and digital transformation.',
-        budget: 30000,
-        category: 'Writing',
-        skills: ['Content Writing', 'SEO', 'Tech'],
-        duration: '1 week',
-        client: 'Digital Media',
-        clientId: 'client3',
-        postedDate: new Date(Date.now() - 259200000),
-        proposals: 8,
-        status: 'open'
-      },
-      {
-        id: 4,
-        title: 'Data Analysis Dashboard',
-        description: 'Create interactive dashboards using Python for sales data visualization.',
-        budget: 120000,
-        category: 'Data',
-        skills: ['Python', 'Data Visualization', 'Analytics'],
-        duration: '3 weeks',
-        client: 'Retail Corp',
-        clientId: 'client4',
-        postedDate: new Date(Date.now() - 432000000),
-        proposals: 3,
-        status: 'open'
-      }
-    ]);
-
-    setMyProposals([
-      {
-        id: 1,
-        jobId: 1,
-        proposedAmount: 135000,
-        coverLetter: 'I have extensive experience with e-commerce development and can deliver within the timeline.',
-        status: 'pending',
-        submittedDate: new Date(Date.now() - 43200000)
-      }
-    ]);
-
-    setActiveProjects([
-      {
-        id: 1,
-        title: 'Website Redesign',
-        client: 'Local Business',
-        budget: 85000,
-        progress: 65,
-        deadline: new Date(Date.now() + 1209600000),
-        status: 'in_progress'
-      },
-      {
-        id: 2,
-        title: 'Mobile App Development',
-        client: 'Startup Inc',
-        budget: 150000,
-        progress: 30,
-        deadline: new Date(Date.now() + 2592000000),
-        status: 'in_progress'
-      }
-    ]);
-
-    setTotalEarnings(285000);
+    fetchJobs();
+    fetchMyJobs();
   }, []);
 
-  const categories = ['All', 'Development', 'Design', 'Writing', 'Data', 'Marketing', 'Other'];
+  const fetchJobs = async () => {
+    try {
+      const response = await api.get('/jobs');
+      setAvailableJobs(response.data.data || []);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+      setLoading(false);
+      setAvailableJobs([]);
+    }
+  };
 
-  const submitProposal = (jobId) => {
-    const job = availableJobs.find(j => j.id === jobId);
-    if (job) {
-      const newProposal = {
-        id: myProposals.length + 1,
-        jobId: job.id,
-        proposedAmount: job.budget * 0.9, // 10% discount
-        coverLetter: 'I am interested in this project and confident I can deliver high-quality work.',
-        status: 'pending',
-        submittedDate: new Date()
-      };
-      setMyProposals([newProposal, ...myProposals]);
-      setAvailableJobs(prev => prev.filter(j => j.id !== jobId));
+  const fetchMyJobs = async () => {
+    try {
+      const response = await api.get('/jobs/mine');
+      setMyJobs(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching my jobs:', error);
+      setMyJobs([]);
+    }
+  };
+
+  const categories = ['All', 'Logistics', 'Agriculture', 'Software Development', 'Writing', 'Design', 'Marketing', 'Manual Labor', 'Finance', 'Healthcare', 'Education', 'Other'];
+
+  const handleApplyClick = (job) => {
+    setSelectedJob(job);
+    setBidAmount(job.budget * 0.9); // Default to 90% of budget
+    setShowApplyModal(true);
+  };
+
+  const submitProposal = async () => {
+    if (!selectedJob || !coverLetter || !bidAmount) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      await api.post(`/jobs/${selectedJob._id}/apply`, {
+        coverLetter,
+        bidAmount: parseFloat(bidAmount),
+      });
+      alert('Application submitted successfully!');
+      setShowApplyModal(false);
+      setCoverLetter('');
+      setBidAmount('');
+      setSelectedJob(null);
+      fetchJobs(); // Refresh jobs list
+      fetchMyJobs(); // Refresh my jobs
+    } catch (error) {
+      console.error('Error submitting proposal:', error);
+      alert('Failed to submit application: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -131,6 +80,13 @@ const JobsPage = () => {
     const matchesCategory = selectedCategory === 'All' || job.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  // Calculate stats from real data
+  const totalApplications = myJobs.reduce((sum, job) => sum + (job.applications?.length || 0), 0);
+  const activeJobsCount = myJobs.filter(job => job.status === 'Open' || job.status === 'In_Progress').length;
+  const myApplications = availableJobs.filter(job => 
+    job.applications?.some(app => app.applicant?._id === 'current_user_id')
+  ).length;
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
@@ -145,10 +101,10 @@ const JobsPage = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
-        <StatCard title="Total Earnings" value={`KES ${totalEarnings.toLocaleString()}`} icon={FiDollarSign} trend="+32.2%" trendUp={true} />
-        <StatCard title="Active Projects" value={activeProjects.length} icon={FiBriefcase} trend="+15.7%" trendUp={true} />
-        <StatCard title="Pending Proposals" value={myProposals.filter(p => p.status === 'pending').length} icon={FiFileText} trend="+8.3%" trendUp={true} />
-        <StatCard title="Average Rating" value="4.7/5.0" icon={FiStar} trend="+2.3%" trendUp={true} />
+        <StatCard title="My Jobs Posted" value={myJobs.length} icon={FiBriefcase} trend="+15.7%" trendUp={true} />
+        <StatCard title="Active Jobs" value={activeJobsCount} icon={FiClock} trend="+12.3%" trendUp={true} />
+        <StatCard title="Total Applications" value={totalApplications} icon={FiFileText} trend="+8.3%" trendUp={true} />
+        <StatCard title="Open Opportunities" value={availableJobs.filter(j => j.status === 'Open').length} icon={FiTrendingUp} trend="+22.1%" trendUp={true} />
       </div>
 
       {/* Search and Filters */}
@@ -187,141 +143,211 @@ const JobsPage = () => {
         transition={{ delay: 0.2 }}
       >
         <h2 className="text-xl font-bold text-white mb-4">Available Jobs</h2>
-        <div className="space-y-4">
-          {filteredJobs.map((job) => (
-            <div key={job.id} className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
-              <div className="flex flex-col lg:flex-row justify-between gap-4 mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="px-3 py-1 bg-brand/10 text-brand text-xs font-semibold rounded-full border border-brand/20">
-                      {job.category}
-                    </span>
-                    <span className="text-gray-400 text-sm flex items-center gap-1">
-                      <FiClock />
-                      {job.duration}
-                    </span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{job.title}</h3>
-                  <p className="text-gray-400 text-sm mb-3">{job.description}</p>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-gray-300 text-sm flex items-center gap-1">
-                      <FiUsers />
-                      {job.client}
-                    </span>
-                    <span className="text-gray-500 text-sm">• {job.proposals} proposals</span>
-                  </div>
-                  <div className="flex gap-2 flex-wrap">
-                    {job.skills.map((skill, index) => (
-                      <span key={index} className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded">
-                        {skill}
+        {loading ? (
+          <div className="flex items-center justify-center h-32">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+          </div>
+        ) : filteredJobs.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-400 text-lg">No jobs found</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredJobs.map((job) => (
+              <div key={job._id} className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
+                <div className="flex flex-col lg:flex-row justify-between gap-4 mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="px-3 py-1 bg-brand/10 text-brand text-xs font-semibold rounded-full border border-brand/20">
+                        {job.category}
                       </span>
-                    ))}
+                      <span className="text-gray-400 text-sm flex items-center gap-1">
+                        <FiClock />
+                        {job.location}
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        job.status === 'Open' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
+                      }`}>
+                        {job.status}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">{job.title}</h3>
+                    <p className="text-gray-400 text-sm mb-3">{job.description}</p>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-gray-300 text-sm flex items-center gap-1">
+                        <FiUsers />
+                        {job.employer?.name || 'Employer'}
+                      </span>
+                      <span className="text-gray-500 text-sm">• {job.applications?.length || 0} proposals</span>
+                    </div>
+                    {job.deadline && (
+                      <div className="text-gray-400 text-sm mb-2">
+                        Deadline: {new Date(job.deadline).toLocaleDateString()}
+                      </div>
+                    )}
+                    <div className="flex gap-2 flex-wrap">
+                      {job.skills?.map((skill, index) => (
+                        <span key={index} className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    <div className="text-right">
+                      <p className="text-brand font-bold text-xl">KES {job.budget?.toLocaleString()}</p>
+                      <p className="text-gray-400 text-xs">Project budget</p>
+                    </div>
+                    {job.status === 'Open' && (
+                      <button
+                        onClick={() => handleApplyClick(job)}
+                        className="flex items-center justify-center gap-2 bg-brand text-black font-semibold px-6 py-3 rounded-lg hover:bg-brand/90 transition-all"
+                      >
+                        <span>Apply Now</span>
+                        <FiArrowRight />
+                      </button>
+                    )}
                   </div>
                 </div>
-                <div className="flex flex-col gap-4">
-                  <div className="text-right">
-                    <p className="text-brand font-bold text-xl">KES {job.budget.toLocaleString()}</p>
-                    <p className="text-gray-400 text-xs">Project budget</p>
-                  </div>
-                  <button
-                    onClick={() => submitProposal(job.id)}
-                    className="flex items-center justify-center gap-2 bg-brand text-black font-semibold px-6 py-3 rounded-lg hover:bg-brand/90 transition-all"
-                  >
-                    <span>Submit Proposal</span>
-                    <FiArrowRight />
-                  </button>
-                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </motion.div>
 
-      {/* Active Projects */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <h2 className="text-xl font-bold text-white mb-4">My Active Projects</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-          {activeProjects.map((project) => (
-            <div key={project.id} className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-1">{project.title}</h3>
-                  <p className="text-gray-400 text-sm">{project.client}</p>
-                </div>
-                <span className="text-brand font-bold text-lg">KES {project.budget.toLocaleString()}</span>
-              </div>
-              <div className="mb-4">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-400">Progress</span>
-                  <span className="text-white">{project.progress}%</span>
-                </div>
-                <div className="w-full bg-gray-700 rounded-full h-2">
-                  <div
-                    className="bg-brand h-2 rounded-full transition-all"
-                    style={{ width: `${project.progress}%` }}
-                  />
-                </div>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-400 flex items-center gap-1">
-                  <FiClock />
-                  Deadline: {new Date(project.deadline).toLocaleDateString()}
-                </span>
-                <button 
-                  onClick={() => alert(`Project Details:\n\nTitle: ${project.title}\nClient: ${project.client}\nBudget: KES ${project.budget.toLocaleString()}\nProgress: ${project.progress}%\nDeadline: ${new Date(project.deadline).toLocaleDateString()}`)}
-                  className="text-brand hover:text-brand/80 font-medium"
-                >
-                  View Details
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* My Proposals */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <h2 className="text-xl font-bold text-white mb-4">My Proposals</h2>
-        <div className="space-y-4">
-          {myProposals.map((proposal) => {
-            const job = availableJobs.find(j => j.id === proposal.jobId) || { title: 'Unknown Job' };
-            return (
-              <div key={proposal.id} className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
-                <div className="flex flex-col lg:flex-row justify-between gap-4">
+      {/* My Posted Jobs */}
+      {myJobs.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <h2 className="text-xl font-bold text-white mb-4">My Posted Jobs</h2>
+          <div className="space-y-4">
+            {myJobs.map((job) => (
+              <div key={job._id} className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
+                <div className="flex flex-col lg:flex-row justify-between gap-4 mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        proposal.status === 'pending'
-                          ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-                          : proposal.status === 'accepted'
-                          ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                          : 'bg-red-500/20 text-red-400 border-red-500/30'
+                        job.status === 'Open' ? 'bg-green-500/20 text-green-400' :
+                        job.status === 'Paused' ? 'bg-yellow-500/20 text-yellow-400' :
+                        job.status === 'In_Progress' ? 'bg-blue-500/20 text-blue-400' :
+                        'bg-gray-500/20 text-gray-400'
                       }`}>
-                        {proposal.status.toUpperCase()}
+                        {job.status}
                       </span>
-                      <span className="text-gray-400 text-sm">Submitted: {new Date(proposal.submittedDate).toLocaleDateString()}</span>
+                      <span className="text-gray-400 text-sm">{job.applications?.length || 0} applications</span>
                     </div>
                     <h3 className="text-lg font-semibold text-white mb-1">{job.title}</h3>
-                    <p className="text-gray-400 text-sm">{proposal.coverLetter}</p>
+                    <p className="text-gray-400 text-sm mb-2">{job.description}</p>
+                    {job.deadline && (
+                      <div className="text-gray-400 text-sm">
+                        Deadline: {new Date(job.deadline).toLocaleDateString()}
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
-                    <p className="text-brand font-bold text-lg">KES {proposal.proposedAmount.toLocaleString()}</p>
-                    <p className="text-gray-400 text-xs">Proposed amount</p>
+                    <p className="text-brand font-bold text-lg">KES {job.budget?.toLocaleString()}</p>
+                    <p className="text-gray-400 text-xs">Budget</p>
                   </div>
                 </div>
+                {job.applications && job.applications.length > 0 && (
+                  <div className="border-t border-gray-700 pt-4 mt-4">
+                    <h4 className="text-sm font-semibold text-white mb-3">Applications</h4>
+                    <div className="space-y-2">
+                      {job.applications.map((app) => (
+                        <div key={app._id} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <img src={app.applicant?.avatar} alt={app.applicant?.name} className="w-8 h-8 rounded-full" />
+                            <div>
+                              <p className="text-white text-sm font-medium">{app.applicant?.name}</p>
+                              <p className="text-gray-400 text-xs">Bid: KES {app.bidAmount?.toLocaleString()}</p>
+                            </div>
+                          </div>
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            app.status === 'Applied' ? 'bg-yellow-500/20 text-yellow-400' :
+                            app.status === 'Shortlisted' ? 'bg-blue-500/20 text-blue-400' :
+                            app.status === 'Hired' ? 'bg-green-500/20 text-green-400' :
+                            'bg-red-500/20 text-red-400'
+                          }`}>
+                            {app.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            );
-          })}
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Apply Modal */}
+      {showApplyModal && selectedJob && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-white">Apply for Job</h3>
+              <button
+                onClick={() => setShowApplyModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
+                <p className="text-white font-semibold">{selectedJob.title}</p>
+                <p className="text-brand font-bold">KES {selectedJob.budget?.toLocaleString()}</p>
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">Your Bid Amount (KES)</label>
+                <input
+                  type="number"
+                  value={bidAmount}
+                  onChange={(e) => setBidAmount(e.target.value)}
+                  placeholder="Enter your bid"
+                  className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">Cover Letter</label>
+                <textarea
+                  value={coverLetter}
+                  onChange={(e) => setCoverLetter(e.target.value)}
+                  placeholder="Explain why you're the best fit for this job..."
+                  rows={4}
+                  className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowApplyModal(false)}
+                  className="flex-1 bg-gray-700 text-white font-semibold py-3 rounded-lg hover:bg-gray-600 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitProposal}
+                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all"
+                >
+                  Submit Application
+                </button>
+              </div>
+            </div>
+          </motion.div>
         </div>
-      </motion.div>
+      )}
     </div>
   );
 };

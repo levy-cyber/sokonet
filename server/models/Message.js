@@ -10,17 +10,32 @@ const messageSchema = new mongoose.Schema(
     receiver: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: function() {
+      required: function () {
         return !this.isPublic;
       },
     },
     content: {
       type: String,
-      required: [true, 'Message content cannot be empty'],
+      default: '',
     },
+    messageType: {
+      type: String,
+      enum: ['text', 'image', 'file', 'emoji'],
+      default: 'text',
+    },
+    attachments: [
+      {
+        url: String,
+        type: String, // 'image', 'file'
+        name: String,
+      },
+    ],
     isRead: {
       type: Boolean,
       default: false,
+    },
+    readAt: {
+      type: Date,
     },
     isPublic: {
       type: Boolean,
@@ -29,6 +44,13 @@ const messageSchema = new mongoose.Schema(
     room: {
       type: String,
       default: 'general',
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
     },
   },
   {
