@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiHeadphones, FiSend, FiMessageSquare, FiClock, FiCheckCircle, FiAlertCircle } from 'lucide-react';
+import { Headphones, Send, MessageSquare, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 
 const SupportPage = () => {
@@ -119,7 +119,7 @@ const SupportPage = () => {
               </div>
             ) : tickets.length === 0 ? (
               <div className="text-center py-8">
-                <FiHeadphones className="w-12 h-12 text-gray-600 mx-auto mb-2" />
+                <Headphones className="w-12 h-12 text-gray-600 mx-auto mb-2" />
                 <p className="text-gray-400 text-sm">No support tickets yet</p>
                 <button
                   onClick={() => setShowNewTicket(true)}
@@ -221,7 +221,7 @@ const SupportPage = () => {
                   onClick={handleReply}
                   className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all"
                 >
-                  <FiSend className="w-5 h-5" />
+                  <Send className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -229,7 +229,7 @@ const SupportPage = () => {
         ) : (
           <div className="flex-1 bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl flex items-center justify-center">
             <div className="text-center">
-              <FiHeadphones className="w-20 h-20 text-gray-600 mx-auto mb-4" />
+              <Headphones className="w-20 h-20 text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Support Center</h3>
               <p className="text-gray-400 mb-4">Select a ticket or create a new one to get help</p>
               <button
