@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
-  registerUser, authUser, getUserProfile, sendOTP, verifyOTP,
+  registerUser, authUser, getUserProfile, sendOTP, verifyOTP, resendOTP,
   forgotPassword, resetPassword, adminLogin,
   requestAccountDeletion, confirmAccountDeletion,
 } = require('../controllers/authController');
@@ -12,6 +12,7 @@ router.post('/login', authUser);
 router.get('/profile', protect, getUserProfile);
 router.post('/send-otp', sendOTP);
 router.post('/verify-otp', verifyOTP);
+router.post('/resend-otp', resendOTP);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.post('/admin-login', adminLogin);

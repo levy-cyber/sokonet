@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
-const { connectDB } = require('./config/db');
+const { connectDB, createIndexes, monitorConnection } = require('./config/db');
 const { errorHandler } = require('./middleware/errorMiddleware');
 const initSocketServer = require('./socket/socketServer');
 
@@ -11,7 +11,14 @@ const app = express();
 const server = http.createServer(app);
 
 // Connect Database
-connectDB();
+connectDB().then(() => {
+  // Create indexes after successful connection
+  createIndexes();
+  // Start connection monitoring
+  monitorConnection();
+}).catch(err => {
+  console.error('Failed to initialize database:', err);
+});
 
 // Init Socket Server
 initSocketServer(server);

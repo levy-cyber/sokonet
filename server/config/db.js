@@ -19,6 +19,11 @@ const mockDB = {
 // Enable mock mode if no MONGODB_URI or MOCK_MODE=true
 const USE_MOCK = process.env.MOCK_MODE === 'true' || !process.env.MONGODB_URI;
 
+// Database connection monitoring
+let connectionRetries = 0;
+const MAX_RETRIES = 5;
+const RETRY_DELAY = 5000; // 5 seconds
+
 const connectDB = async () => {
   if (USE_MOCK) {
     console.log('🧪 Running in MOCK MODE (No MongoDB)');
@@ -27,17 +32,61 @@ const connectDB = async () => {
     return;
   }
 
+  const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/Netsoko';
+
+  // MongoDB connection options for Atlas
+  const options = {
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
+    maxPoolSize: 10,
+    minPoolSize: 5,
+    retryWrites: true,
+    retryReads: true,
+    // Enable automatic reconnection
+    autoIndex: true,
+    autoCreate: true,
+  };
+
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/Netsoko', {
-      // MongoDB Atlas recommended options
-      serverSelectionTimeoutMS: 10000,
-      socketTimeoutMS: 45000,
-    });
+    console.log('🔌 Attempting to connect to MongoDB Atlas...');
+    const conn = await mongoose.connect(mongoURI, options);
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    console.log(`📊 Database: ${conn.connection.name}`);
+    console.log(`🌐 Connection State: ${conn.connection.readyState === 1 ? 'Connected' : 'Disconnected'}`);
+
+    // Connection event listeners
+    mongoose.connection.on('error', (err) => {
+      console.error(`❌ MongoDB connection error: ${err.message}`);
+    });
+
+    mongoose.connection.on('disconnected', () => {
+      console.log('⚠️ MongoDB disconnected. Attempting to reconnect...');
+    });
+
+    mongoose.connection.on('reconnected', () => {
+      console.log('✅ MongoDB reconnected successfully');
+    });
+
+    // Reset retry counter on successful connection
+    connectionRetries = 0;
+
+    return conn;
   } catch (error) {
     console.error(`❌ Database Connection Error: ${error.message}`);
-    console.log('🧪 Falling back to MOCK MODE for testing...');
-    initializeMockData();
+    console.error(`🔍 Error Details: ${error.name}`);
+    
+    connectionRetries++;
+    
+    if (connectionRetries < MAX_RETRIES) {
+      console.log(`🔄 Retry attempt ${connectionRetries}/${MAX_RETRIES} in ${RETRY_DELAY/1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      return connectDB(); // Retry connection
+    } else {
+      console.log(`❌ Max retries (${MAX_RETRIES}) reached. Falling back to MOCK MODE...`);
+      console.log('🧪 Using in-memory data storage for testing');
+      initializeMockData();
+      return;
+    }
   }
 };
 
@@ -416,4 +465,64 @@ const mockHelpers = {
   }
 };
 
-module.exports = { connectDB, USE_MOCK, mockDB, mockHelpers };
+// Create indexes for optimal performance
+const createIndexes = async () => {
+  if (USE_MOCK) return;
+
+  try {
+    console.log('🔍 Creating database indexes...');
+
+    // User indexes
+    await mongoose.connection.collection('users').createIndex({ email: 1 }, { unique: true });
+    await mongoose.connection.collection('users').createIndex({ phone: 1 }, { unique: true });
+    await mongoose.connection.collection('users').createIndex({ status: 1 });
+    await mongoose.connection.collection('users').createIndex({ deletedAt: 1 });
+
+    // Product indexes
+    await mongoose.connection.collection('products').createIndex({ seller: 1 });
+    await mongoose.connection.collection('products').createIndex({ category: 1 });
+    await mongoose.connection.collection('products').createIndex({ status: 1 });
+    await mongoose.connection.collection('products').createIndex({ createdAt: -1 });
+
+    // Service indexes
+    await mongoose.connection.collection('services').createIndex({ provider: 1 });
+    await mongoose.connection.collection('services').createIndex({ category: 1 });
+    await mongoose.connection.collection('services').createIndex({ status: 1 });
+    await mongoose.connection.collection('services').createIndex({ availability: 1 });
+
+    // Job indexes
+    await mongoose.connection.collection('jobs').createIndex({ employer: 1 });
+    await mongoose.connection.collection('jobs').createIndex({ category: 1 });
+    await mongoose.connection.collection('jobs').createIndex({ status: 1 });
+    await mongoose.connection.collection('jobs').createIndex({ createdAt: -1 });
+
+    // Support ticket indexes
+    await mongoose.connection.collection('supporttickets').createIndex({ user: 1 });
+    await mongoose.connection.collection('supporttickets').createIndex({ status: 1 });
+    await mongoose.connection.collection('supporttickets').createIndex({ priority: 1 });
+    await mongoose.connection.collection('supporttickets').createIndex({ createdAt: -1 });
+
+    // Activity log indexes
+    await mongoose.connection.collection('activitylogs').createIndex({ user: 1 });
+    await mongoose.connection.collection('activitylogs').createIndex({ action: 1 });
+    await mongoose.connection.collection('activitylogs').createIndex({ createdAt: -1 });
+
+    console.log('✅ Database indexes created successfully');
+  } catch (error) {
+    console.error('❌ Error creating indexes:', error.message);
+    // Don't fail the connection if index creation fails
+  }
+};
+
+// Monitor database connection health
+const monitorConnection = () => {
+  setInterval(() => {
+    if (mongoose.connection.readyState === 1) {
+      console.log('💚 MongoDB connection is healthy');
+    } else {
+      console.log('⚠️ MongoDB connection state:', mongoose.connection.readyState);
+    }
+  }, 300000); // Check every 5 minutes
+};
+
+module.exports = { connectDB, USE_MOCK, mockDB, mockHelpers, createIndexes, monitorConnection };

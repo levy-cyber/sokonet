@@ -8,9 +8,16 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const emailService = require('../services/emailService');
 
-// Helper function to generate OTP
+// Helper function to generate OTP (more secure)
 const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  // Generate cryptographically secure random OTP
+  const digits = '0123456789';
+  let otp = '';
+  for (let i = 0; i < 6; i++) {
+    const randomIndex = crypto.randomInt(0, digits.length);
+    otp += digits[randomIndex];
+  }
+  return otp;
 };
 
 // Helper function to generate reset token
@@ -234,25 +241,38 @@ const sendOTP = async (req, res) => {
     }
 
     const otp = generateOTP();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpId = crypto.randomBytes(16).toString('hex'); // Unique ID for this OTP
 
     if (USE_MOCK) {
       user.otp = otp;
       user.otpExpiry = otpExpiry;
+      user.otpId = otpId;
+      user.otpStatus = 'active';
     } else {
       user.otp = await bcrypt.hash(otp, 10);
       user.otpExpiry = otpExpiry;
+      user.otpId = otpId;
+      user.otpStatus = 'active';
       await user.save();
     }
 
-    await emailService.sendOTP(email, otp, user.name);
+    // Log OTP generation
+    await logActivity(user._id, 'OTP generated', 'OTP', otpId, { email, expiry: otpExpiry }, req.ip);
+
+    // Send OTP email
+    const emailResult = await emailService.sendOTP(email, otp, user.name, 'email verification');
 
     res.json({
       success: true,
       message: 'OTP sent successfully. Please check your email.',
+      otpId: otpId,
       otp: process.env.NODE_ENV === 'development' ? otp : undefined,
+      emailDelivery: emailResult.success,
+      deliveryTime: emailResult.deliveryTime,
     });
   } catch (error) {
+    console.error('OTP send error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -261,7 +281,7 @@ const sendOTP = async (req, res) => {
 // @route   POST /api/auth/verify-otp
 // @access  Public
 const verifyOTP = async (req, res) => {
-  const { email, otp } = req.body;
+  const { email, otp, otpId } = req.body;
   try {
     let user;
     if (USE_MOCK) {
@@ -273,8 +293,31 @@ const verifyOTP = async (req, res) => {
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found with this email' });
     }
+
+    // Check if OTP exists
+    if (!user.otp || !user.otpExpiry) {
+      return res.status(400).json({ success: false, message: 'No OTP found. Please request a new one.' });
+    }
+
+    // Check OTP status
+    if (user.otpStatus === 'used') {
+      return res.status(400).json({ success: false, message: 'This OTP has already been used. Please request a new one.' });
+    }
+
+    if (user.otpStatus === 'invalidated') {
+      return res.status(400).json({ success: false, message: 'This OTP has been invalidated. Please request a new one.' });
+    }
+
+    // Check OTP expiry
     if (user.otpExpiry < new Date()) {
+      user.otpStatus = 'expired';
+      if (!USE_MOCK) await user.save();
       return res.status(400).json({ success: false, message: 'OTP has expired. Please request a new one.' });
+    }
+
+    // Check OTP ID if provided (for additional security)
+    if (otpId && user.otpId && user.otpId !== otpId) {
+      return res.status(400).json({ success: false, message: 'Invalid OTP ID. Please request a new one.' });
     }
 
     let isValidOTP;
@@ -285,16 +328,24 @@ const verifyOTP = async (req, res) => {
     }
 
     if (!isValidOTP) {
+      await logActivity(user._id, 'OTP verification failed', 'OTP', user.otpId, { email, reason: 'Invalid OTP' }, req.ip);
       return res.status(400).json({ success: false, message: 'Invalid OTP. Please try again.' });
     }
 
+    // Mark OTP as used
     user.isEmailVerified = true;
+    user.otpStatus = 'used';
     user.otp = undefined;
     user.otpExpiry = undefined;
+    user.otpId = undefined;
     if (!USE_MOCK) await user.save();
+
+    // Log successful verification
+    await logActivity(user._id, 'OTP verified successfully', 'OTP', user.otpId, { email }, req.ip);
 
     res.json({ success: true, message: 'Email verified successfully!' });
   } catch (error) {
+    console.error('OTP verification error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -432,24 +483,30 @@ const requestAccountDeletion = async (req, res) => {
 
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    const otpId = crypto.randomBytes(16).toString('hex');
 
     user.deleteOtp = await bcrypt.hash(otp, 10);
     user.deleteOtpExpiry = otpExpiry;
+    user.deleteOtpId = otpId;
+    user.deleteOtpStatus = 'active';
     await user.save();
 
+    // Log OTP generation
+    await logActivity(user._id, 'Account deletion OTP generated', 'OTP', otpId, { email: user.email, expiry: otpExpiry }, req.ip);
+
     // Send OTP via email
-    try {
-      await emailService.sendOTP(user.email, otp, user.name, 'account deletion');
-    } catch (emailErr) {
-      console.error('Email send error:', emailErr.message);
-    }
+    const emailResult = await emailService.sendOTP(user.email, otp, user.name, 'account deletion');
 
     res.json({
       success: true,
       message: 'A verification code has been sent to your email. Enter it to confirm account deletion.',
+      otpId: otpId,
       otp: process.env.NODE_ENV === 'development' ? otp : undefined,
+      emailDelivery: emailResult.success,
+      deliveryTime: emailResult.deliveryTime,
     });
   } catch (error) {
+    console.error('Account deletion OTP request error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -458,7 +515,7 @@ const requestAccountDeletion = async (req, res) => {
 // @route   POST /api/auth/confirm-delete
 // @access  Private
 const confirmAccountDeletion = async (req, res) => {
-  const { otp, reason } = req.body;
+  const { otp, otpId, reason } = req.body;
 
   if (!otp) {
     return res.status(400).json({ success: false, message: 'Verification code is required' });
@@ -474,12 +531,29 @@ const confirmAccountDeletion = async (req, res) => {
       return res.status(400).json({ success: false, message: 'No deletion request found. Please request a verification code first.' });
     }
 
+    // Check OTP status
+    if (user.deleteOtpStatus === 'used') {
+      return res.status(400).json({ success: false, message: 'This verification code has already been used. Please request a new one.' });
+    }
+
+    if (user.deleteOtpStatus === 'invalidated') {
+      return res.status(400).json({ success: false, message: 'This verification code has been invalidated. Please request a new one.' });
+    }
+
     if (user.deleteOtpExpiry < new Date()) {
+      user.deleteOtpStatus = 'expired';
+      await user.save();
       return res.status(400).json({ success: false, message: 'Verification code has expired. Please request a new one.' });
+    }
+
+    // Check OTP ID if provided
+    if (otpId && user.deleteOtpId && user.deleteOtpId !== otpId) {
+      return res.status(400).json({ success: false, message: 'Invalid verification code ID. Please request a new one.' });
     }
 
     const isValidOTP = await bcrypt.compare(otp, user.deleteOtp);
     if (!isValidOTP) {
+      await logActivity(user._id, 'Account deletion OTP verification failed', 'OTP', user.deleteOtpId, { reason: 'Invalid OTP' }, req.ip);
       return res.status(400).json({ success: false, message: 'Invalid verification code.' });
     }
 
@@ -488,6 +562,8 @@ const confirmAccountDeletion = async (req, res) => {
     user.deletionReason = reason || 'User requested deletion';
     user.deleteOtp = undefined;
     user.deleteOtpExpiry = undefined;
+    user.deleteOtpId = undefined;
+    user.deleteOtpStatus = 'used';
     user.status = 'blocked';
     await user.save();
 
@@ -503,6 +579,68 @@ const confirmAccountDeletion = async (req, res) => {
 
     res.json({ success: true, message: 'Your account has been permanently deleted.' });
   } catch (error) {
+    console.error('Account deletion confirmation error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// @desc    Resend OTP (invalidates previous OTP)
+// @route   POST /api/auth/resend-otp
+// @access  Public
+const resendOTP = async (req, res) => {
+  const { email } = req.body;
+  try {
+    let user;
+    if (USE_MOCK) {
+      user = mockHelpers.findUser({ email });
+    } else {
+      user = await User.findOne({ email: email.toLowerCase() });
+    }
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found with this email' });
+    }
+
+    // Invalidate previous OTP if exists
+    if (user.otp && user.otpId) {
+      user.otpStatus = 'invalidated';
+      await logActivity(user._id, 'OTP invalidated (resend)', 'OTP', user.otpId, { email }, req.ip);
+    }
+
+    // Generate new OTP
+    const otp = generateOTP();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpId = crypto.randomBytes(16).toString('hex');
+
+    if (USE_MOCK) {
+      user.otp = otp;
+      user.otpExpiry = otpExpiry;
+      user.otpId = otpId;
+      user.otpStatus = 'active';
+    } else {
+      user.otp = await bcrypt.hash(otp, 10);
+      user.otpExpiry = otpExpiry;
+      user.otpId = otpId;
+      user.otpStatus = 'active';
+      await user.save();
+    }
+
+    // Log new OTP generation
+    await logActivity(user._id, 'OTP regenerated (resend)', 'OTP', otpId, { email, expiry: otpExpiry }, req.ip);
+
+    // Send new OTP email
+    const emailResult = await emailService.sendOTP(email, otp, user.name, 'email verification');
+
+    res.json({
+      success: true,
+      message: 'New OTP sent successfully. Previous OTP has been invalidated.',
+      otpId: otpId,
+      otp: process.env.NODE_ENV === 'development' ? otp : undefined,
+      emailDelivery: emailResult.success,
+      deliveryTime: emailResult.deliveryTime,
+    });
+  } catch (error) {
+    console.error('OTP resend error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -513,6 +651,7 @@ module.exports = {
   getUserProfile,
   sendOTP,
   verifyOTP,
+  resendOTP,
   forgotPassword,
   resetPassword,
   adminLogin,

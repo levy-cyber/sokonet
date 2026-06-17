@@ -70,12 +70,28 @@ const userSchema = new mongoose.Schema(
     otpExpiry: {
       type: Date,
     },
+    otpId: {
+      type: String,
+    },
+    otpStatus: {
+      type: String,
+      enum: ['active', 'used', 'expired', 'invalidated'],
+      default: 'active',
+    },
     // Delete account OTP
     deleteOtp: {
       type: String,
     },
     deleteOtpExpiry: {
       type: Date,
+    },
+    deleteOtpId: {
+      type: String,
+    },
+    deleteOtpStatus: {
+      type: String,
+      enum: ['active', 'used', 'expired', 'invalidated'],
+      default: 'active',
     },
     resetPasswordToken: {
       type: String,
