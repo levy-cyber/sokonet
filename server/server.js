@@ -10,7 +10,7 @@ const initSocketServer = require('./socket/socketServer');
 const app = express();
 const server = http.createServer(app);
 
-// Connect Database
+// Connect Database (non-blocking) - start but don't wait
 connectDB().then(() => {
   // Create indexes after successful connection
   createIndexes();
@@ -18,6 +18,7 @@ connectDB().then(() => {
   monitorConnection();
 }).catch(err => {
   console.error('Failed to initialize database:', err);
+  // Don't block server startup on DB failure
 });
 
 // Init Socket Server
@@ -57,7 +58,7 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 Local: http://localhost:${PORT}`);
   console.log(`🌐 API: http://localhost:${PORT}/api`);
