@@ -57,6 +57,8 @@ const registerUser = async (req, res) => {
         avatar: `https://i.pravatar.cc/150?u=${Date.now()}`,
         rating: 5.0,
         status: 'active',
+        accountStatus: 'pending',
+        hasLoggedIn: false,
       });
       return res.status(201).json({
         success: true,
@@ -67,20 +69,31 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // === REGISTRATION LIMITS (max 2 accounts per email, max 2 per phone) ===
-    const emailCount = await User.countDocuments({ email: email.toLowerCase(), deletedAt: null });
+    // === REGISTRATION LIMITS (max 2 ACTIVE accounts per email, max 2 per phone) ===
+    // Only count accounts that are fully activated (accountStatus: 'active' and hasLoggedIn: true)
+    const emailCount = await User.countDocuments({ 
+      email: email.toLowerCase(), 
+      deletedAt: null,
+      accountStatus: 'active',
+      hasLoggedIn: true
+    });
     if (emailCount >= 2) {
       return res.status(400).json({
         success: false,
-        message: 'This email address has reached the maximum limit of 2 registered accounts.',
+        message: 'This email address has reached the maximum limit of 2 active accounts.',
       });
     }
 
-    const phoneCount = await User.countDocuments({ phone, deletedAt: null });
+    const phoneCount = await User.countDocuments({ 
+      phone, 
+      deletedAt: null,
+      accountStatus: 'active',
+      hasLoggedIn: true
+    });
     if (phoneCount >= 2) {
       return res.status(400).json({
         success: false,
-        message: 'This phone number has reached the maximum limit of 2 registered accounts.',
+        message: 'This phone number has reached the maximum limit of 2 active accounts.',
       });
     }
 
@@ -96,6 +109,8 @@ const registerUser = async (req, res) => {
       roles: userRoles,
       activeRole: userActiveRole,
       status: 'active',
+      accountStatus: 'pending', // Start as pending until verification and first login
+      hasLoggedIn: false,
     });
 
     // Create user wallet immediately with 0 balance
@@ -114,7 +129,7 @@ const registerUser = async (req, res) => {
       });
     }
 
-    await logActivity(user._id, 'User registered', 'User', user._id.toString(), { email, roles: userRoles }, req.ip);
+    await logActivity(user._id, 'User registered (pending activation)', 'User', user._id.toString(), { email, roles: userRoles }, req.ip);
 
     res.status(201).json({
       success: true,
@@ -161,6 +176,14 @@ const authUser = async (req, res) => {
     // Check account status
     if (user.deletedAt) {
       return res.status(401).json({ success: false, message: 'This account has been deleted.' });
+    }
+
+    // Mark account as active on first successful login
+    if (!user.hasLoggedIn) {
+      user.hasLoggedIn = true;
+      user.accountStatus = 'active';
+      await user.save();
+      await logActivity(user._id, 'Account activated (first login)', 'User', user._id.toString(), { email }, req.ip);
     }
     if (user.status === 'suspended') {
       return res.status(403).json({ success: false, message: 'Your account has been suspended. Contact support at support@sokonet.co.ke' });
@@ -338,6 +361,8 @@ const verifyOTP = async (req, res) => {
     user.otp = undefined;
     user.otpExpiry = undefined;
     user.otpId = undefined;
+    // Update account status to 'verified' after successful OTP verification
+    user.accountStatus = 'verified';
     if (!USE_MOCK) await user.save();
 
     // Log successful verification
@@ -565,6 +590,7 @@ const confirmAccountDeletion = async (req, res) => {
     user.deleteOtpId = undefined;
     user.deleteOtpStatus = 'used';
     user.status = 'blocked';
+    user.accountStatus = 'deleted'; // Mark as deleted to free up phone/email for new registrations
     await user.save();
 
     // Log the deletion
@@ -645,6 +671,46 @@ const resendOTP = async (req, res) => {
   }
 };
 
+// @desc    Cleanup abandoned registrations
+// @route   POST /api/auth/cleanup-abandoned
+// @access  Private (Admin only)
+const cleanupAbandonedRegistrations = async (req, res) => {
+  try {
+    // Clean up registrations that have been pending for more than 24 hours
+    const cutoffDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
+    
+    const result = await User.updateMany(
+      {
+        accountStatus: 'pending',
+        hasLoggedIn: false,
+        createdAt: { $lt: cutoffDate }
+      },
+      {
+        accountStatus: 'inactive',
+        status: 'suspended'
+      }
+    );
+
+    await logActivity(
+      req.user._id,
+      'Cleanup abandoned registrations',
+      'User',
+      req.user._id.toString(),
+      { count: result.modifiedCount, cutoffDate },
+      req.ip
+    );
+
+    res.json({
+      success: true,
+      message: `Cleaned up ${result.modifiedCount} abandoned registrations`,
+      count: result.modifiedCount
+    });
+  } catch (error) {
+    console.error('Cleanup error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   authUser,
@@ -657,4 +723,5 @@ module.exports = {
   adminLogin,
   requestAccountDeletion,
   confirmAccountDeletion,
+  cleanupAbandonedRegistrations,
 };

@@ -3,9 +3,9 @@ const router = express.Router();
 const {
   registerUser, authUser, getUserProfile, sendOTP, verifyOTP, resendOTP,
   forgotPassword, resetPassword, adminLogin,
-  requestAccountDeletion, confirmAccountDeletion,
+  requestAccountDeletion, confirmAccountDeletion, cleanupAbandonedRegistrations,
 } = require('../controllers/authController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, admin } = require('../middleware/authMiddleware');
 
 router.post('/register', registerUser);
 router.post('/login', authUser);
@@ -18,5 +18,6 @@ router.post('/reset-password', resetPassword);
 router.post('/admin-login', adminLogin);
 router.post('/request-delete', protect, requestAccountDeletion);
 router.post('/confirm-delete', protect, confirmAccountDeletion);
+router.post('/cleanup-abandoned', protect, admin, cleanupAbandonedRegistrations);
 
 module.exports = router;

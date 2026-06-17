@@ -50,6 +50,17 @@ const userSchema = new mongoose.Schema(
       enum: ['active', 'suspended', 'blocked'],
       default: 'active',
     },
+    // Account activation status for registration validation
+    accountStatus: {
+      type: String,
+      enum: ['pending', 'verified', 'active', 'suspended', 'deleted', 'inactive'],
+      default: 'pending',
+    },
+    // Track if user has successfully logged in at least once
+    hasLoggedIn: {
+      type: Boolean,
+      default: false,
+    },
     // Super Admin flag
     isSuperAdmin: {
       type: Boolean,
