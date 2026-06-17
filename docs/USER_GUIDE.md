@@ -143,7 +143,34 @@ View all your transactions in the wallet page:
 ## Registration Limits
 
 ### Overview
-To prevent abuse, the system limits registrations to maximum 2 accounts per phone number and email address.
+To prevent abuse, the system limits registrations to maximum 2 accounts per phone number and email address. However, only fully activated accounts count toward this limit.
+
+### Smart Registration Validation
+
+The system now distinguishes between incomplete and fully activated registrations:
+
+#### Account Status Lifecycle
+1. **Pending**: Account created but email not verified
+2. **Verified**: Email verified but user hasn't logged in yet
+3. **Active**: User has successfully logged in (counts toward limits)
+4. **Deleted**: Account deleted (frees up phone/email for new registrations)
+5. **Inactive**: Abandoned registration (marked by admin cleanup)
+
+#### What Counts Toward Limits
+Only accounts with:
+- `accountStatus: 'active'`
+- `hasLoggedIn: true`
+
+These are counted toward the 2-account limit per phone/email.
+
+#### What Doesn't Count Toward Limits
+The following do NOT count toward the limit:
+- Pending registrations (email not verified)
+- Verified registrations (email verified but never logged in)
+- Deleted accounts
+- Inactive accounts (abandoned registrations)
+
+This prevents unfair blocking by incomplete registrations.
 
 ### Registration Process
 
@@ -155,22 +182,25 @@ To prevent abuse, the system limits registrations to maximum 2 accounts per phon
    - Password
    - Role selection
 3. Click "Register"
+4. Verify your email via OTP
+5. Log in to activate your account
 
 ### Limit Enforcement
 
 #### Email Limit
-- Maximum 2 accounts per email address
-- Error message: "Maximum 2 accounts allowed per email address"
+- Maximum 2 **active** accounts per email address
+- Error message: "This email address has reached the maximum limit of 2 active accounts."
 
 #### Phone Limit
-- Maximum 2 accounts per phone number
-- Error message: "Maximum 2 accounts allowed per phone number"
+- Maximum 2 **active** accounts per phone number
+- Error message: "This phone number has reached the maximum limit of 2 active accounts."
 
 ### Error Handling
 If you exceed the limit:
 1. You'll see a clear error message
 2. Registration will not proceed
 3. Contact support if you need additional accounts
+4. Consider deleting unused accounts to free up your phone/email
 
 ## Secure Account Deletion
 

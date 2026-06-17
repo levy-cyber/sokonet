@@ -33,6 +33,13 @@ Content-Type: application/json
 }
 ```
 
+**Registration Validation:**
+- Only fully activated accounts (verified email + first successful login) count toward the 2-account limit per phone/email
+- New accounts start with `accountStatus: 'pending'` and `hasLoggedIn: false`
+- OTP verification updates `accountStatus` to `verified`
+- First successful login updates `accountStatus` to `active` and `hasLoggedIn` to `true`
+- Incomplete registrations (pending, verified but not logged in) do not count toward limits
+
 #### Login
 ```http
 POST /auth/login
@@ -82,6 +89,14 @@ Content-Type: application/json
   "otp": "123456"
 }
 ```
+
+#### Cleanup Abandoned Registrations (Admin Only)
+```http
+POST /auth/cleanup-abandoned
+Authorization: Bearer <token>
+```
+
+Marks pending registrations older than 24 hours as inactive. Requires admin privileges.
 
 ### User Endpoints
 

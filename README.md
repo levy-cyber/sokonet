@@ -20,8 +20,10 @@ SokoNet is an enterprise-grade fintech, marketplace, logistics, jobs, and social
 - **Super Admin System**: Full platform control with unrestricted access to users, products, jobs, chats, transactions, settings, and reports
 - **Support System**: Dedicated support ticketing with messaging, conversation history, and notifications
 - **Dynamic Wallet Balance**: Real-time wallet balance updates after all transactions (deposits, withdrawals, purchases, refunds)
-- **Registration Limits**: Maximum 2 accounts per phone number and email address with clear error messages
+- **Smart Registration Validation**: Only fully activated accounts (verified email + first successful login) count toward the 2-account limit per phone/email
+- **Account Status Tracking**: Tracks account lifecycle (pending → verified → active) to prevent unfair blocking by incomplete registrations
 - **Secure Account Deletion**: OTP verification via email/phone before deletion with confirmation warnings and admin logging
+- **Abandoned Registration Cleanup**: Automatic cleanup of pending registrations older than 24 hours (admin-triggered)
 - **Services Marketplace**: Browse and book professional services from verified providers with detailed provider profiles
 - **Jobs Hub System**: Complete job posting, application, and management system with notifications
 - **Dashboard Activity Summary**: Real-time dashboard with wallet balance, transactions, products, services, jobs, applications, messages, notifications, and recent activity
