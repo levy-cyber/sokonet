@@ -10,26 +10,12 @@ const initSocketServer = require('./socket/socketServer');
 const app = express();
 const server = http.createServer(app);
 
-// Connect Database (non-blocking) - start but don't wait
-connectDB().then(() => {
-  // Create indexes after successful connection
-  createIndexes();
-  // Start connection monitoring
-  monitorConnection();
-}).catch(err => {
-  console.error('Failed to initialize database:', err);
-  // Don't block server startup on DB failure
-});
-
-// Init Socket Server
-initSocketServer(server);
-
-// Middleware
+// Middleware (must be before routes)
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Base check route
+// Base check route (must be before other routes)
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Netsoko Backend API is running successfully', version: '2.0.0' });
 });
@@ -55,6 +41,25 @@ app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
 // Error Handler Middleware
 app.use(errorHandler);
+
+// Connect Database (non-blocking) - start after server is ready
+connectDB().then(() => {
+  // Create indexes after successful connection
+  createIndexes();
+  // Start connection monitoring
+  monitorConnection();
+}).catch(err => {
+  console.error('Failed to initialize database:', err);
+  // Don't block server startup on DB failure
+});
+
+// Init Socket Server (non-blocking)
+try {
+  initSocketServer(server);
+} catch (err) {
+  console.error('Failed to initialize socket server:', err);
+  // Don't block server startup on socket failure
+}
 
 const PORT = process.env.PORT || 5000;
 
