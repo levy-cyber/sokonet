@@ -71,8 +71,8 @@ const registerUser = async (req, res) => {
 
     // === REGISTRATION LIMITS (max 2 ACTIVE accounts per email, max 2 per phone) ===
     // Only count accounts that are fully activated (accountStatus: 'active' and hasLoggedIn: true)
-    const emailCount = await User.countDocuments({ 
-      email: email.toLowerCase(), 
+    const emailCount = await User.countDocuments({
+      email: email.toLowerCase(),
       deletedAt: null,
       accountStatus: 'active',
       hasLoggedIn: true
@@ -84,8 +84,8 @@ const registerUser = async (req, res) => {
       });
     }
 
-    const phoneCount = await User.countDocuments({ 
-      phone, 
+    const phoneCount = await User.countDocuments({
+      phone,
       deletedAt: null,
       accountStatus: 'active',
       hasLoggedIn: true
@@ -94,6 +94,24 @@ const registerUser = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'This phone number has reached the maximum limit of 2 active accounts.',
+      });
+    }
+
+    // Check for existing user with same email (any status) to prevent MongoDB duplicate key error
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'An account with this email already exists. Please use a different email or login to your existing account.',
+      });
+    }
+
+    // Check for existing user with same phone (any status) to prevent MongoDB duplicate key error
+    const existingPhone = await User.findOne({ phone });
+    if (existingPhone) {
+      return res.status(400).json({
+        success: false,
+        message: 'An account with this phone number already exists. Please use a different phone number or login to your existing account.',
       });
     }
 
