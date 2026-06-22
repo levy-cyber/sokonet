@@ -11,7 +11,6 @@ const shopSchema = new mongoose.Schema(
     name: {
       type: String,
       required: [true, 'Please add a shop name'],
-      unique: true,
       trim: true,
     },
     description: {

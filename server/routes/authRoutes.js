@@ -5,7 +5,7 @@ const {
   forgotPassword, resetPassword, adminLogin,
   requestAccountDeletion, confirmAccountDeletion, cleanupAbandonedRegistrations,
 } = require('../controllers/authController');
-const { protect, admin } = require('../middleware/authMiddleware');
+const { protect, adminOnly } = require('../middleware/authMiddleware');
 
 router.post('/register', registerUser);
 router.post('/login', authUser);
@@ -18,6 +18,6 @@ router.post('/reset-password', resetPassword);
 router.post('/admin-login', adminLogin);
 router.post('/request-delete', protect, requestAccountDeletion);
 router.post('/confirm-delete', protect, confirmAccountDeletion);
-router.post('/cleanup-abandoned', protect, admin, cleanupAbandonedRegistrations);
+router.post('/cleanup-abandoned', protect, adminOnly, cleanupAbandonedRegistrations);
 
 module.exports = router;
