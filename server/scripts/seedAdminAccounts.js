@@ -10,6 +10,9 @@ const Wallet = require('../models/Wallet');
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://Lev:tkp7cZ3I02U3C8ds@cluster0.4fwnktm.mongodb.net/sokonet?retryWrites=true&w=majority';
 
+// Enable mock mode if MongoDB connection fails
+const USE_MOCK = process.env.MOCK_MODE === 'true' || !process.env.MONGODB_URI;
+
 const adminAccounts = [
   {
     name: 'Netsoko Super Admin',
@@ -43,6 +46,15 @@ const adminAccounts = [
 
 async function seedAdminAccounts() {
   try {
+    if (USE_MOCK) {
+      console.log('🧪 Running in MOCK MODE - admin accounts will be available in memory only');
+      console.log('⚠️  To seed admin accounts in production database, run with MONGODB_URI set');
+      console.log('\n🎉 Mock admin accounts available:');
+      console.log('Super Admin: admin@netsoko.co.ke / bignetsoko@9625white');
+      console.log('Support:     support@sokonet.co.ke / levnetsoko@9625blue');
+      process.exit(0);
+    }
+
     await mongoose.connect(MONGODB_URI);
     console.log('✅ Connected to MongoDB');
 
@@ -58,12 +70,18 @@ async function seedAdminAccounts() {
         existing.activeRole = account.activeRole;
         existing.status = 'active';
         existing.isEmailVerified = true;
+        existing.accountStatus = 'active';
+        existing.hasLoggedIn = true;
         // Reset password
         existing.password = account.password;
         await existing.save();
         console.log(`🔄 Updated existing account: ${account.email}`);
       } else {
-        const user = await User.create(account);
+        const user = await User.create({
+          ...account,
+          accountStatus: 'active',
+          hasLoggedIn: true
+        });
         // Create wallet
         await Wallet.create({ user: user._id, balance: 0 });
         console.log(`✅ Created account: ${account.email} (${account.isSuperAdmin ? 'Super Admin' : 'Support'})`);
@@ -76,6 +94,7 @@ async function seedAdminAccounts() {
     process.exit(0);
   } catch (error) {
     console.error('❌ Seeding error:', error.message);
+    console.error('💡 Tip: If MongoDB connection failed, the app will run in mock mode with admin accounts available');
     process.exit(1);
   }
 }

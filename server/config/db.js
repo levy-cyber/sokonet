@@ -95,6 +95,44 @@ function initializeMockData() {
   // Mock Users
   mockDB.users = [
     {
+      _id: 'admin1',
+      name: 'Netsoko Super Admin',
+      email: 'admin@netsoko.co.ke',
+      phone: '0700000001',
+      password: '$2a$10$hash', // Would be bcrypt hash in real
+      role: 'admin',
+      roles: ['admin'],
+      activeRole: 'admin',
+      isSuperAdmin: true,
+      isSupport: false,
+      isEmailVerified: true,
+      status: 'active',
+      accountStatus: 'active',
+      hasLoggedIn: true,
+      avatar: 'https://ui-avatars.com/api/?name=Super+Admin&background=00C853&color=fff&size=150',
+      rating: 5.0,
+      createdAt: new Date()
+    },
+    {
+      _id: 'support1',
+      name: 'Netsoko Support',
+      email: 'support@sokonet.co.ke',
+      phone: '0700000002',
+      password: '$2a$10$hash',
+      role: 'support',
+      roles: ['support'],
+      activeRole: 'support',
+      isSuperAdmin: false,
+      isSupport: true,
+      isEmailVerified: true,
+      status: 'active',
+      accountStatus: 'active',
+      hasLoggedIn: true,
+      avatar: 'https://ui-avatars.com/api/?name=Support+Team&background=2196F3&color=fff&size=150',
+      rating: 5.0,
+      createdAt: new Date()
+    },
+    {
       _id: 'user1',
       name: 'Test User',
       email: 'test@example.com',
