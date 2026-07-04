@@ -10,7 +10,9 @@ const PwaInstallPrompt = () => {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [appInstalled, setAppInstalled] = useState(false);
+  const [promptSupported, setPromptSupported] = useState(false);
   const [isIos, setIsIos] = useState(false);
+  const [cookiesAccepted, setCookiesAccepted] = useState(false);
   const [promptHiddenUntil, setPromptHiddenUntil] = useState(null);
 
   useEffect(() => {
@@ -21,22 +23,26 @@ const PwaInstallPrompt = () => {
 
     if (!storedConsent) {
       setShowCookieBanner(true);
+      setIsIos(/iphone|ipad|ipod/i.test(window.navigator.userAgent));
       return;
     }
+
+    setCookiesAccepted(storedConsent === 'accepted');
+    setIsIos(/iphone|ipad|ipod/i.test(window.navigator.userAgent));
 
     if (storedConsent === 'accepted') {
       if (!nextRemind || new Date() >= nextRemind) {
         setTimeout(() => setShowInstallPrompt(true), 2200);
       }
     }
-
-    setIsIos(/iphone|ipad|ipod/i.test(window.navigator.userAgent));
   }, []);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event) => {
       event.preventDefault();
+      window.deferredPrompt = event;
       setDeferredPrompt(event);
+      setPromptSupported(true);
       const storedConsent = localStorage.getItem(COOKIE_KEY);
       const storedInstallHidden = localStorage.getItem(INSTALL_KEY);
       const nextRemind = storedInstallHidden ? new Date(storedInstallHidden) : null;
@@ -63,8 +69,11 @@ const PwaInstallPrompt = () => {
 
   const acceptCookies = () => {
     localStorage.setItem(COOKIE_KEY, 'accepted');
+    setCookiesAccepted(true);
     setShowCookieBanner(false);
-    setTimeout(() => setShowInstallPrompt(true), 1600);
+    if (promptSupported || isIos) {
+      setTimeout(() => setShowInstallPrompt(true), 1600);
+    }
   };
 
   const declineCookies = () => {
@@ -74,9 +83,10 @@ const PwaInstallPrompt = () => {
 
   const triggerInstall = async () => {
     if (appInstalled) return;
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
+    const promptEvent = deferredPrompt || window.deferredPrompt;
+    if (promptEvent) {
+      promptEvent.prompt();
+      const choice = await promptEvent.userChoice;
       if (choice.outcome === 'accepted') {
         setAppInstalled(true);
         setShowInstallPrompt(false);
@@ -98,6 +108,9 @@ const PwaInstallPrompt = () => {
     localStorage.setItem(INSTALL_KEY, nextReminder.toISOString());
     setShowInstallPrompt(false);
   };
+
+  const promptEvent = deferredPrompt || window.deferredPrompt;
+  const canShowInstallButton = !appInstalled && cookiesAccepted;
 
   if (showCookieBanner) {
     return (
@@ -146,11 +159,26 @@ const PwaInstallPrompt = () => {
               </button>
               <button onClick={dismissInstall} className="rounded-3xl border border-white/10 bg-slate-900/80 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/5">Maybe Later</button>
             </div>
+            {!promptEvent && isIos && (
+              <p className="mt-4 text-sm text-gray-300">
+                Tap the browser Share icon, then select "Add to Home Screen" to install NetSoko on iOS.
+              </p>
+            )}
+            {!promptEvent && !isIos && (
+              <p className="mt-4 text-sm text-gray-300">
+                Native install is not available in this browser yet. Use the browser menu to install the app manually when available.
+              </p>
+            )}
+            {promptEvent && (
+              <p className="mt-4 text-sm text-gray-300">
+                Click Install Now to add NetSoko to your device and use it offline.
+              </p>
+            )}
           </div>
         </div>
       )}
 
-      {!appInstalled && (
+      {canShowInstallButton && (
         <button
           onClick={triggerInstall}
           className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-full bg-brand px-4 py-3 text-sm font-semibold text-black shadow-2xl shadow-brand/30 transition hover:bg-brand/90 sm:bottom-8 sm:right-8"

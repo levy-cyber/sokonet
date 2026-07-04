@@ -10,6 +10,7 @@ const RidersPage = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
+  const [orderStats, setOrderStats] = useState({ pending: 0, active: 0, completed: 0 });
   const [riderProfile, setRiderProfile] = useState(null);
   const [isOnline, setIsOnline] = useState(true);
   const [currentLocation, setCurrentLocation] = useState(null);
@@ -494,7 +495,7 @@ const RidersPage = () => {
                 <div className="flex flex-col lg:flex-row justify-between gap-4 mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold border ${statusColors[delivery.status]}">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColors[delivery.status]}`}>
                         {delivery.status.replace('_', ' ').toUpperCase()}
                       </span>
                       <span className="text-gray-400 text-sm">Order: {delivery.orderId}</span>
