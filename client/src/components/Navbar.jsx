@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../context/CartContext';
 import { SocketContext } from '../context/SocketContext';
 import api from '../services/api';
-import { FiBell, FiDollarSign, FiSearch, FiSettings, FiMenu, FiShoppingCart, FiHeadphones } from 'react-icons/fi';
+import { FiBell, FiDollarSign, FiSearch, FiSettings, FiMenu, FiShoppingCart } from 'react-icons/fi';
 
 const Navbar = ({ title, onMenuToggle }) => {
   const { user } = useAuth();
@@ -148,15 +148,6 @@ const Navbar = ({ title, onMenuToggle }) => {
             </>
           )}
         </div>
-
-        {/* Support button */}
-        <button
-          onClick={() => navigate('/support')}
-          className="hidden lg:flex w-10 h-10 rounded-xl bg-dark-card border border-dark-border items-center justify-center text-dark-muted hover:text-white transition-colors"
-          title="Contact Support"
-        >
-          <FiHeadphones className="text-lg" />
-        </button>
 
         {/* Settings shortcut */}
         <button

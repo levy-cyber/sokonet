@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Search, MoreVertical, Phone, Video } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
+import { useAuth } from '../context/AuthContext';
 import ChatBox from '../components/ChatBox';
+import EmergencyAlert from '../components/EmergencyAlert';
 import api from '../services/api';
 
 const ChatPage = () => {
@@ -14,6 +16,7 @@ const ChatPage = () => {
   const [isPublicChat, setIsPublicChat] = useState(false);
   const [publicMessage, setPublicMessage] = useState('');
   const { socket } = useSocket();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchConversations();
@@ -28,8 +31,19 @@ const ChatPage = () => {
         fetchConversations();
       });
 
+      socket.on('publicMessageBroadcast', (message) => {
+        // Public chat room update can be handled by additional state in the future.
+        console.log('Public message received', message);
+      });
+
+      socket.on('messageError', ({ message }) => {
+        setWarningMessage(message);
+      });
+
       return () => {
         socket.off('newMessage');
+        socket.off('publicMessageBroadcast');
+        socket.off('messageError');
       };
     }
   }, [socket, selectedConversation]);
@@ -63,14 +77,16 @@ const ChatPage = () => {
     return `${diffDays}d ago`;
   };
 
+  const [warningMessage, setWarningMessage] = useState('');
+
   const handleSendPublicMessage = () => {
     if (!publicMessage.trim()) return;
-    
-    if (socket) {
+
+    if (socket && user?._id) {
       socket.emit('publicMessage', {
+        senderId: user._id,
         content: publicMessage,
-        sender: 'user',
-        timestamp: new Date(),
+        room: 'general',
       });
       setPublicMessage('');
     }
@@ -267,11 +283,16 @@ const ChatPage = () => {
                     <p>Public chatroom - All users can see these messages</p>
                   </div>
                 </div>
+                {warningMessage && (
+                  <div className="mb-4">
+                    <EmergencyAlert message={warningMessage} />
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={publicMessage}
-                    onChange={(e) => setPublicMessage(e.target.value)}
+                    onChange={(e) => { setPublicMessage(e.target.value); setWarningMessage(''); }}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendPublicMessage()}
                     placeholder="Post a message for all users..."
                     className="flex-1 bg-gray-800/50 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-all"

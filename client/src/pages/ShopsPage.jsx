@@ -240,7 +240,7 @@ const ShopsPage = () => {
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all"
         >
           <Plus className="w-5 h-5" />
-          Add Product
+          Add Post
         </button>
       </motion.div>
 
@@ -426,7 +426,7 @@ const ShopsPage = () => {
             className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-white">Add New Product</h3>
+              <h3 className="text-xl font-semibold text-white">Add New Post</h3>
               <button
                 onClick={() => {
                   setShowAddProduct(false);
@@ -604,7 +604,7 @@ const ShopsPage = () => {
                   type="submit"
                   className="flex-1 px-4 py-2 bg-green-500 text-black font-semibold rounded-lg hover:bg-green-600 transition-colors"
                 >
-                  Add Product
+                  Add Post
                 </button>
               </div>
             </form>

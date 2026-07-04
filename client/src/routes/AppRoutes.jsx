@@ -27,7 +27,6 @@ import SettingsPage from '../pages/SettingsPage';
 import OTPVerificationPage from '../pages/OTPVerificationPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import ResetPasswordPage from '../pages/ResetPasswordPage';
-import SupportPage from '../pages/SupportPage';
 
 const AppRoutes = () => {
   return (
@@ -89,10 +88,6 @@ const AppRoutes = () => {
 
         <Route element={<MainLayout title="Settings" />}>
           <Route path="/settings" element={<SettingsPage />} />
-        </Route>
-
-        <Route element={<MainLayout title="Support Center" />}>
-          <Route path="/support" element={<SupportPage />} />
         </Route>
       </Route>
 

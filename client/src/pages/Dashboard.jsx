@@ -5,78 +5,15 @@ import StatCard from '../components/StatCard';
 import RoleSwitcher from '../components/RoleSwitcher';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { FiShoppingBag, FiDollarSign, FiPackage, FiUsers, FiTrendingUp, FiClock, FiTruck, FiCalendar, FiTool, FiBriefcase } from 'react-icons/fi';
-import api from '../services/api';
 
 const Dashboard = () => {
   const { user, switchRole } = useAuth();
   const [stats, setStats] = useState({});
-  const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [user]);
-
-  const fetchDashboardData = async () => {
-    try {
-      const response = await api.get('/dashboard/summary');
-      setDashboardData(response.data.data);
-      
-      // Calculate role-specific stats from real data
-      const data = response.data.data;
+    // Role-specific stats
+    const fetchStats = async () => {
       const roleStats = {
-        buyer: {
-          totalOrders: 0, // Will need to fetch from orders
-          walletBalance: data.walletBalance || 0,
-          activeProducts: data.productsPosted || 0,
-          totalSpent: 0, // Will need to calculate from transactions
-          pendingOrders: 0,
-        },
-        seller: {
-          totalOrders: 0, // Will need to fetch from orders
-          totalRevenue: 0, // Will need to calculate from transactions
-          walletBalance: data.walletBalance || 0,
-          activeProducts: data.productsPosted || 0,
-          pendingOrders: 0,
-          dailySales: 0,
-          weeklyRevenue: 0,
-          topProduct: data.recentProducts?.[0]?.name || '',
-        },
-        service_provider: {
-          totalBookings: 0, // Will need to fetch from service bookings
-          totalRevenue: 0,
-          walletBalance: data.walletBalance || 0,
-          activeServices: data.servicesListed || 0,
-          pendingBookings: 0,
-          completedServices: 0,
-          averageRating: data.user?.rating || 5.0,
-        },
-        rider: {
-          totalDeliveries: 0, // Will need to fetch from ride requests
-          totalEarnings: 0,
-          walletBalance: data.walletBalance || 0,
-          activeDeliveries: 0,
-          completedDeliveries: 0,
-          averageRating: data.user?.rating || 5.0,
-          totalDistance: 0,
-        },
-        freelancer: {
-          totalProjects: data.jobsPosted || 0,
-          totalEarnings: 0,
-          walletBalance: data.walletBalance || 0,
-          activeProjects: data.jobsPosted || 0,
-          completedProjects: 0,
-          pendingProposals: data.jobApplicationsSubmitted || 0,
-          averageRating: data.user?.rating || 5.0,
-        },
-      };
-      setStats(roleStats[user?.activeRole || 'buyer'] || roleStats.buyer);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      setLoading(false);
-      // Fallback to default stats
-      const defaultStats = {
         buyer: {
           totalOrders: 0,
           walletBalance: 0,
@@ -84,10 +21,48 @@ const Dashboard = () => {
           totalSpent: 0,
           pendingOrders: 0,
         },
+        seller: {
+          totalOrders: 0,
+          totalRevenue: 0,
+          walletBalance: 0,
+          activeProducts: 0,
+          pendingOrders: 0,
+          dailySales: 0,
+          weeklyRevenue: 0,
+          topProduct: '',
+        },
+        service_provider: {
+          totalBookings: 0,
+          totalRevenue: 0,
+          walletBalance: 0,
+          activeServices: 0,
+          pendingBookings: 0,
+          completedServices: 0,
+          averageRating: 0,
+        },
+        rider: {
+          totalDeliveries: 0,
+          totalEarnings: 0,
+          walletBalance: 0,
+          activeDeliveries: 0,
+          completedDeliveries: 0,
+          averageRating: 0,
+          totalDistance: 0,
+        },
+        freelancer: {
+          totalProjects: 0,
+          totalEarnings: 0,
+          walletBalance: 0,
+          activeProjects: 0,
+          completedProjects: 0,
+          pendingProposals: 0,
+          averageRating: 0,
+        },
       };
-      setStats(defaultStats.buyer);
-    }
-  };
+      setStats(roleStats[user?.activeRole || 'buyer'] || roleStats.buyer);
+    };
+    fetchStats();
+  }, [user, user?.activeRole]);
 
   const revenueData = [
     { name: 'Jan', revenue: 0 },
@@ -103,13 +78,6 @@ const Dashboard = () => {
     { name: 'Pending', value: 0, color: '#FFA726' },
     { name: 'Cancelled', value: 0, color: '#EF5350' },
   ];
-
-  // Refresh dashboard data when role changes
-  useEffect(() => {
-    if (user) {
-      fetchDashboardData();
-    }
-  }, [user?.activeRole]);
 
   const getRoleDashboard = () => {
     const currentRole = user?.activeRole || user?.role || 'buyer';

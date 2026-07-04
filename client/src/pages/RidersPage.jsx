@@ -102,7 +102,7 @@ const RidersPage = () => {
 
   const callCustomer = (customerPhone) => {
     if (customerPhone) {
-      window.location.href = `tel:${customerPhone}`;
+      alert('Phone calls are disabled inside Netsoko. Please use the in-app chat or emergency SOS tab.');
     }
   };
 

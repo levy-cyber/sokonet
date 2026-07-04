@@ -18,9 +18,13 @@ export default function RootLayout() {
           <Stack.Screen name="wallet" options={{ headerShown: false }} />
           <Stack.Screen name="escrow" options={{ headerShown: false }} />
           <Stack.Screen name="chat" options={{ headerShown: false }} />
+          <Stack.Screen name="sos" options={{ headerShown: false }} />
           <Stack.Screen name="riders" options={{ headerShown: false }} />
           <Stack.Screen name="jobs" options={{ headerShown: false }} />
           <Stack.Screen name="profile" options={{ headerShown: false }} />
+          <Stack.Screen name="settings" options={{ headerShown: false }} />
+          <Stack.Screen name="notifications" options={{ headerShown: false }} />
+          <Stack.Screen name="privacy" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="light" />
       </SocketProvider>

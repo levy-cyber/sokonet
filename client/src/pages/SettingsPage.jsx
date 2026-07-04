@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, Camera, Save, X, ArrowRight, Store, Bike, Briefcase, Shield, LayoutDashboard, BarChart3 } from 'lucide-react';
+import api from '../services/api';
 
 const SettingsPage = () => {
   const { user, setUser } = useAuth();
@@ -79,28 +80,19 @@ const SettingsPage = () => {
     setSuccess(false);
 
     try {
-      const response = await fetch('/api/users/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('Netsoko_token')}`,
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await api.put('/users/profile', formData);
 
-      const data = await response.json();
-
-      if (data.success) {
-        setUser({ ...user, ...data.user });
-        // Keep localStorage in sync
-        localStorage.setItem('Netsoko_user', JSON.stringify({ ...user, ...data.user }));
+      if (response.data.success) {
+        const updatedUser = { ...user, ...response.data.user };
+        setUser(updatedUser);
+        localStorage.setItem('Netsoko_user', JSON.stringify(updatedUser));
         setSuccess('Profile updated successfully!');
         setTimeout(() => setSuccess(false), 3000);
       } else {
-        setError(data.message || 'Failed to update profile');
+        setError(response.data.message || 'Failed to update profile');
       }
     } catch (err) {
-      setError('Failed to update profile. Please try again.');
+      setError(err.response?.data?.message || 'Failed to update profile. Please try again.');
     } finally {
       setLoading(false);
     }

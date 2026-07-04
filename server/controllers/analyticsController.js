@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Wallet = require('../models/Wallet');
 const Escrow = require('../models/Escrow');
 const Rider = require('../models/Rider');
+const Product = require('../models/Product');
 
 // @desc    Get dashboard metrics (Admin only)
 // @route   GET /api/analytics
@@ -11,6 +12,7 @@ const getDashboardMetrics = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments({});
     const totalOrders = await Order.countDocuments({});
+    const activeProducts = await Product.countDocuments({ stock: { $gt: 0 } });
     
     // Total escrow money locked
     const activeEscrows = await Escrow.find({ status: 'Held' });
@@ -55,6 +57,7 @@ const getDashboardMetrics = async (req, res) => {
         totalUsers,
         totalOrders,
         totalRevenue,
+        activeProducts,
         totalEscrowHeld,
         totalWalletBalance,
         totalRiders,

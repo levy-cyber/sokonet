@@ -1,6 +1,6 @@
-# SokoNet Quick Deployment Guide
+# Netsoko Quick Deployment Guide
 
-This guide will help you deploy the complete SokoNet platform to production in minutes.
+This guide will help you deploy the complete Netsoko platform to production in minutes.
 
 ## Prerequisites
 
@@ -98,7 +98,7 @@ Expected response:
 ```json
 {
   "success": true,
-  "message": "SokoNet API is running"
+  "message": "Netsoko API is running"
 }
 ```
 
@@ -128,7 +128,7 @@ After deployment, you will have:
 
 ## Share Your Platform
 
-Share the frontend URL with others to showcase your SokoNet platform!
+Share the frontend URL with others to showcase your Netsoko platform!
 
 ## Troubleshooting
 

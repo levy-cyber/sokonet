@@ -160,7 +160,10 @@ export default function Riders() {
                       <Text className="text-gray-400 text-sm">{delivery.customer.phone}</Text>
                     </View>
                   </View>
-                  <TouchableOpacity className="bg-gray-700 rounded-lg p-2">
+                  <TouchableOpacity
+                    onPress={() => Alert.alert('Phone calls disabled', 'Phone calls inside the platform are disabled. Use chat or the emergency SOS tab instead.')}
+                    className="bg-gray-700 rounded-lg p-2"
+                  >
                     <Phone size={20} color="#9CA3AF" />
                   </TouchableOpacity>
                 </View>

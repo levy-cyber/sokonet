@@ -1,5 +1,6 @@
 const Message = require('../models/Message');
 const User = require('../models/User');
+const { moderateMessageContent } = require('../services/moderationService');
 
 // @desc    Get chat message history with a specific user
 // @route   GET /api/messages/:userId
@@ -42,6 +43,11 @@ const sendMessage = async (req, res) => {
 
   if (!isPublic && !receiverId) {
     return res.status(400).json({ success: false, message: 'Receiver ID is required for private messages' });
+  }
+
+  const moderation = moderateMessageContent(content);
+  if (!moderation.allowed) {
+    return res.status(400).json({ success: false, message: moderation.reason });
   }
 
   try {

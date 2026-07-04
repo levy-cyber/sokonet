@@ -31,7 +31,7 @@ export default function Login() {
     <ScrollView className="flex-1 bg-gray-900">
       <View className="flex-1 justify-center p-6 min-h-screen">
         <View className="mb-8">
-          <Text className="text-4xl font-bold text-white mb-2">SokoNet</Text>
+          <Text className="text-4xl font-bold text-white mb-2">Netsoko</Text>
           <Text className="text-gray-400">Welcome back! Sign in to continue.</Text>
         </View>
 

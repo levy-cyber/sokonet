@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiTool, FiCalendar, FiClock, FiDollarSign, FiCheckCircle, FiPlus, FiStar, FiEdit, FiTrash2, FiBriefcase, FiX, FiPhone, FiPhoneCall } from 'react-icons/fi';
 import StatCard from '../components/StatCard';
+import api from '../services/api';
 
 const ServicesPage = () => {
   const [myServices, setMyServices] = useState([]);
@@ -9,82 +10,26 @@ const ServicesPage = () => {
   const [showAddService, setShowAddService] = useState(false);
   const [totalRevenue, setTotalRevenue] = useState(0);
 
+  const fetchProviderData = async () => {
+    try {
+      const [servicesResponse, bookingsResponse] = await Promise.all([
+        api.get('/services/mine'),
+        api.get('/services/bookings'),
+      ]);
+
+      const servicesData = servicesResponse.data.data || [];
+      const bookingsData = bookingsResponse.data.data || [];
+
+      setMyServices(servicesData);
+      setBookings(bookingsData);
+      setTotalRevenue(bookingsData.reduce((sum, booking) => sum + Number(booking.amount || 0), 0));
+    } catch (error) {
+      console.error('Error fetching provider data:', error);
+    }
+  };
+
   useEffect(() => {
-    // Mock services data
-    setMyServices([
-      {
-        id: 1,
-        name: 'Plumbing Repair',
-        description: 'Expert plumbing services for homes and businesses',
-        category: 'Home Services',
-        price: 2500,
-        rating: 4.8,
-        reviews: 124,
-        available: true,
-        image: 'https://images.unsplash.com/photo-1585704032915-c3400ca1e126?w=400'
-      },
-      {
-        id: 2,
-        name: 'Electrical Installation',
-        description: 'Professional electrical installation and maintenance',
-        category: 'Home Services',
-        price: 3500,
-        rating: 4.6,
-        reviews: 87,
-        available: true,
-        image: 'https://images.unsplash.com/photo-1621905250285-e0b248e3552a?w=400'
-      },
-      {
-        id: 3,
-        name: 'Mobile Repair',
-        description: 'Smartphone and tablet repair services',
-        category: 'Tech Support',
-        price: 2000,
-        rating: 4.9,
-        reviews: 156,
-        available: false,
-        image: 'https://images.unsplash.com/photo-1585772492880-a009680628726?w=400'
-      }
-    ]);
-
-    setBookings([
-      {
-        id: 1,
-        serviceId: 1,
-        customerName: 'John Kamau',
-        customerPhone: '+254712345678',
-        date: new Date(Date.now() + 86400000),
-        time: '10:00 AM',
-        status: 'confirmed',
-        payment: 2500,
-        createdAt: new Date()
-      },
-      {
-        id: 2,
-        serviceId: 2,
-        customerName: 'Mary Wanjiku',
-        customerPhone: '+254723456789',
-        date: new Date(Date.now() + 172800000),
-        time: '2:00 PM',
-        status: 'pending',
-        payment: 3500,
-        createdAt: new Date()
-      },
-      {
-        id: 3,
-        serviceId: 3,
-        customerName: 'James Omondi',
-        customerPhone: '+254734567890',
-        date: new Date(Date.now() - 86400000),
-        time: '11:30 AM',
-        status: 'completed',
-        payment: 2000,
-        createdAt: new Date(),
-        rating: 5
-      }
-    ]);
-
-    setTotalRevenue(7500);
+    fetchProviderData();
   }, []);
 
   const statusColors = {
@@ -94,44 +39,54 @@ const ServicesPage = () => {
     cancelled: 'bg-red-500/20 text-red-400 border-red-500/30'
   };
 
-  const updateBookingStatus = (bookingId, status) => {
-    setBookings(prev =>
-      prev.map(b => b.id === bookingId ? { ...b, status } : b)
-    );
+  const updateBookingStatus = async (bookingId, status) => {
+    try {
+      await api.put(`/services/bookings/${bookingId}`, { status });
+      setBookings(prev => prev.map((booking) => booking._id === bookingId ? { ...booking, status } : booking));
+    } catch (error) {
+      console.error('Failed to update booking status:', error);
+    }
   };
 
   const toggleServiceAvailability = (serviceId) => {
     setMyServices(prev =>
-      prev.map(s => s.id === serviceId ? { ...s, available: !s.available } : s)
+      prev.map(s => (s._id || s.id) === serviceId ? { ...s, available: !s.available } : s)
     );
   };
 
   const deleteService = (serviceId) => {
-    setMyServices(prev => prev.filter(s => s.id !== serviceId));
+    setMyServices(prev => prev.filter(s => (s._id || s.id) !== serviceId));
   };
 
   const contactCustomer = (customerPhone) => {
     if (customerPhone) {
-      window.location.href = `tel:${customerPhone}`;
+      alert('Phone calls are disabled inside Netsoko. Please use the in-app chat or SOS support instead.');
     }
   };
 
-  const handleAddService = (e) => {
+  const handleAddService = async (e) => {
     e.preventDefault();
-    // In a real app, this would submit to an API
-    const newService = {
-      id: myServices.length + 1,
-      name: e.target.serviceName.value,
-      description: e.target.serviceDescription.value,
-      category: e.target.serviceCategory.value,
-      price: parseInt(e.target.servicePrice.value),
-      rating: 0,
-      reviews: 0,
-      available: true,
-      image: 'https://images.unsplash.com/photo-1585704032915-c3400ca1e126?w=400'
-    };
-    setMyServices([newService, ...myServices]);
-    setShowAddService(false);
+
+    try {
+      const payload = {
+        name: e.target.serviceName.value,
+        description: e.target.serviceDescription.value,
+        category: e.target.serviceCategory.value,
+        price: e.target.servicePrice.value,
+        image: 'https://images.unsplash.com/photo-1585704032915-c3400ca1e126?w=400',
+        location: 'Nairobi',
+        experience: '1 year',
+      };
+
+      const response = await api.post('/services', payload);
+      if (response.data.success) {
+        setMyServices((prev) => [response.data.data, ...prev]);
+        setShowAddService(false);
+      }
+    } catch (error) {
+      console.error('Failed to add service:', error);
+      alert('Unable to add service right now.');
+    }
   };
 
   return (
@@ -173,15 +128,15 @@ const ServicesPage = () => {
         <h2 className="text-xl font-bold text-white mb-4">My Services</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {myServices.map((service) => (
-            <div key={service.id} className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl overflow-hidden">
-              <div className="h-48 bg-cover bg-center" style={{ backgroundImage: `url(${service.image})` }}></div>
+            <div key={service._id || service.id} className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl overflow-hidden">
+              <div className="h-48 bg-cover bg-center" style={{ backgroundImage: `url(${service.image || 'https://images.unsplash.com/photo-1585704032915-c3400ca1e126?w=400'})` }}></div>
               <div className="p-4 lg:p-6">
                 <div className="flex justify-between items-start mb-3">
                   <span className="px-2 py-1 bg-brand/10 text-brand text-xs font-semibold rounded-full border border-brand/20">
                     {service.category}
                   </span>
                   <button
-                    onClick={() => deleteService(service.id)}
+                    onClick={() => deleteService(service._id || service.id)}
                     className="text-red-400 hover:text-red-300 transition-colors"
                   >
                     <FiTrash2 />
@@ -195,14 +150,14 @@ const ServicesPage = () => {
                     <span className="text-sm">{service.rating}</span>
                     <span className="text-gray-400 text-xs">({service.reviews})</span>
                   </div>
-                  <span className="text-brand font-bold text-lg">KES {service.price.toLocaleString()}</span>
+                  <span className="text-brand font-bold text-lg">KES {Number(service.price || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${service.available ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-gray-700 text-gray-400'}`}>
                     {service.available ? 'Available' : 'Unavailable'}
                   </span>
                   <button
-                    onClick={() => toggleServiceAvailability(service.id)}
+                    onClick={() => toggleServiceAvailability(service._id || service.id)}
                     className="text-gray-400 hover:text-white text-sm underline decoration-gray-400 hover:decoration-white"
                   >
                     Toggle
@@ -223,38 +178,38 @@ const ServicesPage = () => {
         <h2 className="text-xl font-bold text-white mb-4">Service Bookings</h2>
         <div className="space-y-4">
           {bookings.map((booking) => {
-            const service = myServices.find(s => s.id === booking.serviceId);
+            const service = myServices.find(s => (s._id || s.id) === booking.service);
             return (
-              <div key={booking.id} className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
+              <div key={booking._id || booking.id} className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 lg:p-6">
                 <div className="flex flex-col lg:flex-row justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColors[booking.status]}`}>
-                        {booking.status.toUpperCase()}
+                        {String(booking.status || 'pending').toUpperCase()}
                       </span>
-                      <span className="text-gray-400 text-sm">Booking: #{booking.id}</span>
+                      <span className="text-gray-400 text-sm">Booking: #{booking._id || booking.id}</span>
                     </div>
                     <h3 className="text-lg font-semibold text-white mb-1">{service?.name || 'Unknown Service'}</h3>
                     <div className="space-y-1">
                       <p className="text-gray-300 text-sm flex items-center gap-2">
                         <FiBriefcase />
-                        {booking.customerName}
+                        {booking.customerName || 'Customer'}
                       </p>
                       <p className="text-gray-400 text-sm flex items-center gap-2">
                         <FiCalendar />
-                        {new Date(booking.date).toLocaleDateString()} at {booking.time}
+                        {new Date(booking.date || Date.now()).toLocaleDateString()} at {booking.time || 'ASAP'}
                       </p>
                     </div>
                   </div>
                   <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
                     <div className="text-right">
-                      <p className="text-brand font-bold text-lg">KES {booking.payment.toLocaleString()}</p>
+                      <p className="text-brand font-bold text-lg">KES {Number(booking.payment || booking.amount || 0).toLocaleString()}</p>
                       <p className="text-gray-400 text-xs">Service fee</p>
                     </div>
                     <div className="flex gap-2">
                       {booking.status === 'pending' && (
                         <button
-                          onClick={() => updateBookingStatus(booking.id, 'confirmed')}
+                          onClick={() => updateBookingStatus(booking._id || booking.id, 'confirmed')}
                           className="px-4 py-2 bg-brand text-white rounded-lg font-medium hover:bg-brand/90 transition-all"
                         >
                           Accept
@@ -262,14 +217,14 @@ const ServicesPage = () => {
                       )}
                       {booking.status === 'confirmed' && (
                         <button
-                          onClick={() => updateBookingStatus(booking.id, 'completed')}
+                          onClick={() => updateBookingStatus(booking._id || booking.id, 'completed')}
                           className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-all"
                         >
                           Complete
                         </button>
                       )}
                       <button 
-                        onClick={() => contactCustomer(booking.customerPhone)}
+                        onClick={() => contactCustomer(booking.customerPhone || '+254700000000')}
                         className="px-4 py-2 bg-gray-700 text-white rounded-lg font-medium hover:bg-gray-600 transition-all"
                       >
                         Contact

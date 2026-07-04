@@ -9,7 +9,8 @@ import {
   MessageCircle, 
   TrendingUp,
   User,
-  LogOut
+  LogOut,
+  AlertTriangle
 } from 'lucide-react-native';
 
 export default function Dashboard() {
@@ -26,6 +27,7 @@ export default function Dashboard() {
     { icon: Wallet, label: 'Wallet', route: '/wallet', color: '#2196F3' },
     { icon: Package, label: 'My Orders', route: '/orders', color: '#FF9800' },
     { icon: MessageCircle, label: 'Messages', route: '/chat', color: '#9C27B0' },
+    { icon: AlertTriangle, label: 'SOS', route: '/sos', color: '#F44336' },
     { icon: TrendingUp, label: 'Jobs', route: '/jobs', color: '#E91E63' },
     { icon: User, label: 'Profile', route: '/profile', color: '#00BCD4' },
   ];

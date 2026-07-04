@@ -20,7 +20,7 @@ export default function Index() {
   return (
     <View className="flex-1 bg-gray-900 justify-center items-center">
       <ActivityIndicator size="large" color="#00C853" />
-      <Text className="text-white mt-4 text-lg">Loading SokoNet...</Text>
+      <Text className="text-white mt-4 text-lg">Loading Netsoko...</Text>
     </View>
   );
 }

@@ -32,9 +32,15 @@ export default function Profile() {
             />
             <Text className="text-white text-xl font-bold mb-1">{user?.name || 'User'}</Text>
             <Text className="text-gray-400 mb-2">{user?.email || 'user@example.com'}</Text>
-            <View className="bg-green-500/10 px-4 py-2 rounded-full">
+            <View className="bg-green-500/10 px-4 py-2 rounded-full mb-4">
               <Text className="text-green-400 capitalize">{user?.role || 'buyer'}</Text>
             </View>
+            <TouchableOpacity
+              onPress={() => router.push('/settings')}
+              className="bg-green-500/10 border border-green-500 rounded-full px-4 py-2"
+            >
+              <Text className="text-green-400 font-semibold">Edit Profile</Text>
+            </TouchableOpacity>
           </View>
 
           <View className="bg-gray-800 rounded-xl overflow-hidden mb-6">

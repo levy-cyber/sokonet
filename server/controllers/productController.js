@@ -1,40 +1,85 @@
 const Product = require('../models/Product');
 const Shop = require('../models/Shop');
+const { USE_MOCK, mockHelpers } = require('../config/db');
 
-// @desc    Get all products platform-wide (with search/filters)
+const MAX_PRODUCT_IMAGES = 20;
+
+const normalizeProductImages = (images, image) => {
+  const result = [];
+  if (Array.isArray(images)) {
+    result.push(...images.filter(Boolean));
+  }
+  if (typeof image === 'string' && image.trim()) {
+    result.push(image.trim());
+  }
+  return result.slice(0, MAX_PRODUCT_IMAGES);
+};
+
+// @desc    Get all products (with search/filters)
 // @route   GET /api/products
 // @access  Public
 const getProducts = async (req, res) => {
   try {
-    const { search, category, condition, minPrice, maxPrice, location, sort, page = 1, limit = 20 } = req.query;
-    let query = { status: 'active' };
+    const { search, category, minPrice, maxPrice, sort } = req.query;
+    let products;
 
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { location: { $regex: search, $options: 'i' } },
-      ];
+    if (USE_MOCK) {
+      products = mockHelpers.findProducts({ search, category });
+      
+      // Filter by price
+      if (minPrice) products = products.filter(p => p.price >= Number(minPrice));
+      if (maxPrice) products = products.filter(p => p.price <= Number(maxPrice));
+      
+      // Sort
+      if (sort === 'priceAsc') {
+        products.sort((a, b) => a.price - b.price);
+      } else if (sort === 'priceDesc') {
+        products.sort((a, b) => b.price - a.price);
+      } else {
+        products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      }
+      
+      // Add mock seller info
+      products = products.map(p => ({
+        ...p,
+        seller: { _id: p.seller, name: 'Tech Store Kenya', avatar: 'https://i.pravatar.cc/150?img=2' }
+      }));
+      
+      res.json({ success: true, count: products.length, data: products });
+    } else {
+      let query = {};
+
+      // Search query
+      if (search) {
+        query.name = { $regex: search, $options: 'i' };
+      }
+
+      // Category query
+      if (category && category !== 'All') {
+        query.category = category;
+      }
+
+      // Price query
+      if (minPrice || maxPrice) {
+        query.price = {};
+        if (minPrice) query.price.$gte = Number(minPrice);
+        if (maxPrice) query.price.$lte = Number(maxPrice);
+      }
+
+      // Execute query with sorting
+      let apiQuery = Product.find(query).populate('seller', 'name avatar');
+
+      if (sort === 'priceAsc') {
+        apiQuery = apiQuery.sort({ price: 1 });
+      } else if (sort === 'priceDesc') {
+        apiQuery = apiQuery.sort({ price: -1 });
+      } else {
+        apiQuery = apiQuery.sort({ createdAt: -1 }); // Newest first
+      }
+
+      products = await apiQuery;
+      res.json({ success: true, count: products.length, data: products });
     }
-    if (category && category !== 'All') query.category = category;
-    if (condition && condition !== 'All') query.condition = condition;
-    if (location) query.location = { $regex: location, $options: 'i' };
-    if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice) query.price.$gte = Number(minPrice);
-      if (maxPrice) query.price.$lte = Number(maxPrice);
-    }
-
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    let apiQuery = Product.find(query).populate('seller', 'name avatar rating phone email');
-
-    if (sort === 'priceAsc') apiQuery = apiQuery.sort({ price: 1 });
-    else if (sort === 'priceDesc') apiQuery = apiQuery.sort({ price: -1 });
-    else apiQuery = apiQuery.sort({ createdAt: -1 });
-
-    const products = await apiQuery.skip(skip).limit(parseInt(limit));
-    const total = await Product.countDocuments(query);
-    res.json({ success: true, count: products.length, total, data: products });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -45,56 +90,85 @@ const getProducts = async (req, res) => {
 // @access  Public
 const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate('seller', 'name avatar rating phone email');
-    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
-    const shop = await Shop.findOne({ seller: product.seller._id });
-    res.json({ success: true, data: product, shop });
+    let product;
+    
+    if (USE_MOCK) {
+      product = mockHelpers.findProductById(req.params.id);
+      if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+      product = {
+        ...product,
+        seller: { _id: product.seller, name: 'Tech Store Kenya', avatar: 'https://i.pravatar.cc/150?img=2', rating: 4.8 }
+      };
+      res.json({ success: true, data: product, shop: null });
+    } else {
+      product = await Product.findById(req.params.id)
+        .populate('seller', 'name avatar rating')
+        .populate({
+          path: 'seller',
+          populate: { path: '_id', model: 'User' }
+        });
+
+      if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+
+      // Try finding the seller's shop to return storefront details
+      const shop = await Shop.findOne({ seller: product.seller._id });
+
+      res.json({ success: true, data: product, shop });
+    }
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// @desc    Get my products
-// @route   GET /api/products/mine
-// @access  Private
-const getMyProducts = async (req, res) => {
-  try {
-    const products = await Product.find({ seller: req.user._id }).sort({ createdAt: -1 });
-    res.json({ success: true, count: products.length, data: products });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-// @desc    Create a product (any authenticated user)
+// @desc    Create a product
 // @route   POST /api/products
-// @access  Private
+// @access  Private (Seller/Admin only)
 const createProduct = async (req, res) => {
-  const { name, description, price, category, condition, stock, images, location, sellerContact } = req.body;
-
-  // Validate required fields
-  if (!name || !description || !price || !category || !condition || !location) {
+  const { name, description, price, category, stock, image, images } = req.body;
+  const requestedImages = [
+    ...(Array.isArray(images) ? images.filter(Boolean) : []),
+    ...(typeof image === 'string' && image.trim() ? [image.trim()] : []),
+  ];
+  if (requestedImages.length > MAX_PRODUCT_IMAGES) {
     return res.status(400).json({
       success: false,
-      message: 'Name, description, price, category, condition, and location are required',
+      message: `Maximum ${MAX_PRODUCT_IMAGES} product images allowed per product.`,
     });
   }
-  if (!images || !Array.isArray(images) || images.length === 0) {
-    return res.status(400).json({ success: false, message: 'At least one product image is required' });
-  }
+
+  const productImages = normalizeProductImages(images, image);
 
   try {
-    const product = await Product.create({
-      seller: req.user._id,
-      name, description, price, category, condition,
-      stock: stock || 1,
-      images,
-      location,
-      sellerContact: sellerContact || { phone: req.user.phone, email: req.user.email },
-    });
+    let product;
+    
+    if (USE_MOCK) {
+      product = mockHelpers.createProduct({
+        seller: req.user._id,
+        name,
+        description,
+        price,
+        category,
+        stock,
+        images: productImages.length ? productImages : undefined,
+      });
+      res.status(201).json({ success: true, data: product });
+    } else {
+      product = await Product.create({
+        seller: req.user._id,
+        name,
+        description,
+        price,
+        category,
+        stock,
+        images: productImages.length ? productImages : undefined,
+      });
 
-    const populated = await Product.findById(product._id).populate('seller', 'name avatar rating');
-    res.status(201).json({ success: true, data: populated });
+      res.status(201).json({ success: true, data: product });
+    }
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
   }
@@ -102,16 +176,51 @@ const createProduct = async (req, res) => {
 
 // @desc    Update a product
 // @route   PUT /api/products/:id
-// @access  Private (owner/admin)
+// @access  Private (Seller/Admin only)
 const updateProduct = async (req, res) => {
   try {
-    let product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
-    if (product.seller.toString() !== req.user._id.toString() && !req.user.isSuperAdmin) {
-      return res.status(403).json({ success: false, message: 'Not authorized to edit this product' });
+    if (USE_MOCK) {
+      const product = mockHelpers.findProductById(req.params.id);
+      if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+      const updated = { ...product, ...req.body };
+      res.json({ success: true, data: updated });
+    } else {
+      let product = await Product.findById(req.params.id);
+
+      if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+
+      // Check ownership
+      if (product.seller.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Not authorized to edit this product' });
+      }
+
+      const { image, images } = req.body;
+      const requestedImages = [
+        ...(Array.isArray(images) ? images.filter(Boolean) : []),
+        ...(typeof image === 'string' && image.trim() ? [image.trim()] : []),
+      ];
+      if (requestedImages.length > MAX_PRODUCT_IMAGES) {
+        return res.status(400).json({
+          success: false,
+          message: `Maximum ${MAX_PRODUCT_IMAGES} product images allowed per product.`,
+        });
+      }
+
+      if (requestedImages.length > 0) {
+        req.body.images = normalizeProductImages(images, image);
+      }
+
+      product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true,
+      });
+
+      res.json({ success: true, data: product });
     }
-    product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    res.json({ success: true, data: product });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -119,19 +228,39 @@ const updateProduct = async (req, res) => {
 
 // @desc    Delete a product
 // @route   DELETE /api/products/:id
-// @access  Private (owner/admin)
+// @access  Private (Seller/Admin only)
 const deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
-    if (product.seller.toString() !== req.user._id.toString() && !req.user.isSuperAdmin) {
-      return res.status(403).json({ success: false, message: 'Not authorized to delete this product' });
+    if (USE_MOCK) {
+      const product = mockHelpers.findProductById(req.params.id);
+      if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+      res.json({ success: true, message: 'Product removed' });
+    } else {
+      const product = await Product.findById(req.params.id);
+
+      if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+
+      // Check ownership
+      if (product.seller.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Not authorized to delete this product' });
+      }
+
+      await product.deleteOne();
+      res.json({ success: true, message: 'Product removed' });
     }
-    await product.deleteOne();
-    res.json({ success: true, message: 'Product removed' });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-module.exports = { getProducts, getProductById, getMyProducts, createProduct, updateProduct, deleteProduct };
+module.exports = {
+  getProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+};

@@ -1,4 +1,4 @@
-# SokoNet API Documentation
+# Netsoko API Documentation
 
 ## Base URL
 
@@ -33,13 +33,6 @@ Content-Type: application/json
 }
 ```
 
-**Registration Validation:**
-- Only fully activated accounts (verified email + first successful login) count toward the 2-account limit per phone/email
-- New accounts start with `accountStatus: 'pending'` and `hasLoggedIn: false`
-- OTP verification updates `accountStatus` to `verified`
-- First successful login updates `accountStatus` to `active` and `hasLoggedIn` to `true`
-- Incomplete registrations (pending, verified but not logged in) do not count toward limits
-
 #### Login
 ```http
 POST /auth/login
@@ -56,47 +49,6 @@ Content-Type: application/json
 GET /auth/me
 Authorization: Bearer <token>
 ```
-
-#### Admin Login (Super Admin / Support)
-```http
-POST /auth/admin-login
-Content-Type: application/json
-
-{
-  "email": "admin@netsoko.co.ke",
-  "password": "bignetsoko@9625white"
-}
-```
-
-#### Request Account Deletion
-```http
-POST /auth/request-delete
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "method": "email"
-}
-```
-
-#### Confirm Account Deletion (with OTP)
-```http
-POST /auth/confirm-delete
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "otp": "123456"
-}
-```
-
-#### Cleanup Abandoned Registrations (Admin Only)
-```http
-POST /auth/cleanup-abandoned
-Authorization: Bearer <token>
-```
-
-Marks pending registrations older than 24 hours as inactive. Requires admin privileges.
 
 ### User Endpoints
 
@@ -363,25 +315,15 @@ GET /jobs
 
 Query Parameters:
 - `category`: Filter by category
-- `location`: Filter by location
+- `type`: Filter by type (full-time, part-time, contract, freelance)
 - `search`: Search term
-- `status`: Filter by status (Open, Paused, Closed, In_Progress)
-- `page`: Page number (default: 1)
-- `limit`: Items per page (default: 20)
 
 #### Get Job by ID
 ```http
 GET /jobs/:id
-Authorization: Bearer <token>
 ```
 
-#### Get My Posted Jobs
-```http
-GET /jobs/mine
-Authorization: Bearer <token>
-```
-
-#### Create Job (Any authenticated user)
+#### Create Job (Employer only)
 ```http
 POST /jobs
 Authorization: Bearer <token>
@@ -390,231 +332,19 @@ Content-Type: application/json
 {
   "title": "Senior React Developer",
   "description": "Job description",
-  "budget": 150000,
-  "category": "Software Development",
+  "company": "TechCorp Kenya",
+  "category": "technology",
+  "type": "full-time",
+  "salary": "150,000 - 200,000",
   "location": "Nairobi",
-  "skills": ["React", "Node.js", "TypeScript"],
-  "deadline": "2024-12-31"
+  "requirements": ["React", "Node.js", "TypeScript"]
 }
-```
-
-#### Update Job (Job owner only)
-```http
-PUT /jobs/:id
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "title": "Updated Job Title",
-  "budget": 200000
-}
-```
-
-#### Pause Job (Job owner only)
-```http
-PUT /jobs/:id/pause
-Authorization: Bearer <token>
-```
-
-#### Close Job (Job owner only)
-```http
-PUT /jobs/:id/close
-Authorization: Bearer <token>
-```
-
-#### Delete Job (Job owner only)
-```http
-DELETE /jobs/:id
-Authorization: Bearer <token>
 ```
 
 #### Apply for Job
 ```http
 POST /jobs/:id/apply
 Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "coverLetter": "I am interested in this position...",
-  "bidAmount": 135000,
-  "skills": ["React", "Node.js"],
-  "profileInfo": "Additional information about yourself"
-}
-```
-
-#### Update Application Status (Job owner only)
-```http
-PUT /jobs/:id/applications/:appId
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "status": "Shortlisted"
-}
-```
-
-### Services Endpoints
-
-#### Get All Services
-```http
-GET /services
-```
-
-Query Parameters:
-- `category`: Filter by category
-- `search`: Search term
-- `availability`: Filter by availability (available, busy)
-- `page`: Page number (default: 1)
-- `limit`: Items per page (default: 20)
-
-#### Get Service by ID
-```http
-GET /services/:id
-```
-
-#### Get My Services (Service Provider only)
-```http
-GET /services/mine
-Authorization: Bearer <token>
-```
-
-#### Create Service (Service Provider only)
-```http
-POST /services
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "title": "Plumbing Repair",
-  "description": "Expert plumbing services for homes and businesses",
-  "category": "Home Services",
-  "pricing": 2500,
-  "pricingType": "fixed",
-  "location": "Nairobi",
-  "skills": ["Plumbing", "Pipe Repair"],
-  "images": ["image_url_1"],
-  "availability": "available"
-}
-```
-
-#### Update Service (Service Provider only)
-```http
-PUT /services/:id
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "pricing": 3000,
-  "availability": "busy"
-}
-```
-
-#### Delete Service (Service Provider only)
-```http
-DELETE /services/:id
-Authorization: Bearer <token>
-```
-
-### Support Endpoints
-
-#### Create Support Ticket
-```http
-POST /support/ticket
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "subject": "Payment Issue",
-  "category": "Payment",
-  "priority": "high",
-  "message": "I made a deposit but it's not reflecting in my wallet"
-}
-```
-
-#### Get My Support Tickets
-```http
-GET /support/tickets
-Authorization: Bearer <token>
-```
-
-#### Get All Support Tickets (Admin/Support only)
-```http
-GET /support/tickets/all
-Authorization: Bearer <token>
-```
-
-#### Get Support Ticket by ID
-```http
-GET /support/ticket/:id
-Authorization: Bearer <token>
-```
-
-#### Reply to Support Ticket
-```http
-POST /support/ticket/:id/reply
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "message": "Thank you for reporting this issue. We are looking into it."
-}
-```
-
-#### Update Ticket Status (Admin/Support only)
-```http
-PUT /support/ticket/:id/status
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "status": "resolved"
-}
-```
-
-### Dashboard Endpoints
-
-#### Get Dashboard Summary
-```http
-GET /dashboard/summary
-Authorization: Bearer <token>
-```
-
-Response:
-```json
-{
-  "success": true,
-  "data": {
-    "walletBalance": 50000,
-    "currency": "KES",
-    "recentTransactions": [...],
-    "productsPosted": 5,
-    "servicesListed": 3,
-    "jobsPosted": 2,
-    "jobApplicationsSubmitted": 10,
-    "unreadMessages": 3,
-    "unreadNotifications": 5,
-    "accountStatus": "active",
-    "recentProducts": [...],
-    "recentJobs": [...],
-    "recentNotifications": [...],
-    "user": {...}
-  }
-}
-```
-
-#### Get Live Wallet Balance
-```http
-GET /dashboard/wallet-balance
-Authorization: Bearer <token>
-```
-
-Response:
-```json
-{
-  "success": true,
-  "balance": 50000,
-  "currency": "KES"
-}
 ```
 
 ### Shop Endpoints
@@ -643,48 +373,6 @@ Content-Type: application/json
   "location": "Nairobi, Kenya"
 }
 ```
-
-### Admin Endpoints (Super Admin only)
-
-#### Get All Users
-```http
-GET /admin/users
-Authorization: Bearer <token>
-```
-
-#### Get Company Till Balance
-```http
-GET /admin/till
-Authorization: Bearer <token>
-```
-
-#### Deposit to Company Till
-```http
-POST /admin/till/deposit
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "amount": 100000,
-  "description": "Manual deposit"
-}
-```
-
-#### User Actions
-```http
-PUT /users/:userId/:action
-Authorization: Bearer <token>
-```
-
-Actions: `activate`, `deactivate`, `ban`, `unban`
-
-#### Product Actions
-```http
-PUT /products/:productId/:action
-Authorization: Bearer <token>
-```
-
-Actions: `approve`, `reject`, `feature`, `unfeature`
 
 ### Analytics Endpoints (Admin only)
 

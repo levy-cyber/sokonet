@@ -92,12 +92,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   // Filter navigation links based on user role
   const navigationLinks = allNavigationLinks.filter(link => {
     if (link.role === 'all') return true;
-    if (link.role === 'seller' && user?.activeRole === 'seller') return true;
-    if (link.role === 'freelancer' && user?.activeRole === 'freelancer') return true;
-    if (link.role === 'service_provider' && user?.activeRole === 'service_provider') return true;
-    if (link.role === 'rider' && user?.activeRole === 'rider') return true;
-    if (link.role === 'admin' && user?.activeRole === 'admin') return true;
-    return false;
+    return user?.roles?.includes(link.role);
   });
 
   const getRoleBadge = () => {

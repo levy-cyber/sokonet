@@ -1,6 +1,6 @@
-# SokoNet Deployment Guide
+# Netsoko Deployment Guide
 
-This guide covers deploying the complete SokoNet platform to production.
+This guide covers deploying the complete Netsoko platform to production.
 
 ## Table of Contents
 

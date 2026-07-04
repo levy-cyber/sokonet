@@ -28,6 +28,7 @@ export const AuthProvider = ({ children }) => {
       if (!userData.activeRole) {
         userData.activeRole = userData.roles[0] || 'buyer';
       }
+      userData.isEmailVerified = userData.isEmailVerified || false;
       setUser(userData);
     }
     setLoading(false);
@@ -46,6 +47,7 @@ export const AuthProvider = ({ children }) => {
           roles: data.roles || [data.role || 'buyer'],
           activeRole: data.activeRole || data.role || 'buyer',
           avatar: data.avatar,
+          isEmailVerified: data.isEmailVerified || false,
         };
         setUser(userData);
         localStorage.setItem('Netsoko_token', data.token);
@@ -78,6 +80,7 @@ export const AuthProvider = ({ children }) => {
           roles: data.roles || selectedRoles || ['buyer'],
           activeRole: data.activeRole || selectedRoles[0] || 'buyer',
           avatar: data.avatar,
+          isEmailVerified: data.isEmailVerified || false,
         };
         setUser(userData);
         localStorage.setItem('Netsoko_token', data.token);

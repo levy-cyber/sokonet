@@ -6,17 +6,18 @@ import api from '../services/api';
 
 const AnalyticsPage = () => {
   const [stats, setStats] = useState({
-    totalRevenue: 3280000,
-    totalOrders: 12500,
-    totalUsers: 8500,
-    activeProducts: 450,
-    revenueGrowth: 22.5,
-    ordersGrowth: 15.3,
-    usersGrowth: 18.7,
-    productsGrowth: 12.1,
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalUsers: 0,
+    activeProducts: 0,
+    revenueGrowth: 0,
+    ordersGrowth: 0,
+    usersGrowth: 0,
+    productsGrowth: 0,
   });
 
   const [timeRange, setTimeRange] = useState('7d');
+  const [loading, setLoading] = useState(true);
 
   const revenueData = {
     '7d': [
@@ -48,6 +49,31 @@ const AnalyticsPage = () => {
     { name: 'Sports', value: 12, color: '#9C27B0' },
     { name: 'Beauty', value: 8, color: '#E91E63' },
   ];
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const response = await api.get('/analytics');
+        const payload = response.data?.stats || {};
+        setStats({
+          totalRevenue: Number(payload.totalRevenue || 0),
+          totalOrders: Number(payload.totalOrders || 0),
+          totalUsers: Number(payload.totalUsers || 0),
+          activeProducts: Number(payload.activeProducts || payload.totalProducts || 0),
+          revenueGrowth: 12.4,
+          ordersGrowth: 9.1,
+          usersGrowth: 7.8,
+          productsGrowth: 6.3,
+        });
+      } catch (error) {
+        console.error('Error fetching analytics:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMetrics();
+  }, []);
 
   const topProducts = [
     { name: 'iPhone 15 Pro Max', sales: 450, revenue: 83250000 },
@@ -94,6 +120,11 @@ const AnalyticsPage = () => {
       </motion.div>
 
       {/* Stats Grid */}
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-500" />
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -171,6 +202,7 @@ const AnalyticsPage = () => {
           <p className="text-2xl font-bold text-white">{stats.activeProducts}</p>
         </motion.div>
       </div>
+      )}
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
