@@ -126,7 +126,7 @@ const Marketplace = () => {
               Nearby Riders
             </button>
             <button
-              onClick={() => setSelectedCategory('food')}
+              onClick={() => navigate('/food')}
               className="flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-white/20"
             >
               Browse Food

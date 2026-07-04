@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiBriefcase, FiDollarSign, FiClock, FiCheckCircle, FiPlus, FiStar, FiFilter, FiSearch, FiArrowRight, FiFileText, FiUsers, FiTrendingUp } from 'react-icons/fi';
 import StatCard from '../components/StatCard';
+import api from '../services/api';
 
 const JobsPage = () => {
   const [availableJobs, setAvailableJobs] = useState([]);
@@ -10,79 +11,11 @@ const JobsPage = () => {
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [jobsLoading, setJobsLoading] = useState(true);
+  const [jobsError, setJobsError] = useState('');
 
   useEffect(() => {
-    // Mock jobs data
-    setAvailableJobs([
-      {
-        id: 1,
-        title: 'E-commerce Website Development',
-        description: 'Looking for an experienced React developer to build a full e-commerce platform with payment integration.',
-        budget: 150000,
-        category: 'Development',
-        skills: ['React', 'Node.js', 'MongoDB'],
-        duration: '4 weeks',
-        client: 'Tech Startup Kenya',
-        clientId: 'client1',
-        postedDate: new Date(Date.now() - 86400000),
-        proposals: 5,
-        status: 'open'
-      },
-      {
-        id: 2,
-        title: 'Mobile App UI Design',
-        description: 'Design a modern, user-friendly UI for a fitness tracking mobile app.',
-        budget: 75000,
-        category: 'Design',
-        skills: ['Figma', 'UI/UX', 'Mobile'],
-        duration: '2 weeks',
-        client: 'Fitness Kenya',
-        clientId: 'client2',
-        postedDate: new Date(Date.now() - 172800000),
-        proposals: 12,
-        status: 'open'
-      },
-      {
-        id: 3,
-        title: 'Content Writing - Tech Blog',
-        description: 'Write 10 SEO-optimized articles about technology trends and digital transformation.',
-        budget: 30000,
-        category: 'Writing',
-        skills: ['Content Writing', 'SEO', 'Tech'],
-        duration: '1 week',
-        client: 'Digital Media',
-        clientId: 'client3',
-        postedDate: new Date(Date.now() - 259200000),
-        proposals: 8,
-        status: 'open'
-      },
-      {
-        id: 4,
-        title: 'Data Analysis Dashboard',
-        description: 'Create interactive dashboards using Python for sales data visualization.',
-        budget: 120000,
-        category: 'Data',
-        skills: ['Python', 'Data Visualization', 'Analytics'],
-        duration: '3 weeks',
-        client: 'Retail Corp',
-        clientId: 'client4',
-        postedDate: new Date(Date.now() - 432000000),
-        proposals: 3,
-        status: 'open'
-      }
-    ]);
-
-    setMyProposals([
-      {
-        id: 1,
-        jobId: 1,
-        proposedAmount: 135000,
-        coverLetter: 'I have extensive experience with e-commerce development and can deliver within the timeline.',
-        status: 'pending',
-        submittedDate: new Date(Date.now() - 43200000)
-      }
-    ]);
-
+    fetchJobs();
     setActiveProjects([
       {
         id: 1,
@@ -106,6 +39,29 @@ const JobsPage = () => {
 
     setTotalEarnings(285000);
   }, []);
+
+  const fetchJobs = async () => {
+    setJobsLoading(true);
+    setJobsError('');
+    try {
+      const response = await api.get('/jobs');
+      const jobs = response.data?.data || [];
+      setAvailableJobs(jobs.map((job) => ({
+        ...job,
+        id: job._id,
+        postedDate: job.createdAt ? new Date(job.createdAt) : new Date(),
+        client: job.employer?.name || 'Employer',
+        proposals: job.applications?.length || 0,
+        status: job.status?.toLowerCase() || 'open',
+      })));
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+      setJobsError('Unable to load job listings at the moment.');
+      setAvailableJobs([]);
+    } finally {
+      setJobsLoading(false);
+    }
+  };
 
   const categories = ['All', 'Development', 'Design', 'Writing', 'Data', 'Marketing', 'Other'];
 

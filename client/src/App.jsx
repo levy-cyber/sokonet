@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { CartProvider } from './context/CartContext';
 import AppRoutes from './routes/AppRoutes';
+import PwaInstallPrompt from './components/PwaInstallPrompt';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <CartProvider>
           <SocketProvider>
             <AppRoutes />
+            <PwaInstallPrompt />
           </SocketProvider>
         </CartProvider>
       </AuthProvider>

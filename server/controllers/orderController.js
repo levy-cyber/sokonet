@@ -1,5 +1,6 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const Rider = require('../models/Rider');
 const Wallet = require('../models/Wallet');
 const Escrow = require('../models/Escrow');
 const Transaction = require('../models/Transaction');
@@ -128,7 +129,12 @@ const getOrders = async (req, res) => {
     } else if (req.user.role === 'seller') {
       orders = await Order.find({ seller: req.user._id }).populate('buyer seller', 'name email phone').populate('items.product', 'name images');
     } else if (req.user.role === 'rider') {
-      orders = await Order.find({ rider: req.user._id }).populate('buyer seller', 'name email phone').populate('items.product', 'name images');
+      const riderProfile = await Rider.findOne({ user: req.user._id });
+      if (riderProfile) {
+        orders = await Order.find({ rider: riderProfile._id }).populate('buyer seller', 'name email phone').populate('items.product', 'name images');
+      } else {
+        orders = [];
+      }
     } else {
       orders = await Order.find({ buyer: req.user._id }).populate('buyer seller', 'name email phone').populate('items.product', 'name images');
     }

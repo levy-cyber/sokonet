@@ -45,6 +45,23 @@ const SettingsPage = () => {
     ],
   };
 
+  const getUniqueRoleLinks = () => {
+    const collectedLinks = (user?.roles || [])
+      .flatMap((role) => roleLinks[role] || []);
+
+    const uniqueByPath = Array.from(
+      collectedLinks.reduce((map, item) => {
+        if (!map.has(item.path)) {
+          map.set(item.path, item);
+        }
+        return map;
+      }, new Map())
+      .values()
+    );
+
+    return uniqueByPath;
+  };
+
   useEffect(() => {
     if (user) {
       setFormData({
@@ -248,28 +265,24 @@ const SettingsPage = () => {
               {/* Role-specific navigation links */}
               <div className="space-y-3">
                 <h4 className="text-gray-400 text-sm font-medium">Quick Access to Your Roles</h4>
-                {user?.roles?.map((role) => (
-                  <div key={role} className="space-y-2">
-                    {roleLinks[role]?.map((link) => {
-                      const Icon = link.icon;
-                      return (
-                        <button
-                          key={link.path}
-                          onClick={() => navigate(link.path)}
-                          className="w-full flex items-center justify-between p-3 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg transition-colors group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Icon className="w-5 h-5 text-brand" />
-                            <span className="text-gray-300 group-hover:text-white transition-colors">
-                              {link.label}
-                            </span>
-                          </div>
-                          <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-brand transition-colors" />
-                        </button>
-                      );
-                    })}
-                  </div>
-                ))}
+                {getUniqueRoleLinks().map((link) => {
+                  const Icon = link.icon;
+                  return (
+                    <button
+                      key={link.path}
+                      onClick={() => navigate(link.path)}
+                      className="w-full flex items-center justify-between p-3 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg transition-colors group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="w-5 h-5 text-brand" />
+                        <span className="text-gray-300 group-hover:text-white transition-colors">
+                          {link.label}
+                        </span>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-brand transition-colors" />
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

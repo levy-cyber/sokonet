@@ -8,6 +8,7 @@ import ProtectedRoute from './ProtectedRoute';
 import AuthPage from '../pages/AuthPage';
 import Dashboard from '../pages/Dashboard';
 import Marketplace from '../pages/Marketplace';
+import FoodMarketplace from '../pages/FoodMarketplace';
 import ProductDetails from '../pages/ProductDetails';
 import EscrowPage from '../pages/EscrowPage';
 import OrdersPage from '../pages/OrdersPage';
@@ -54,6 +55,10 @@ const AppRoutes = () => {
           <Route path="/marketplace/product/:id" element={<ProductDetails />} />
         </Route>
 
+        <Route element={<MainLayout title="Food & Beverage Marketplace" />}>
+          <Route path="/food" element={<FoodMarketplace />} />
+        </Route>
+
         <Route element={<MainLayout title="Services Marketplace" />}>
           <Route path="/services" element={<ServicesMarketplace />} />
         </Route>
@@ -92,19 +97,19 @@ const AppRoutes = () => {
       </Route>
 
       {/* Role-specific pages - Protected by role */}
-      <Route element={<ProtectedRoute allowedRoles={['seller']} />}>
+      <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout title="My Vendor Storefront" />}>
           <Route path="/shop/mine" element={<ShopsPage />} />
         </Route>
       </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={['seller', 'buyer']} />}>
+      <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout title="Business Analytics" />}>
           <Route path="/analytics" element={<AnalyticsPage />} />
         </Route>
       </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={['rider', 'buyer']} />}>
+      <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout title="Logistics Rider Dashboard" />}>
           <Route path="/rider/dashboard" element={<RidersPage />} />
         </Route>

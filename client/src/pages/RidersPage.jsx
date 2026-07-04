@@ -9,14 +9,19 @@ const RidersPage = () => {
   const [completedDeliveries, setCompletedDeliveries] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [totalEarnings, setTotalEarnings] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
+  const [riderProfile, setRiderProfile] = useState(null);
   const [isOnline, setIsOnline] = useState(true);
   const [currentLocation, setCurrentLocation] = useState(null);
+  const [locationName, setLocationName] = useState('Fetching address...');
   const [locationLoading, setLocationLoading] = useState(false);
   const [nearbyRiders, setNearbyRiders] = useState([]);
   const [nearbyLoading, setNearbyLoading] = useState(false);
 
   useEffect(() => {
     getCurrentLocation();
+    fetchRiderProfile();
+    fetchRiderOrders();
     // Update location every 30 seconds
     const locationInterval = setInterval(getCurrentLocation, 30000);
     return () => clearInterval(locationInterval);
@@ -40,6 +45,39 @@ const RidersPage = () => {
     fetchNearbyRiders();
   }, [currentLocation]);
 
+  const fetchRiderProfile = async () => {
+    try {
+      const response = await api.get('/riders/profile');
+      const profile = response.data?.data;
+      if (profile) {
+        setTotalEarnings(profile.earnings || 0);
+        setAverageRating(profile.user?.rating || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching rider profile:', error);
+    }
+  };
+
+  const fetchRiderOrders = async () => {
+    try {
+      const response = await api.get('/orders');
+      const orders = response.data?.data || [];
+      const normalized = orders.map((order) => ({
+        ...order,
+        deliveryStatus: order.deliveryStatus || order.status || 'pending',
+      }));
+
+      const pendingCount = normalized.filter((order) => order.deliveryStatus.toLowerCase() === 'pending').length;
+      const completedCount = normalized.filter((order) => order.deliveryStatus.toLowerCase() === 'delivered').length;
+      const activeCount = normalized.filter((order) => !['delivered', 'cancelled'].includes(order.deliveryStatus.toLowerCase())).length;
+
+      setOrderStats({ pending: pendingCount, active: activeCount, completed: completedCount });
+    } catch (error) {
+      console.error('Error fetching rider orders:', error);
+      setOrderStats({ pending: 0, active: 0, completed: 0 });
+    }
+  };
+
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       console.error('Geolocation is not supported by your browser');
@@ -48,7 +86,7 @@ const RidersPage = () => {
 
     setLocationLoading(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const location = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
@@ -58,6 +96,15 @@ const RidersPage = () => {
         setCurrentLocation(location);
         setLocationLoading(false);
         console.log('Current location:', location);
+
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${location.latitude}&lon=${location.longitude}`);
+          const data = await response.json();
+          setLocationName(data.display_name || 'Current location');
+        } catch (error) {
+          console.error('Reverse geocoding failed:', error);
+          setLocationName('Current location');
+        }
       },
       (error) => {
         console.error('Error getting location:', error);
@@ -217,10 +264,10 @@ const RidersPage = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
-        <StatCard title="Pending Requests" value={pendingRequests.length} icon={FiAlertCircle} trend={isOnline ? '+2 new' : '0'} trendUp={true} />
-        <StatCard title="Active Deliveries" value={activeDeliveries.length} icon={FiTruck} trend="+12.5%" trendUp={true} />
-        <StatCard title="Total Earnings" value={`KES ${totalEarnings.toLocaleString()}`} icon={FiDollarSign} trend="+28.3%" trendUp={true} />
-        <StatCard title="Average Rating" value="4.9/5.0" icon={FiNavigation} trend="+2.3%" trendUp={true} />
+        <StatCard title="Pending Requests" value={orderStats.pending} icon={FiAlertCircle} />
+        <StatCard title="Active Deliveries" value={orderStats.active} icon={FiTruck} />
+        <StatCard title="Total Earnings" value={`KES ${totalEarnings.toLocaleString()}`} icon={FiDollarSign} />
+        <StatCard title="Average Rating" value={averageRating ? `${averageRating.toFixed(1)}/5.0` : 'N/A'} icon={FiNavigation} />
       </div>
 
       {/* Current Location Display */}
@@ -228,20 +275,31 @@ const RidersPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 mb-6"
+          className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-4 mb-6"
         >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-500/10 rounded-lg">
-              <FiMapPin className="w-5 h-5 text-green-400" />
+          <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr] items-start">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-green-500/10 rounded-2xl">
+                <FiMapPin className="w-6 h-6 text-green-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm uppercase tracking-[0.2em] text-green-300">Current Location</p>
+                <h3 className="text-xl font-semibold text-white mt-2">{locationName}</h3>
+                <p className="text-gray-400 text-sm mt-1">Accuracy: ±{currentLocation.accuracy.toFixed(0)}m • Updated: {currentLocation.timestamp.toLocaleTimeString()}</p>
+                <div className="mt-3 flex flex-wrap gap-3 text-sm text-gray-300">
+                  <span className="rounded-full border border-gray-700/60 bg-gray-800/60 px-3 py-2">{currentLocation.latitude.toFixed(6)}</span>
+                  <span className="rounded-full border border-gray-700/60 bg-gray-800/60 px-3 py-2">{currentLocation.longitude.toFixed(6)}</span>
+                </div>
+              </div>
             </div>
-            <div className="flex-1">
-              <p className="text-white font-medium">Current Location</p>
-              <p className="text-gray-400 text-sm">
-                Lat: {currentLocation.latitude.toFixed(6)}, Lng: {currentLocation.longitude.toFixed(6)}
-              </p>
-              <p className="text-gray-500 text-xs">
-                Accuracy: ±{currentLocation.accuracy.toFixed(0)}m • Updated: {currentLocation.timestamp.toLocaleTimeString()}
-              </p>
+            <div className="overflow-hidden rounded-3xl border border-gray-700/50 bg-black/40">
+              <iframe
+                title="Rider current location"
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${currentLocation.longitude - 0.02}%2C${currentLocation.latitude - 0.015}%2C${currentLocation.longitude + 0.02}%2C${currentLocation.latitude + 0.015}&layer=mapnik&marker=${currentLocation.latitude}%2C${currentLocation.longitude}`}
+                className="h-52 w-full border-0"
+                loading="lazy"
+              />
+              <div className="px-4 py-3 bg-gray-950/80 text-xs text-gray-400">Map view of your current delivery location.</div>
             </div>
           </div>
         </motion.div>
