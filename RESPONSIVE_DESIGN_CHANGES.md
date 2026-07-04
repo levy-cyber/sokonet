@@ -1,7 +1,7 @@
-# Responsive Design Implementation - SokoNet
+# Responsive Design Implementation - Netsoko
 
 ## Overview
-Implemented comprehensive responsive design for the SokoNet application to ensure optimal user experience across different device sizes (mobile, tablet, desktop).
+Implemented comprehensive responsive design for the Netsoko application to ensure optimal user experience across different device sizes (mobile, tablet, desktop).
 
 ## Changes Made
 

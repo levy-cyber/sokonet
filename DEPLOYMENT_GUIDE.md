@@ -1,6 +1,6 @@
-# SokoNet Deployment Guide
+# Netsoko Deployment Guide
 
-This guide will help you deploy the SokoNet ecosystem to production.
+This guide will help you deploy the Netsoko ecosystem to production.
 
 ## Prerequisites
 

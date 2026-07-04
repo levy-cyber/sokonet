@@ -14,7 +14,7 @@ AI Support is an intelligent chatbot that provides instant answers to user quest
 
 ### 🧠 Comprehensive Knowledge Base
 
-The AI is trained on extensive knowledge about SokoNet:
+The AI is trained on extensive knowledge about Netsoko:
 
 #### Marketplace
 - Buying and selling products
@@ -147,7 +147,7 @@ const [isOpen, setIsOpen] = useState(false);
   "topics": [
     {
       "topic": "marketplace",
-      "description": "SokoNet marketplace is where you can buy and sell..."
+      "description": "Netsoko marketplace is where you can buy and sell..."
     }
   ]
 }
@@ -323,16 +323,16 @@ curl http://localhost:5000/api/ai/topics
 ### Example Questions & Responses
 
 **User**: "How do I buy products?"
-**AI**: "To buy products on SokoNet: 1) Browse the marketplace, 2) Select items you want, 3) Add to cart, 4) Complete checkout with secure payment, 5) Track your order status."
+**AI**: "To buy products on Netsoko: 1) Browse the marketplace, 2) Select items you want, 3) Add to cart, 4) Complete checkout with secure payment, 5) Track your order status."
 
 **User**: "Tell me about payments"
-**AI**: "SokoNet supports M-Pesa payments and wallet transactions. Your wallet balance can be used for purchases, withdrawals, and transfers."
+**AI**: "Netsoko supports M-Pesa payments and wallet transactions. Your wallet balance can be used for purchases, withdrawals, and transfers."
 
 **User**: "I want to be a rider"
 **AI**: "Delivery partners can earn money by handling deliveries. They track routes, manage earnings, and receive customer ratings."
 
 **User**: "Hello"
-**AI**: "Hello! I'm happy to help you with SokoNet. What would you like to know about the platform?"
+**AI**: "Hello! I'm happy to help you with Netsoko. What would you like to know about the platform?"
 
 ## Benefits
 
@@ -431,7 +431,7 @@ Can be added by:
 
 ## Conclusion
 
-The SokoNet AI Support provides instant, intelligent assistance to all users, reducing support load while improving user experience. With comprehensive knowledge coverage and role-specific guidance, it ensures users can get help with any aspect of the platform quickly and easily.
+The Netsoko AI Support provides instant, intelligent assistance to all users, reducing support load while improving user experience. With comprehensive knowledge coverage and role-specific guidance, it ensures users can get help with any aspect of the platform quickly and easily.
 
 **Status**: ✅ Fully Functional
 **Knowledge Base**: 80+ topics across 6 categories

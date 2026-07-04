@@ -139,7 +139,7 @@ Should return:
 ```json
 {
   "status": "OK",
-  "message": "SokoNet Backend API is running successfully"
+  "message": "Netsoko Backend API is running successfully"
 }
 ```
 

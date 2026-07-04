@@ -56,7 +56,7 @@
    mongodb+srv://sokonet_admin:<password>@cluster0.mongodb.net/?retryWrites=true&w=majority
    ```
 
-## Step 6: Configure SokoNet
+## Step 6: Configure Netsoko
 
 ### 6.1 Create .env file
 Copy `.env.example` to `.env`:

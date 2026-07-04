@@ -67,7 +67,7 @@ npm start
 
 ## ✅ Done!
 
-Your SokoNet is now running with MongoDB Atlas!
+Your Netsoko is now running with MongoDB Atlas!
 
 ## 📖 Need Help?
 

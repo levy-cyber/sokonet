@@ -1,4 +1,4 @@
-# Button Functionality Testing Guide - SokoNet
+# Button Functionality Testing Guide - Netsoko
 
 ## Overview
 All buttons across the ecosystem UI/UX implementation have been reviewed and fixed to ensure proper functionality.
@@ -261,7 +261,7 @@ describe('RidersPage', () => {
 
 ## Conclusion
 
-All buttons across the SokoNet ecosystem UI/UX implementation have been reviewed and fixed. The application now provides:
+All buttons across the Netsoko ecosystem UI/UX implementation have been reviewed and fixed. The application now provides:
 - ✅ 100% button functionality
 - ✅ Proper state management
 - ✅ Mobile compatibility

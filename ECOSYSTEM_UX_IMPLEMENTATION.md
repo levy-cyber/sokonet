@@ -1,7 +1,7 @@
-# Ecosystem UI/UX Implementation - SokoNet
+# Ecosystem UI/UX Implementation - Netsoko
 
 ## Overview
-Complete UI/UX implementation based on the SokoNet ecosystem requirements, providing role-specific interfaces for all user groups in the platform.
+Complete UI/UX implementation based on the Netsoko ecosystem requirements, providing role-specific interfaces for all user groups in the platform.
 
 ## Ecosystem User Groups Implemented
 
