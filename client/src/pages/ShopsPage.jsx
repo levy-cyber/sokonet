@@ -36,61 +36,15 @@ const ShopsPage = () => {
 
   const fetchShopData = async () => {
     try {
-      const response = await api.get('/shops/my');
-      setShop(response.data.data.shop || shop);
-      const productsResponse = await api.get('/shops/my/products');
+      const response = await api.get('/shops/mine');
+      setShop(response.data.data || shop);
+      const productsResponse = await api.get('/shops/mine/products');
       setProducts(productsResponse.data.data || []);
-      setLoading(false);
     } catch (error) {
       console.error('Error fetching shop data:', error);
+      setProducts([]);
+    } finally {
       setLoading(false);
-      // Mock data
-      setProducts([
-        {
-          _id: '1',
-          name: 'iPhone 15 Pro Max',
-          price: 185000,
-          stock: 15,
-          category: 'electronics',
-          image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400',
-          status: 'active',
-          sales: 45,
-          rating: 4.8,
-        },
-        {
-          _id: '2',
-          name: 'Samsung Galaxy S24 Ultra',
-          price: 175000,
-          stock: 20,
-          category: 'electronics',
-          image: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=400',
-          status: 'active',
-          sales: 38,
-          rating: 4.7,
-        },
-        {
-          _id: '3',
-          name: 'Sony WH-1000XM5',
-          price: 45000,
-          stock: 30,
-          category: 'electronics',
-          image: 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=400',
-          status: 'active',
-          sales: 62,
-          rating: 4.9,
-        },
-        {
-          _id: '4',
-          name: 'Nike Air Max 270',
-          price: 18500,
-          stock: 0,
-          category: 'fashion',
-          image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400',
-          status: 'out_of_stock',
-          sales: 89,
-          rating: 4.6,
-        },
-      ]);
     }
   };
 
@@ -159,32 +113,13 @@ const ShopsPage = () => {
       });
 
       if (response.data.success) {
-        alert('Product added successfully!');
         setShowAddProduct(false);
         resetProductForm();
         fetchShopData();
       }
     } catch (error) {
       console.error('Error adding product:', error);
-      // Fallback to local state update
-      const product = {
-        _id: Date.now().toString(),
-        name: newProduct.name,
-        description: newProduct.description,
-        price: parseFloat(newProduct.price),
-        stock: parseInt(newProduct.stock),
-        category: newProduct.category,
-        image: finalImages[0],
-        images: finalImages,
-        status: parseInt(newProduct.stock) > 0 ? 'active' : 'out_of_stock',
-        sales: 0,
-        rating: 0,
-      };
-
-      setProducts([...products, product]);
-      alert('Product added successfully! (Demo mode)');
-      setShowAddProduct(false);
-      resetProductForm();
+      alert('Unable to publish the post right now. Please try again.');
     }
   };
 
@@ -200,9 +135,7 @@ const ShopsPage = () => {
         fetchShopData();
       } catch (error) {
         console.error('Error deleting product:', error);
-        // Fallback to local state update
-        setProducts(products.filter(p => p._id !== productId));
-        alert('Product deleted successfully! (Demo mode)');
+        alert('Unable to delete the post right now. Please try again.');
       }
     }
   };
@@ -221,7 +154,7 @@ const ShopsPage = () => {
   };
 
   const categories = [
-    'electronics', 'fashion', 'home', 'sports', 'beauty', 'books', 'food', 'other'
+    'Electronics', 'Agriculture', 'Fashion', 'Health & Beauty', 'Home & Living', 'Automotive', 'Other'
   ];
 
   return (
@@ -509,7 +442,7 @@ const ShopsPage = () => {
                   <option value="">Select category</option>
                   {categories.map((category) => (
                     <option key={category} value={category} className="bg-gray-800">
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                      {category}
                     </option>
                   ))}
                 </select>

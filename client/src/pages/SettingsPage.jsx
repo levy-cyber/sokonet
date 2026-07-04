@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, Camera, Save, X, ArrowRight, Store, Bike, Briefcase, Shield, LayoutDashboard, BarChart3 } from 'lucide-react';
 import api from '../services/api';
+import { validatePhone } from '../utils/helpers';
 
 const SettingsPage = () => {
   const { user, setUser } = useAuth();
@@ -53,6 +54,12 @@ const SettingsPage = () => {
   }, [user]);
 
   const handleChange = (e) => {
+    if (e.target.name === 'phone') {
+      const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+      setFormData({ ...formData, phone: value });
+      return;
+    }
+
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -78,6 +85,12 @@ const SettingsPage = () => {
     setLoading(true);
     setError('');
     setSuccess(false);
+
+    if (!validatePhone(formData.phone)) {
+      setError('Please enter a valid 10-digit phone number.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await api.put('/users/profile', formData);
@@ -203,7 +216,7 @@ const SettingsPage = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-brand transition-all placeholder-gray-500"
-                  placeholder="+254 XXX XXX XXX"
+                  placeholder="0712345678"
                   required
                 />
               </div>

@@ -65,8 +65,9 @@ export const validateEmail = (email) => {
 };
 
 export const validatePhone = (phone) => {
-  const re = /^(?:\+254|0)?(7|1)\d{8}$/;
-  return re.test(phone);
+  if (!phone) return false;
+  const digits = phone.replace(/\D/g, '');
+  return digits.length === 10;
 };
 
 export const calculateDiscount = (originalPrice, discountedPrice) => {

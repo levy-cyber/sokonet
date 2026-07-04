@@ -34,93 +34,11 @@ const Marketplace = () => {
     try {
       const response = await api.get('/products');
       setProducts(response.data.data || []);
-      setLoading(false);
     } catch (error) {
       console.error('Error fetching products:', error);
+      setProducts([]);
+    } finally {
       setLoading(false);
-      // Mock data for demo
-      setProducts([
-        {
-          _id: '1',
-          name: 'iPhone 15 Pro Max',
-          price: 185000,
-          category: 'electronics',
-          image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400',
-          rating: 4.8,
-          reviews: 234,
-          seller: { name: 'TechStore Kenya', rating: 4.9 },
-        },
-        {
-          _id: '2',
-          name: 'Samsung Galaxy S24 Ultra',
-          price: 175000,
-          category: 'electronics',
-          image: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=400',
-          rating: 4.7,
-          reviews: 189,
-          seller: { name: 'Mobile Hub', rating: 4.8 },
-        },
-        {
-          _id: '3',
-          name: 'MacBook Pro 16"',
-          price: 320000,
-          category: 'electronics',
-          image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400',
-          rating: 4.9,
-          reviews: 312,
-          seller: { name: 'Apple Store KE', rating: 5.0 },
-        },
-        {
-          _id: '4',
-          name: 'Nike Air Max 270',
-          price: 18500,
-          category: 'fashion',
-          image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400',
-          rating: 4.6,
-          reviews: 156,
-          seller: { name: 'Sneaker Palace', rating: 4.7 },
-        },
-        {
-          _id: '5',
-          name: 'Sony WH-1000XM5',
-          price: 45000,
-          category: 'electronics',
-          image: 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=400',
-          rating: 4.8,
-          reviews: 278,
-          seller: { name: 'Audio World', rating: 4.9 },
-        },
-        {
-          _id: '6',
-          name: 'Designer Handbag',
-          price: 25000,
-          category: 'fashion',
-          image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400',
-          rating: 4.5,
-          reviews: 89,
-          seller: { name: 'Luxury Fashion', rating: 4.6 },
-        },
-        {
-          _id: '7',
-          name: 'Mama Mboga Fresh Vegetables',
-          price: 1200,
-          category: 'food',
-          image: 'https://images.unsplash.com/photo-1543353071-873f17a7a088?w=400',
-          rating: 4.7,
-          reviews: 58,
-          seller: { name: 'Mama Mboga', rating: 4.8 },
-        },
-        {
-          _id: '8',
-          name: 'Kibandaski Special Chapati Pack',
-          price: 450,
-          category: 'food',
-          image: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400',
-          rating: 4.9,
-          reviews: 72,
-          seller: { name: 'Kibandaski Kitchen', rating: 4.9 },
-        },
-      ]);
     }
   };
 
@@ -128,12 +46,14 @@ const Marketplace = () => {
     let filtered = products;
 
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter((p) => p.category === selectedCategory);
+      filtered = filtered.filter((p) =>
+        String(p.category || '').toLowerCase() === selectedCategory.toLowerCase()
+      );
     }
 
     if (searchTerm) {
       filtered = filtered.filter((p) =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+        p.name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 

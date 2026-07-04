@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Lock, Mail, User, Phone, Check } from 'lucide-react';
+import { validatePhone } from '../utils/helpers';
 
 const RECAPTCHA_SITE_KEY = '6LerrkMtAAAAANH_kPf70sLLbILlfHFRTofnHJoB';
 
@@ -33,6 +34,12 @@ const AuthPage = ({ isLogin }) => {
   ];
 
   const handleChange = (e) => {
+    if (e.target.name === 'phone') {
+      const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+      setFormData({ ...formData, phone: value });
+      return;
+    }
+
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -105,6 +112,12 @@ const AuthPage = ({ isLogin }) => {
 
     if (!captchaToken) {
       setError('Please complete the reCAPTCHA challenge.');
+      setLoading(false);
+      return;
+    }
+
+    if (!isLogin && !validatePhone(formData.phone)) {
+      setError('Please enter a valid 10-digit phone number.');
       setLoading(false);
       return;
     }
@@ -191,7 +204,7 @@ const AuthPage = ({ isLogin }) => {
                     value={formData.phone}
                     onChange={handleChange}
                     className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-brand transition-all placeholder-gray-500"
-                    placeholder="+254 XXX XXX XXX"
+                    placeholder="0712345678"
                     required
                   />
                 </div>
