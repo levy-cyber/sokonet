@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: [true, 'Please add an email'],
+      unique: true,
       match: [
         /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
         'Please add a valid email',
@@ -18,6 +19,7 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       required: [true, 'Please add a phone number'],
+      unique: true,
       match: [
         /^(?:\+254|0)?(7|1)\d{8}$/,
         'Please add a valid Kenyan phone number (+254, 07..., or 01...)',
@@ -31,45 +33,18 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['buyer', 'seller', 'service_provider', 'rider', 'freelancer', 'admin', 'support'],
+      enum: ['buyer', 'seller', 'service_provider', 'rider', 'freelancer', 'admin'],
       default: 'buyer',
     },
     roles: {
       type: [String],
-      enum: ['buyer', 'seller', 'service_provider', 'rider', 'freelancer', 'admin', 'support'],
+      enum: ['buyer', 'seller', 'service_provider', 'rider', 'freelancer', 'admin'],
       default: ['buyer'],
     },
     activeRole: {
       type: String,
-      enum: ['buyer', 'seller', 'service_provider', 'rider', 'freelancer', 'admin', 'support'],
+      enum: ['buyer', 'seller', 'service_provider', 'rider', 'freelancer', 'admin'],
       default: 'buyer',
-    },
-    // Account status
-    status: {
-      type: String,
-      enum: ['active', 'suspended', 'blocked'],
-      default: 'active',
-    },
-    // Account activation status for registration validation
-    accountStatus: {
-      type: String,
-      enum: ['pending', 'verified', 'active', 'suspended', 'deleted', 'inactive'],
-      default: 'pending',
-    },
-    // Track if user has successfully logged in at least once
-    hasLoggedIn: {
-      type: Boolean,
-      default: false,
-    },
-    // Super Admin flag
-    isSuperAdmin: {
-      type: Boolean,
-      default: false,
-    },
-    // Support account flag
-    isSupport: {
-      type: Boolean,
-      default: false,
     },
     isEmailVerified: {
       type: Boolean,
@@ -80,29 +55,6 @@ const userSchema = new mongoose.Schema(
     },
     otpExpiry: {
       type: Date,
-    },
-    otpId: {
-      type: String,
-    },
-    otpStatus: {
-      type: String,
-      enum: ['active', 'used', 'expired', 'invalidated'],
-      default: 'active',
-    },
-    // Delete account OTP
-    deleteOtp: {
-      type: String,
-    },
-    deleteOtpExpiry: {
-      type: Date,
-    },
-    deleteOtpId: {
-      type: String,
-    },
-    deleteOtpStatus: {
-      type: String,
-      enum: ['active', 'used', 'expired', 'invalidated'],
-      default: 'active',
     },
     resetPasswordToken: {
       type: String,
@@ -117,14 +69,6 @@ const userSchema = new mongoose.Schema(
     rating: {
       type: Number,
       default: 5.0,
-    },
-    // Soft delete
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
-    deletionReason: {
-      type: String,
     },
   },
   {

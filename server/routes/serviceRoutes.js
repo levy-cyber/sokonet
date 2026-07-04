@@ -1,15 +1,21 @@
 const express = require('express');
-const router = express.Router();
 const {
-  getServices, getServiceById, createService, getMyServices, updateService, deleteService,
+  getServices,
+  getMyServices,
+  createService,
+  getBookings,
+  createBooking,
+  updateBookingStatus,
 } = require('../controllers/serviceController');
 const { protect } = require('../middleware/authMiddleware');
 
+const router = express.Router();
+
 router.get('/', getServices);
 router.get('/mine', protect, getMyServices);
-router.get('/:id', getServiceById);
 router.post('/', protect, createService);
-router.put('/:id', protect, updateService);
-router.delete('/:id', protect, deleteService);
+router.get('/bookings', protect, getBookings);
+router.post('/:id/book', protect, createBooking);
+router.put('/bookings/:bookingId', protect, updateBookingStatus);
 
 module.exports = router;

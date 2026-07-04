@@ -1,5 +1,6 @@
 const Message = require('../models/Message');
 const notificationService = require('../services/notificationService');
+const { moderateMessageContent } = require('../services/moderationService');
 
 const initSocketServer = (server) => {
   const io = require('socket.io')(server, {
@@ -26,6 +27,12 @@ const initSocketServer = (server) => {
     // Handle real-time messaging
     socket.on('sendMessage', async ({ senderId, receiverId, content }) => {
       try {
+        const moderation = moderateMessageContent(content);
+        if (!moderation.allowed) {
+          socket.emit('messageError', { message: moderation.reason });
+          return;
+        }
+
         const message = await Message.create({
           sender: senderId,
           receiver: receiverId,
@@ -49,6 +56,31 @@ const initSocketServer = (server) => {
         );
       } catch (error) {
         console.error('Socket message error:', error.message);
+      }
+    });
+
+    socket.on('publicMessage', async ({ senderId, content, room }) => {
+      try {
+        const moderation = moderateMessageContent(content);
+        if (!moderation.allowed) {
+          socket.emit('messageError', { message: moderation.reason });
+          return;
+        }
+
+        const message = await Message.create({
+          sender: senderId,
+          receiver: null,
+          content,
+          isPublic: true,
+          room: room || 'general',
+        });
+
+        const populatedMessage = await Message.findById(message._id)
+          .populate('sender', 'name avatar');
+
+        io.emit('publicMessageBroadcast', populatedMessage);
+      } catch (error) {
+        console.error('Socket public message error:', error.message);
       }
     });
 

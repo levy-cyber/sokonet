@@ -3,80 +3,139 @@ const router = express.Router();
 
 // AI Support Knowledge Base
 const knowledgeBase = {
-  // Marketplace questions
-  'marketplace': "Netsoko marketplace is where you can buy and sell products. Browse through categories, search for specific items, and make secure purchases with escrow protection.",
-  'buy': "To buy products on Netsoko: 1) Browse the marketplace, 2) Select items you want, 3) Add to cart, 4) Complete checkout with secure payment, 5) Track your order status.",
-  'sell': "To sell products: 1) Go to My Shop, 2) Add product details, 3) Set price and stock, 4) Add product images, 5) Manage orders from your dashboard.",
-  'product': "Products on Netsoko include detailed descriptions, pricing, seller ratings, and customer reviews. You can filter by category and search by keywords.",
-  
-  // Payment and wallet
-  'payment': "Netsoko supports M-Pesa payments and wallet transactions. Your wallet balance can be used for purchases, withdrawals, and transfers.",
-  'wallet': "Your Netsoko wallet allows you to: deposit money via M-Pesa, pay for purchases, withdraw to your bank account, and transfer to other users.",
-  'mpesa': "M-Pesa integration allows you to deposit funds directly to your Netsoko wallet. Simply select your amount and confirm with your phone.",
-  'escrow': "Escrow protects both buyers and sellers. When you pay, funds are held securely until you confirm the product was received and is as described.",
-  
-  // Delivery
-  'delivery': "Netsoko has a delivery network of riders who handle deliveries. Once you place an order, a rider will be assigned to deliver your items safely.",
-  'rider': "Delivery partners can earn money by handling deliveries. They track routes, manage earnings, and receive customer ratings.",
-  'shipping': "Shipping costs vary based on distance and product type. Delivery time ranges from same-day to standard shipping depending on your location.",
-  
-  // Services
-  'service': "Netsoko Services allows you to book professional services like plumbing, electrical work, tech support, and more from verified providers.",
-  'book': "To book a service: 1) Browse available services, 2) Check provider ratings, 3) Select a convenient time, 4) Confirm booking, 5) Pay securely.",
-  'provider': "Service providers can list their skills, manage bookings, set prices, and build their reputation through customer reviews.",
-  
-  // Jobs
-  'job': "Netsoko Jobs connects freelancers with clients. You can find projects, submit proposals, and get paid for your work.",
-  'freelance': "Freelancing on Netsoko: Browse available jobs, submit proposals with your pricing, manage projects, track earnings, and build your reputation.",
-  'proposal': "To submit a proposal: 1) Find a job you're interested in, 2) Review requirements, 3) Set your proposed amount, 4) Write a cover letter, 5) Submit and wait for client response.",
-  
-  // User roles
-  'role': "Netsoko has 5 main user roles: Buyers (shop for products), Sellers (manage business), Service Providers (offer services), Riders (handle deliveries), and Freelancers (find jobs).",
-  'seller': "Sellers can list products, manage inventory, track sales, view analytics, and handle customer orders with business tools.",
-  'buyer': "Buyers can shop in the marketplace, track orders, manage payments, book services, and find jobs.",
-  
-  // Account and support
-  'account': "Manage your account settings including profile information, payment methods, notifications, and security settings from your dashboard.",
-  'login': "To login: 1) Go to login page, 2) Enter your email and password, 3) Click sign in, 4) Access your personalized dashboard based on your role.",
-  'register': "To register: 1) Click sign up, 2) Choose your role (Buyer, Seller, Service Provider, Rider, or Freelancer), 3) Enter your details, 4) Create account and start using Netsoko.",
-  'help': "I'm here to help! You can ask me about any Netsoko feature including marketplace, payments, delivery, services, jobs, or account management.",
-  
-  // Technical issues
-  'problem': "If you're experiencing technical issues, try: 1) Refreshing the page, 2) Clearing browser cache, 3) Check your internet connection, 4) Contact support for persistent issues.",
-  'error': "Common solutions for errors: Refresh the page, check your internet connection, ensure you're logged in, or contact Netsoko support if the issue persists.",
-  
-  // General
-  'Netsoko': "Netsoko is Kenya's all-in-one digital ecosystem where you can shop, work, pay, deliver, and grow businesses from a single platform. Our vision is: 'One Network. Endless Possibilities.'",
-  'features': "Netsoko features include: Online marketplace, Escrow payments, Digital wallet, Delivery network, Service booking, Job marketplace, Real-time chat, Business analytics, and Multi-role support.",
-  'support': "For additional support, you can contact our customer service team through the app, email support@Netsoko.ke, or visit our help center.",
-  'contact': "Contact Netsoko support: Email: support@Netsoko.ke, Phone: +254 700 000 000, or use the live chat in the app."
+  marketplace: {
+    title: 'Netsoko Marketplace',
+    answer: 'Netsoko marketplace is the central hub for buyers and sellers. Here you can explore a wide variety of categories, compare prices, and make secure purchases with escrow protection.',
+    details: [
+      'Use the search bar or category filters to find products quickly.',
+      'View seller ratings, product details, and customer reviews before you buy.',
+      'Pay securely through the Netsoko wallet or supported mobile payment methods.',
+      'Track every order from confirmation to delivery and leave feedback after receiving your item.'
+    ],
+    tip: 'Tip: Save products to your wishlist and check for seller offers before finalizing your purchase.'
+  },
+  buy: {
+    title: 'Buying on Netsoko',
+    answer: 'To buy on Netsoko, start by browsing the marketplace or searching for items you need. Add the best products to your cart, complete checkout, and monitor your order until delivery.',
+    details: [
+      'Filter results by category, price range, seller rating, and location.',
+      'Use escrow protection so your payment is held safely until the order arrives.',
+      'Communicate with sellers using in-app chat for questions about product condition or delivery.',
+      'Review your order summary carefully before finalizing payment.'
+    ],
+    tip: 'Tip: Check delivery estimates and seller response times to choose the best offer.'
+  },
+  sell: {
+    title: 'Selling on Netsoko',
+    answer: 'To sell on Netsoko, create a listing with clear product details, pricing, and quality images. Keep your inventory updated and respond quickly to buyer inquiries to build trust and earn more sales.',
+    details: [
+      'Write descriptive product titles and details that highlight benefits for buyers.',
+      'Set competitive prices and maintain stock levels so your listing remains visible.',
+      'Use seller analytics to understand which products perform best.',
+      'Handle buyer questions promptly through the Netsoko messaging system.'
+    ],
+    tip: 'Tip: Offer discounts for bundle purchases or fast delivery to encourage repeat customers.'
+  },
+  payment: {
+    title: 'Payments and Wallets',
+    answer: 'Netsoko supports secure payments using the built-in wallet and local payment services. Your wallet can hold funds, pay for purchases, and receive transfers from other users.',
+    details: [
+      'Deposit funds via M-Pesa or other supported local methods.',
+      'Use wallet balance to complete purchases without entering payment details each time.',
+      'Track your payment history and transaction receipts in your account.',
+      'Manage withdrawals safely when you want to move money back to your bank or mobile wallet.'
+    ],
+    tip: 'Tip: Keep a small wallet balance ready for faster checkout.'
+  },
+  delivery: {
+    title: 'Delivery and Riders',
+    answer: 'Netsoko has a delivery network that connects orders with riders. Once you place an order, the system assigns a rider who picks up the item and delivers it to your location.',
+    details: [
+      'Track delivery progress from pickup to drop-off in real time.',
+      'Choose delivery options that match your urgency and budget.',
+      'Contact your assigned rider if you need to change delivery instructions.',
+      'Confirm receipt when the item arrives so payment can be released securely.'
+    ],
+    tip: 'Tip: Provide clear delivery instructions to avoid delays.'
+  },
+  service: {
+    title: 'Netsoko Services',
+    answer: 'Netsoko Services connects you with trusted local professionals for tasks like home repairs, tech support, and personal assistance. Browse service providers, compare ratings, and book the one that fits your needs.',
+    details: [
+      'Search services by category, availability, and provider ratings.',
+      'Read detailed service descriptions before booking.',
+      'Confirm the service request in the app and keep conversation history for reference.',
+      'Review completed services to help future customers choose great providers.'
+    ],
+    tip: 'Tip: Use provider reviews and past job history to pick the best available expert.'
+  },
+  job: {
+    title: 'Jobs and Freelancing',
+    answer: 'Netsoko Jobs is a marketplace for freelancers and clients. Browse job postings, submit proposals, and manage work through the platform to build your reputation and earn consistently.',
+    details: [
+      'Create a detailed freelancer profile with your skills and experience.',
+      'Search for job postings that match your expertise and bid competitively.',
+      'Keep communication in-app and deliver work on time to earn positive reviews.',
+      'Track payments and milestones within your job dashboard.'
+    ],
+    tip: 'Tip: Respond quickly to job invitations and use clear proposals to win contracts.'
+  },
+  account: {
+    title: 'Account Management',
+    answer: 'Your Netsoko account stores your profile, contact information, security settings, and notification preferences. Keep everything updated so you can use the platform safely and smoothly.',
+    details: [
+      'Update your profile and contact details whenever they change.',
+      'Set strong security settings like a reliable password and verified email or phone number.',
+      'Manage notification preferences to receive important updates without clutter.',
+      'Review your activity history, orders, and messages from the dashboard.'
+    ],
+    tip: 'Tip: Verify your email and phone number to access more features and better support.'
+  }
 };
 
-// Generate AI response based on user message
+const findBestMatch = (message) => {
+  const lowerMessage = message.toLowerCase();
+  return Object.keys(knowledgeBase).find((keyword) => lowerMessage.includes(keyword));
+};
+
+const composeRichAnswer = (topic, message) => {
+  const entry = knowledgeBase[topic];
+  if (!entry) return null;
+
+  const base = [
+    `${entry.title}: ${entry.answer}`,
+    'Here are the key points to know:',
+    ...entry.details.map((detail) => `- ${detail}`),
+    entry.tip ? `
+${entry.tip}` : ''
+  ];
+
+  return base.join(' ');
+};
+
 const generateAIResponse = (message) => {
   const lowerMessage = message.toLowerCase();
-  
-  // Find the best matching response
-  let response = "I'm not sure about that specific topic, but I can help you with questions about marketplace, payments, delivery, services, jobs, or account management. Try asking me about one of these!";
-  
-  // Check for keyword matches
-  for (const [keyword, answer] of Object.entries(knowledgeBase)) {
-    if (lowerMessage.includes(keyword)) {
-      response = answer;
-      break;
-    }
+  const greetingKeywords = ['hello', 'hi', 'hey'];
+  const farewellKeywords = ['goodbye', 'bye', 'see you'];
+
+  if (greetingKeywords.some((term) => lowerMessage.includes(term))) {
+    return "Hello! I'm Netsoko AI, ready to answer any question about the platform with clear and useful details. What would you like to know today?";
   }
 
-  // Add some contextual responses
   if (lowerMessage.includes('thank') || lowerMessage.includes('thanks')) {
-    response = "You're welcome! Is there anything else I can help you with regarding Netsoko?";
-  } else if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
-    response = "Hello! I'm happy to help you with Netsoko. What would you like to know about the platform?";
-  } else if (lowerMessage.includes('goodbye') || lowerMessage.includes('bye')) {
-    response = "Goodbye! Feel free to come back anytime if you have more questions about Netsoko. Have a great day!";
+    return "You're welcome! If you have more questions about Netsoko, ask anytime and I'll give you a helpful, detailed answer.";
   }
 
-  return response;
+  if (farewellKeywords.some((term) => lowerMessage.includes(term))) {
+    return "Goodbye! Feel free to come back anytime for help with Netsoko features, payments, delivery, services, or account questions.";
+  }
+
+  const match = findBestMatch(message);
+  if (match) {
+    return composeRichAnswer(match, message);
+  }
+
+  return `I can answer any Netsoko question clearly and with extra details. Here are some of the topics I know best: marketplace, payments, delivery, services, jobs, account management, escrow, and support. Try asking a specific question like "How do I buy a product?", "How do I track my delivery?", or "How do I sell on Netsoko?"`;
 };
 
 // POST /api/ai/chat - Get AI response
