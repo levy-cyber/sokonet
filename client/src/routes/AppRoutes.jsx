@@ -96,12 +96,15 @@ const AppRoutes = () => {
         <Route element={<MainLayout title="My Vendor Storefront" />}>
           <Route path="/shop/mine" element={<ShopsPage />} />
         </Route>
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={['seller', 'buyer']} />}>
         <Route element={<MainLayout title="Business Analytics" />}>
           <Route path="/analytics" element={<AnalyticsPage />} />
         </Route>
       </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={['rider']} />}>
+      <Route element={<ProtectedRoute allowedRoles={['rider', 'buyer']} />}>
         <Route element={<MainLayout title="Logistics Rider Dashboard" />}>
           <Route path="/rider/dashboard" element={<RidersPage />} />
         </Route>

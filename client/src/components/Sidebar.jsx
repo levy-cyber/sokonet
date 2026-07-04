@@ -15,7 +15,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   // Role → home page mapping
   const roleHomePaths = {
-    buyer: '/',
+    buyer: '/analytics',
     seller: '/shop/mine',
     service_provider: '/services/mine',
     rider: '/rider/dashboard',
@@ -31,6 +31,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   };
 
   const roleLinks = {
+    buyer: [
+      { path: '/analytics', label: 'Analytics', icon: FiTrendingUp },
+      { path: '/rider/dashboard', label: 'Rider Portal', icon: FiTruck },
+    ],
     seller: [
       { path: '/shop/mine', label: 'My Shop', icon: FiShoppingBag },
       { path: '/analytics', label: 'Analytics', icon: FiTrendingUp },
@@ -76,6 +80,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Marketplace', path: '/marketplace', icon: FiShoppingBag, description: 'Browse products and shops', role: 'all' },
     { name: 'Services', path: '/services', icon: FiTool, description: 'Book professional services', role: 'all' },
     { name: 'My Shop', path: '/shop/mine', icon: FiUser, description: 'Manage your seller shop', role: 'seller' },
+    { name: 'Analytics', path: '/analytics', icon: FiActivity, description: 'View portal analytics', role: 'buyer' },
+    { name: 'Rider Portal', path: '/rider/dashboard', icon: FiTruck, description: 'View rider portal analytics', role: 'buyer' },
     { name: 'Business Analytics', path: '/analytics', icon: FiActivity, description: 'View business performance', role: 'seller' },
     { name: 'My Orders', path: '/orders', icon: FiInbox, description: 'View order history', role: 'all' },
     { name: 'Escrow Lock', path: '/escrow', icon: FiLock, description: 'Secure payment protection', role: 'all' },

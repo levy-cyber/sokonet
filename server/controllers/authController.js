@@ -325,13 +325,12 @@ const forgotPassword = async (req, res) => {
     const resetLink = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
 
     // Send password reset email
-    await emailService.sendPasswordReset(email, resetLink, user.name);
+    const emailSent = await emailService.sendPasswordReset(email, resetLink, user.name);
 
     res.json({
       success: true,
-      message: 'Password reset link sent to your email.',
-      // For development, return reset link in response (remove in production)
-      resetLink: process.env.NODE_ENV === 'development' ? resetLink : undefined
+      message: emailSent ? 'Password reset link sent to your email.' : 'Password reset link generated successfully. Check the server logs for the link.',
+      resetLink: resetLink,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

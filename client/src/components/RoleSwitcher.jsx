@@ -7,7 +7,7 @@ const RoleSwitcher = ({ currentRole, availableRoles, onRoleSwitch }) => {
   const navigate = useNavigate();
 
   const roleHomePaths = {
-    buyer: '/',
+    buyer: '/analytics',
     seller: '/shop/mine',
     service_provider: '/services/mine',
     rider: '/rider/dashboard',

@@ -21,6 +21,10 @@ const SettingsPage = () => {
   const [previewImage, setPreviewImage] = useState(null);
 
   const roleLinks = {
+    buyer: [
+      { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+      { path: '/rider/dashboard', label: 'Rider Portal', icon: Bike },
+    ],
     seller: [
       { path: '/shop/mine', label: 'My Shop', icon: Store },
       { path: '/analytics', label: 'Analytics', icon: BarChart3 },
