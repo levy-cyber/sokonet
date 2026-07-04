@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiTruck, FiMapPin, FiClock, FiDollarSign, FiCheckCircle, FiNavigation, FiXCircle, FiPackage, FiStar, FiArrowRight, FiPhone, FiPhoneCall, FiX, FiAlertCircle, FiRefreshCw, FiUser } from 'react-icons/fi';
 import StatCard from '../components/StatCard';
+import api from '../services/api';
 
 const RidersPage = () => {
   const [activeDeliveries, setActiveDeliveries] = useState([]);
@@ -11,6 +12,8 @@ const RidersPage = () => {
   const [isOnline, setIsOnline] = useState(true);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [nearbyRiders, setNearbyRiders] = useState([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
 
   useEffect(() => {
     getCurrentLocation();
@@ -18,6 +21,24 @@ const RidersPage = () => {
     const locationInterval = setInterval(getCurrentLocation, 30000);
     return () => clearInterval(locationInterval);
   }, []);
+
+  useEffect(() => {
+    const fetchNearbyRiders = async () => {
+      try {
+        setNearbyLoading(true);
+        const response = await api.get('/riders/active');
+        const riders = response.data?.data || [];
+        setNearbyRiders(riders);
+      } catch (error) {
+        console.error('Error fetching nearby riders:', error);
+        setNearbyRiders([]);
+      } finally {
+        setNearbyLoading(false);
+      }
+    };
+
+    fetchNearbyRiders();
+  }, [currentLocation]);
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -114,6 +135,36 @@ const RidersPage = () => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  const getDistanceKm = (lat1, lon1, lat2, lon2) => {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+    const toRad = (value) => (value * Math.PI) / 180;
+    const earthRadiusKm = 6371;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadiusKm * c;
+  };
+
+  const sortedNearbyRiders = currentLocation
+    ? [...nearbyRiders]
+        .filter((rider) => rider?.currentLocation?.latitude && rider?.currentLocation?.longitude)
+        .map((rider) => ({
+          ...rider,
+          distanceKm: getDistanceKm(
+            currentLocation.latitude,
+            currentLocation.longitude,
+            rider.currentLocation.latitude,
+            rider.currentLocation.longitude
+          ),
+        }))
+        .filter((rider) => rider.distanceKm !== null)
+        .sort((a, b) => a.distanceKm - b.distanceKm)
+    : [];
+
   const statusColors = {
     pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
     assigned: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
@@ -195,6 +246,70 @@ const RidersPage = () => {
           </div>
         </motion.div>
       )}
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 lg:p-6"
+      >
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <FiMapPin className="text-green-400" />
+              Nearby Riders
+            </h2>
+            <p className="text-gray-400 text-sm">
+              {currentLocation
+                ? 'Riders close to your current location can be reached faster for deliveries.'
+                : 'Enable location access to discover riders near you.'}
+            </p>
+          </div>
+          <span className="text-sm text-gray-400">
+            {nearbyLoading ? 'Scanning...' : `${sortedNearbyRiders.length} available`}
+          </span>
+        </div>
+
+        {nearbyLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+          </div>
+        ) : sortedNearbyRiders.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-gray-700 bg-gray-800/30 p-6 text-center text-gray-400">
+            No riders are currently available near your location yet.
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {sortedNearbyRiders.slice(0, 6).map((rider) => (
+              <div key={rider._id} className="rounded-xl border border-gray-700 bg-gray-800/40 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-white font-semibold">{rider.user?.name || 'Rider'}</p>
+                    <p className="text-gray-400 text-sm">{rider.vehicleType || 'Delivery partner'}</p>
+                  </div>
+                  <span className="rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-semibold text-green-400">
+                    {rider.isAvailable ? 'Online' : 'Busy'}
+                  </span>
+                </div>
+                <div className="space-y-2 text-sm text-gray-400">
+                  <div className="flex items-center gap-2">
+                    <FiMapPin className="text-gray-500" />
+                    <span>{rider.distanceKm ? `${rider.distanceKm.toFixed(1)} km away` : 'Distance unavailable'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FiPhone className="text-gray-500" />
+                    <span>{rider.user?.phone || 'Contact via chat'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FiStar className="text-yellow-400" />
+                    <span>4.9 rating</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </motion.div>
 
       {/* Pending Delivery Requests */}
       {pendingRequests.length > 0 && (

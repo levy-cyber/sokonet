@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Star, MapPin, Phone, Mail, Package, TrendingUp, X, Image, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, MapPin, Phone, Mail, Package, TrendingUp, X, Image, Upload, ArrowRight, UtensilsCrossed, Truck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 const ShopsPage = () => {
   const [activeTab, setActiveTab] = useState('products');
   const [products, setProducts] = useState([]);
+  const navigate = useNavigate();
   const [shop, setShop] = useState({
     name: 'My Store',
     description: 'Quality products at great prices',
@@ -154,8 +156,15 @@ const ShopsPage = () => {
   };
 
   const categories = [
-    'Electronics', 'Agriculture', 'Fashion', 'Health & Beauty', 'Home & Living', 'Automotive', 'Other'
+    'Electronics', 'Agriculture', 'Fashion', 'Health & Beauty', 'Home & Living', 'Automotive', 'Food & Beverage', 'Beverages', 'Groceries', 'Other'
   ];
+
+  const isFoodCategory = (category = '') => {
+    const normalized = String(category).toLowerCase();
+    return ['food & beverage', 'food', 'beverages', 'snacks', 'meals', 'groceries', 'drinks', 'fresh produce'].includes(normalized);
+  };
+
+  const foodProducts = products.filter((product) => isFoodCategory(product.category));
 
   return (
     <div className="p-6 space-y-6">
@@ -232,7 +241,7 @@ const ShopsPage = () => {
         transition={{ delay: 0.2 }}
         className="flex gap-3"
       >
-        {['products', 'orders', 'analytics'].map((tab) => (
+        {['products', 'food-beverages', 'orders', 'analytics'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -246,6 +255,92 @@ const ShopsPage = () => {
           </button>
         ))}
       </motion.div>
+
+      {/* Food & Beverage Tab */}
+      {activeTab === 'food-beverages' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="space-y-6"
+        >
+          <div className="rounded-2xl border border-orange-500/30 bg-gradient-to-br from-orange-500/10 via-gray-900/70 to-green-500/10 p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-orange-400 mb-2">
+                  <UtensilsCrossed className="w-5 h-5" />
+                  <span className="text-sm font-semibold uppercase tracking-[0.2em]">Food & Beverage Inventory</span>
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">Add your food stock, manage inventory and reach buyers fast.</h3>
+                <p className="text-gray-400">Publish meals, drinks, snacks, groceries and more from one place, then switch to the marketplace or rider portal whenever you need.</p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => {
+                    setActiveTab('food-beverages');
+                    setShowAddProduct(true);
+                    setNewProduct((prev) => ({ ...prev, category: 'Food & Beverage' }));
+                  }}
+                  className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-orange-600"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Food Stock
+                </button>
+                <button
+                  onClick={() => navigate('/marketplace')}
+                  className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800/60 px-4 py-2 text-sm font-medium text-gray-200 transition-all hover:bg-gray-700"
+                >
+                  Marketplace
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => navigate('/rider/dashboard')}
+                  className="flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-300 transition-all hover:bg-blue-500/20"
+                >
+                  <Truck className="w-4 h-4" />
+                  Nearby Riders
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-white">Your Food Listings</h3>
+              <span className="text-sm text-gray-400">{foodProducts.length} items in stock</span>
+            </div>
+            {foodProducts.length === 0 ? (
+              <div className="text-center py-8">
+                <UtensilsCrossed className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-400">No food stock yet. Add your first meal, snack or drink.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {foodProducts.map((product) => (
+                  <div key={product._id} className="flex items-center gap-4 p-4 bg-gray-800/30 rounded-lg">
+                    <img src={product.image} alt={product.name} className="w-20 h-20 rounded-lg object-cover" />
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <p className="text-white font-medium">{product.name}</p>
+                          <p className="text-gray-400 text-sm">{product.category}</p>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize border ${getStatusColor(product.status)}`}>
+                          {product.status?.replace('_', ' ') || 'active'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="text-green-400 font-semibold">KES {product.price?.toLocaleString()}</span>
+                        <span className="text-gray-400">Stock: {product.stock}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
 
       {/* Products Tab */}
       {activeTab === 'products' && (
@@ -359,7 +454,9 @@ const ShopsPage = () => {
             className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-white">Add New Post</h3>
+              <h3 className="text-xl font-semibold text-white">
+                {activeTab === 'food-beverages' || newProduct.category === 'Food & Beverage' ? 'Add Food & Beverage Stock' : 'Add New Post'}
+              </h3>
               <button
                 onClick={() => {
                   setShowAddProduct(false);

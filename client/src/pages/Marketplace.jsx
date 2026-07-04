@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Grid, List } from 'lucide-react';
+import { Search, Grid, List, ArrowRight, UtensilsCrossed, Store, Truck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import api from '../services/api';
 
@@ -11,6 +12,7 @@ const Marketplace = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewMode, setViewMode] = useState('grid');
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const categories = [
     { id: 'all', name: 'All Products' },
@@ -90,6 +92,47 @@ const Marketplace = () => {
           >
             {viewMode === 'grid' ? <List className="w-5 h-5 text-gray-400" /> : <Grid className="w-5 h-5 text-gray-400" />}
           </button>
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="rounded-2xl border border-orange-500/30 bg-gradient-to-br from-orange-500/10 via-gray-900/70 to-green-500/10 p-5 md:p-6"
+      >
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-2 text-orange-400 mb-2">
+              <UtensilsCrossed className="w-5 h-5" />
+              <span className="text-sm font-semibold uppercase tracking-[0.2em]">Food & Beverage Hub</span>
+            </div>
+            <h2 className="text-xl font-semibold text-white mb-2">Discover meals, snacks, drinks and fresh stock from nearby vendors.</h2>
+            <p className="text-gray-400">Use this hub to browse food listings, open the seller inventory, or find riders close to your location.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => navigate('/shop/mine')}
+              className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm font-medium text-green-300 transition-all hover:bg-green-500/20"
+            >
+              <Store className="w-4 h-4" />
+              Seller Portal
+            </button>
+            <button
+              onClick={() => navigate('/rider/dashboard')}
+              className="flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-300 transition-all hover:bg-blue-500/20"
+            >
+              <Truck className="w-4 h-4" />
+              Nearby Riders
+            </button>
+            <button
+              onClick={() => setSelectedCategory('food')}
+              className="flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-white/20"
+            >
+              Browse Food
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </motion.div>
 

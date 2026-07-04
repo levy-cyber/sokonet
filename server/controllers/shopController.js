@@ -1,5 +1,6 @@
 const Shop = require('../models/Shop');
 const Product = require('../models/Product');
+const { USE_MOCK, mockHelpers } = require('../config/db');
 
 // @desc    Get all shops
 // @route   GET /api/shops
@@ -57,6 +58,25 @@ const getMyShop = async (req, res) => {
   }
 };
 
+// @desc    Get current seller's products
+// @route   GET /api/shops/mine/products
+// @access  Private (Seller only)
+const getMyProducts = async (req, res) => {
+  try {
+    let products;
+
+    if (USE_MOCK) {
+      products = mockHelpers.findProducts({ seller: req.user._id });
+    } else {
+      products = await Product.find({ seller: req.user._id }).sort({ createdAt: -1 });
+    }
+
+    res.json({ success: true, count: products.length, data: products });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 // @desc    Update shop profile
 // @route   PUT /api/shops/mine
 // @access  Private (Seller only)
@@ -87,5 +107,6 @@ module.exports = {
   getShops,
   getShopById,
   getMyShop,
+  getMyProducts,
   updateMyShop,
 };

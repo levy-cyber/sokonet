@@ -1,6 +1,6 @@
 const Product = require('../models/Product');
 const Shop = require('../models/Shop');
-const { USE_MOCK, mockHelpers } = require('../config/db');
+const { USE_MOCK, mockHelpers, mockDB } = require('../config/db');
 
 const MAX_PRODUCT_IMAGES = 20;
 
@@ -39,11 +39,22 @@ const getProducts = async (req, res) => {
         products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       }
       
-      // Add mock seller info
-      products = products.map(p => ({
-        ...p,
-        seller: { _id: p.seller, name: 'Tech Store Kenya', avatar: 'https://i.pravatar.cc/150?img=2' }
-      }));
+      products = products.map((p) => {
+        const sellerInfo = mockDB.users.find((user) => user._id === p.seller);
+        return {
+          ...p,
+          image: p.image || p.images?.[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&h=400',
+          images: p.images || [p.image].filter(Boolean),
+          price: Number(p.price || 0),
+          stock: Number(p.stock || 0),
+          seller: {
+            _id: p.seller,
+            name: sellerInfo?.name || 'Verified Seller',
+            avatar: sellerInfo?.avatar || 'https://i.pravatar.cc/150?img=2',
+            rating: sellerInfo?.rating || 4.8,
+          }
+        };
+      });
       
       res.json({ success: true, count: products.length, data: products });
     } else {
