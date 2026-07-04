@@ -1,9 +1,11 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { canAccessPath } from '../utils/portalAccess';
 
 const ProtectedRoute = ({ allowedRoles }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -20,7 +22,13 @@ const ProtectedRoute = ({ allowedRoles }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.some(r => r === user.activeRole || r === user.role)) {
+  const activeRole = user?.activeRole || user?.role || 'buyer';
+
+  if (allowedRoles && !allowedRoles.some(r => r === activeRole)) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (!canAccessPath(activeRole, location.pathname)) {
     return <Navigate to="/" replace />;
   }
 

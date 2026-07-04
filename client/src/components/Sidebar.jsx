@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { canAccessPath, getRoleHomePath } from '../utils/portalAccess';
 import {
   FiHome, FiShoppingBag, FiLock, FiCreditCard, FiInbox,
   FiBriefcase, FiUser, FiSliders, FiUsers, FiActivity, FiLogOut, FiX,
@@ -11,21 +12,12 @@ import {
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const { user, logout, switchRole } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showRoleMenu, setShowRoleMenu] = useState(false);
-
-  // Role → home page mapping
-  const roleHomePaths = {
-    buyer: '/analytics',
-    seller: '/shop/mine',
-    service_provider: '/services/mine',
-    rider: '/rider/dashboard',
-    freelancer: '/services/mine',
-    admin: '/admin',
-  };
 
   const handleRoleSwitch = (role) => {
     switchRole(role);
-    navigate(roleHomePaths[role] || '/');
+    navigate(getRoleHomePath(role));
     setShowRoleMenu(false);
     setIsOpen(false);
   };
@@ -96,10 +88,19 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Admin Console', path: '/admin', icon: FiSliders, description: 'System administration', role: 'admin' },
   ];
 
-  // Filter navigation links based on user role
+  // Filter navigation links based on user role and current portal access
   const navigationLinks = allNavigationLinks.filter(link => {
-    if (link.role === 'all') return true;
-    return user?.roles?.includes(link.role);
+    if (link.role === 'all' && canAccessPath(user?.activeRole || user?.role || 'buyer', link.path)) {
+      return true;
+    }
+
+    if (link.role !== 'all') {
+      const hasRole = user?.roles?.includes(link.role);
+      const canAccess = canAccessPath(user?.activeRole || user?.role || 'buyer', link.path);
+      return hasRole && canAccess;
+    }
+
+    return false;
   });
 
   const getRoleBadge = () => {
@@ -222,7 +223,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     {/* General Links */}
                     <p className="text-[10px] text-gray-500 mb-2 font-medium">Quick Access</p>
                     <div className="space-y-1 mb-3">
-                      {generalLinks.map((link) => {
+                      {generalLinks.filter((link) => canAccessPath(user?.activeRole || user?.role || 'buyer', link.path)).map((link) => {
                         const Icon = link.icon;
                         return (
                           <button
@@ -268,7 +269,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         <p className="text-[10px] text-gray-500 mb-2 font-medium border-t border-dark-border/50 pt-2">Role Pages</p>
                         {user?.roles?.map((role) => (
                           <div key={role} className="space-y-1">
-                            {roleLinks[role]?.map((link) => {
+                            {roleLinks[role]?.filter((link) => canAccessPath(role, link.path)).map((link) => {
                               const Icon = link.icon;
                               return (
                                 <button
