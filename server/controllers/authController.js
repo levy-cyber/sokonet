@@ -20,19 +20,33 @@ const generateResetToken = () => {
   return crypto.randomBytes(32).toString('hex');
 };
 
+const normalizeEmail = (email) => (email || '').trim().toLowerCase();
+
+const isValidEmailFormat = (email) => {
+  if (!email || typeof email !== 'string') return false;
+
+  const re = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i;
+  return re.test(email);
+};
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
   const { name, email, phone, password, roles, activeRole } = req.body;
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail || !isValidEmailFormat(normalizedEmail)) {
+    return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+  }
 
   try {
     let userExists;
 
     if (USE_MOCK) {
-      userExists = mockHelpers.findUser({ email }) || mockHelpers.findUser({ phone });
+      userExists = mockHelpers.findUser({ email: normalizedEmail }) || mockHelpers.findUser({ phone });
     } else {
-      userExists = await User.findOne({ $or: [{ email }, { phone }] });
+      userExists = await User.findOne({ $or: [{ email: normalizedEmail }, { phone }] });
     }
 
     if (userExists) {
@@ -114,18 +128,23 @@ const registerUser = async (req, res) => {
 // @access  Public
 const authUser = async (req, res) => {
   const { email, password } = req.body;
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail || !isValidEmailFormat(normalizedEmail)) {
+    return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+  }
 
   try {
     let user;
 
     if (USE_MOCK) {
-      user = mockHelpers.findUser({ email });
+      user = mockHelpers.findUser({ email: normalizedEmail });
       // Mock password check - in real app would be bcrypt.compare
       if (!user) {
         return res.status(401).json({ success: false, message: 'Invalid email or password' });
       }
     } else {
-      user = await User.findOne({ email }).select('+password');
+      user = await User.findOne({ email: normalizedEmail }).select('+password');
 
       if (user && !(await user.matchPassword(password))) {
         return res.status(401).json({ success: false, message: 'Invalid email or password' });
@@ -198,6 +217,11 @@ const getUserProfile = async (req, res) => {
 // @access  Public
 const sendOTP = async (req, res) => {
   const { email } = req.body;
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail || !isValidEmailFormat(normalizedEmail)) {
+    return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+  }
 
   try {
     let user;
@@ -225,7 +249,7 @@ const sendOTP = async (req, res) => {
     }
 
     // Send OTP email
-    await emailService.sendOTP(email, otp, user.name);
+    await emailService.sendOTP(normalizedEmail, otp, user.name);
 
     res.json({
       success: true,
@@ -243,13 +267,18 @@ const sendOTP = async (req, res) => {
 // @access  Public
 const verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail || !isValidEmailFormat(normalizedEmail)) {
+    return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+  }
 
   try {
     let user;
     if (USE_MOCK) {
-      user = mockHelpers.findUser({ email });
+      user = mockHelpers.findUser({ email: normalizedEmail });
     } else {
-      user = await User.findOne({ email });
+      user = await User.findOne({ email: normalizedEmail });
     }
 
     if (!user) {
@@ -295,13 +324,18 @@ const verifyOTP = async (req, res) => {
 // @access  Public
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail || !isValidEmailFormat(normalizedEmail)) {
+    return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+  }
 
   try {
     let user;
     if (USE_MOCK) {
-      user = mockHelpers.findUser({ email });
+      user = mockHelpers.findUser({ email: normalizedEmail });
     } else {
-      user = await User.findOne({ email });
+      user = await User.findOne({ email: normalizedEmail });
     }
 
     if (!user) {
@@ -325,7 +359,7 @@ const forgotPassword = async (req, res) => {
     const resetLink = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
 
     // Send password reset email
-    const emailSent = await emailService.sendPasswordReset(email, resetLink, user.name);
+    const emailSent = await emailService.sendPasswordReset(normalizedEmail, resetLink, user.name);
 
     res.json({
       success: true,
