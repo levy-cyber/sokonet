@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark-bg text-dark-text font-sans selection:bg-brand selection:text-black;
+  }
+}
+
+/* Custom Utilities */
+.glass-panel {
+  background: rgba(15, 20, 36, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(30, 41, 75, 0.5);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-hover:hover {
+  border-color: rgba(0, 200, 83, 0.4);
+  box-shadow: 0 0 20px 2px rgba(0, 200, 83, 0.1);
+  transform: translateY(-2px);
+}
+
+.brand-glow {
+  text-shadow: 0 0 10px rgba(0, 200, 83, 0.5);
+}
+
+.glow-btn {
+  @apply relative overflow-hidden transition-all duration-300;
+}
+
+.glow-btn::after {
+  content: '';
+  @apply absolute inset-0 opacity-0 transition-opacity duration-300 bg-brand/10 blur-md;
+}
+
+.glow-btn:hover::after {
+  @apply opacity-100;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #070a13;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e294b;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00C853;
+}
