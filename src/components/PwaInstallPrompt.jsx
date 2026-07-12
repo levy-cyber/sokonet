@@ -121,9 +121,9 @@ const PwaInstallPrompt = () => {
             <h2 className="mt-2 text-lg font-bold text-white">We use cookies to improve your experience.</h2>
             <p className="mt-1 text-sm text-gray-300 max-w-xl">Accept cookies to personalize features, keep you logged in, and show the best experience across NetSoko.</p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <button onClick={declineCookies} className="rounded-2xl border border-gray-700 bg-transparent px-4 py-2 text-sm text-gray-200 transition hover:bg-white/5">Decline</button>
-            <button onClick={acceptCookies} className="rounded-2xl bg-brand px-4 py-2 text-sm font-semibold text-black transition hover:bg-brand/90">Accept</button>
+            <div className="flex flex-wrap items-center gap-3">
+            <button type="button" onClick={declineCookies} className="rounded-2xl border border-gray-700 bg-transparent px-4 py-2 text-sm text-gray-200 transition hover:bg-white/5">Decline</button>
+            <button type="button" onClick={acceptCookies} className="rounded-2xl bg-brand px-4 py-2 text-sm font-semibold text-black transition hover:bg-brand/90">Accept</button>
           </div>
         </div>
       </div>
@@ -148,16 +148,16 @@ const PwaInstallPrompt = () => {
                   <p className="mt-2 text-sm text-gray-300 max-w-xl">Install this app for faster access and a better experience, with offline support and native-like navigation.</p>
                 </div>
               </div>
-              <button onClick={dismissInstall} className="rounded-full border border-white/10 bg-white/5 p-2 text-gray-300 transition hover:bg-white/10">
+              <button type="button" onClick={dismissInstall} className="rounded-full border border-white/10 bg-white/5 p-2 text-gray-300 transition hover:bg-white/10">
                 <FiX className="h-4 w-4" />
               </button>
             </div>
             <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
-              <button onClick={triggerInstall} className="flex items-center justify-center gap-2 rounded-3xl bg-gradient-to-r from-green-400 to-emerald-500 px-5 py-3 text-sm font-semibold text-black shadow-lg shadow-emerald-500/20 transition hover:scale-[1.01]">
+              <button type="button" onClick={triggerInstall} className="flex items-center justify-center gap-2 rounded-3xl bg-gradient-to-r from-green-400 to-emerald-500 px-5 py-3 text-sm font-semibold text-black shadow-lg shadow-emerald-500/20 transition hover:scale-[1.01]">
                 <FiDownload className="h-4 w-4" />
                 Install Now
               </button>
-              <button onClick={dismissInstall} className="rounded-3xl border border-white/10 bg-slate-900/80 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/5">Maybe Later</button>
+              <button type="button" onClick={dismissInstall} className="rounded-3xl border border-white/10 bg-slate-900/80 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/5">Maybe Later</button>
             </div>
             {!promptEvent && isIos && (
               <p className="mt-4 text-sm text-gray-300">
@@ -180,6 +180,7 @@ const PwaInstallPrompt = () => {
 
       {canShowInstallButton && (
         <button
+          type="button"
           onClick={triggerInstall}
           className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-full bg-brand px-4 py-3 text-sm font-semibold text-black shadow-2xl shadow-brand/30 transition hover:bg-brand/90 sm:bottom-8 sm:right-8"
         >

@@ -44,6 +44,20 @@ const WalletPage = () => {
     }
   };
 
+  // Poll transactions when there are pending items to update status in UI
+  useEffect(() => {
+    let intervalId;
+    const hasPending = transactions.some((t) => t.status && t.status.toLowerCase() !== 'completed');
+    if (hasPending) {
+      intervalId = setInterval(() => {
+        fetchWalletData();
+      }, 8000);
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [transactions]);
+
   const handleDeposit = async () => {
     if (!amount || isNaN(amount)) return;
     setShowMpesaModal(true);

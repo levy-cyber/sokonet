@@ -60,8 +60,11 @@ export const generateSlug = (text) => {
 };
 
 export const validateEmail = (email) => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
+  if (!email || typeof email !== 'string') return false;
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const re = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i;
+  return re.test(normalizedEmail);
 };
 
 export const validatePhone = (phone) => {

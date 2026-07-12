@@ -76,6 +76,7 @@ const ProductCard = ({ product, onBuyNow }) => {
             Details
           </Link>
           <button
+            type="button"
             onClick={handleAddToCart}
             disabled={product.stock <= 0}
             className="col-span-3 flex items-center justify-center gap-1.5 py-2 bg-green-600 hover:bg-green-700 disabled:bg-dark-cardMuted disabled:text-dark-muted disabled:border-dark-border disabled:shadow-none text-white text-xs font-bold rounded-xl transition-all"
@@ -87,6 +88,7 @@ const ProductCard = ({ product, onBuyNow }) => {
         
         {/* Alternative buy now button */}
         <button
+          type="button"
           onClick={() => onBuyNow && onBuyNow(product)}
           disabled={product.stock <= 0}
           className="w-full mt-2 flex items-center justify-center gap-1.5 py-2 bg-brand hover:bg-brand-dark disabled:bg-dark-cardMuted disabled:text-dark-muted disabled:border-dark-border disabled:shadow-none text-black text-xs font-bold rounded-xl transition-all shadow-glow-green/10 hover:shadow-glow-green"

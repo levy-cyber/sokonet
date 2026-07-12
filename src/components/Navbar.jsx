@@ -56,6 +56,7 @@ const Navbar = ({ title, onMenuToggle }) => {
       <div className="flex items-center gap-2 lg:gap-4">
         {/* Mobile Menu Toggle */}
         <button
+          type="button"
           onClick={onMenuToggle}
           className="lg:hidden w-9 h-9 rounded-lg bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors"
         >
@@ -73,7 +74,7 @@ const Navbar = ({ title, onMenuToggle }) => {
         {/* Shopping Cart */}
         {user && (
           <Link to="/cart" className="relative">
-            <button className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors">
+            <button type="button" className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors">
               <FiShoppingCart className="text-base lg:text-lg" />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand rounded-full text-black text-xs font-bold flex items-center justify-center ring-2 ring-dark-bg">
@@ -100,10 +101,11 @@ const Navbar = ({ title, onMenuToggle }) => {
 
         {/* Notifications Icon */}
         <div className="relative">
-          <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors"
-          >
+                    <button
+                      type="button"
+                      onClick={() => setShowNotifications(!showNotifications)}
+                      className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl bg-dark-card border border-dark-border flex items-center justify-center text-dark-muted hover:text-white transition-colors"
+                    >
             <FiBell className="text-base lg:text-lg" />
             {notifications.length > 0 && (
               <span className="absolute top-1 right-1 w-2 lg:w-2.5 h-2 lg:h-2.5 bg-brand rounded-full ring-2 ring-dark-bg animate-pulse"></span>
@@ -121,8 +123,9 @@ const Navbar = ({ title, onMenuToggle }) => {
               <div className="absolute right-0 mt-2 lg:mt-3 w-72 lg:w-80 glass-panel border border-dark-border rounded-2xl shadow-xl overflow-hidden py-2 z-50">
                 <div className="px-3 lg:px-4 py-2 border-b border-dark-border flex justify-between items-center">
                   <span className="font-semibold text-xs lg:text-sm text-white">Notifications</span>
-                  {notifications.length > 0 && (
+                    {notifications.length > 0 && (
                     <button
+                      type="button"
                       onClick={() => setNotifications([])}
                       className="text-[10px] lg:text-xs text-brand hover:underline font-mono"
                     >
@@ -151,6 +154,7 @@ const Navbar = ({ title, onMenuToggle }) => {
 
         {/* Settings shortcut */}
         <button
+          type="button"
           onClick={() => navigate('/settings')}
           className="hidden lg:flex w-10 h-10 rounded-xl bg-dark-card border border-dark-border items-center justify-center text-dark-muted hover:text-white transition-colors"
         >

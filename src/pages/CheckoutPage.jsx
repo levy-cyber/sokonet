@@ -45,6 +45,8 @@ const CheckoutPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="max-w-2xl mx-auto text-center"
+          role="status"
+          aria-live="polite"
         >
           <div className="w-24 h-24 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6">
             <FiCheck className="w-12 h-12 text-green-400" />
@@ -73,6 +75,7 @@ const CheckoutPage = () => {
             </div>
           </div>
           <button
+            type="button"
             onClick={() => navigate('/orders')}
             className="inline-flex items-center gap-2 px-6 py-3 bg-brand text-black font-semibold rounded-lg hover:bg-brand/90 transition-all"
           >
@@ -110,10 +113,11 @@ const CheckoutPage = () => {
               </h2>
               <form onSubmit={handlePayment} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label htmlFor="shipping-address" className="block text-sm font-medium text-gray-300 mb-2">
                     Delivery Address *
                   </label>
                   <textarea
+                    id="shipping-address"
                     value={shippingAddress}
                     onChange={(e) => setShippingAddress(e.target.value)}
                     className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-brand transition-colors"
@@ -124,10 +128,11 @@ const CheckoutPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label htmlFor="checkout-phone" className="block text-sm font-medium text-gray-300 mb-2">
                     Phone Number *
                   </label>
                   <input
+                    id="checkout-phone"
                     type="tel"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
@@ -146,6 +151,7 @@ const CheckoutPage = () => {
                     <button
                       type="button"
                       onClick={() => setSelectedPayment('mpesa')}
+                      aria-pressed={selectedPayment === 'mpesa'}
                       className={`p-4 rounded-xl border-2 transition-all ${
                         selectedPayment === 'mpesa'
                           ? 'border-brand bg-brand/10'
@@ -164,6 +170,7 @@ const CheckoutPage = () => {
                     <button
                       type="button"
                       onClick={() => setSelectedPayment('card')}
+                      aria-pressed={selectedPayment === 'card'}
                       className={`p-4 rounded-xl border-2 transition-all ${
                         selectedPayment === 'card'
                           ? 'border-brand bg-brand/10'
@@ -194,6 +201,7 @@ const CheckoutPage = () => {
                 <button
                   type="submit"
                   disabled={isProcessing}
+                  aria-busy={isProcessing}
                   className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-black font-semibold py-3 rounded-xl hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? (

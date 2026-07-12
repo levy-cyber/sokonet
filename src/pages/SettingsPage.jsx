@@ -155,7 +155,7 @@ const SettingsPage = () => {
                   {previewImage ? (
                     <img
                       src={previewImage}
-                      alt="Profile"
+                      alt="User profile picture"
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -194,10 +194,11 @@ const SettingsPage = () => {
 
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
+              <label htmlFor="settings-name" className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
+                  id="settings-name"
                   type="text"
                   name="name"
                   value={formData.name}
@@ -211,10 +212,11 @@ const SettingsPage = () => {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+              <label htmlFor="settings-email" className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
+                  id="settings-email"
                   type="email"
                   name="email"
                   value={formData.email}
@@ -228,10 +230,11 @@ const SettingsPage = () => {
 
             {/* Phone */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
+              <label htmlFor="settings-phone" className="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
+                  id="settings-phone"
                   type="tel"
                   name="phone"
                   value={formData.phone}
@@ -270,7 +273,9 @@ const SettingsPage = () => {
                   return (
                     <button
                       key={link.path}
+                      type="button"
                       onClick={() => navigate(link.path)}
+                      aria-label={`Go to ${link.label}`}
                       className="w-full flex items-center justify-between p-3 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg transition-colors group"
                     >
                       <div className="flex items-center gap-3">

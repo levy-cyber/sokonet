@@ -3,9 +3,12 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Lock, Mail, User, Phone, Check } from 'lucide-react';
-import { validatePhone } from '../utils/helpers';
+import { validateEmail, validatePhone } from '../utils/helpers';
 
 const RECAPTCHA_SITE_KEY = '6LerrkMtAAAAANH_kPf70sLLbILlfHFRTofnHJoB';
+const LAST_EMAIL_STORAGE_KEY = 'Netsoko_last_email';
+
+const normalizeEmail = (value) => value.trim().toLowerCase();
 
 const AuthPage = ({ isLogin }) => {
   const [formData, setFormData] = useState({
@@ -16,6 +19,7 @@ const AuthPage = ({ isLogin }) => {
     role: 'buyer',
     selectedRoles: ['buyer'],
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [captchaToken, setCaptchaToken] = useState('');
@@ -40,6 +44,11 @@ const AuthPage = ({ isLogin }) => {
       return;
     }
 
+    if (e.target.name === 'email') {
+      setFormData({ ...formData, email: normalizeEmail(e.target.value) });
+      return;
+    }
+
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -61,6 +70,19 @@ const AuthPage = ({ isLogin }) => {
       });
     }
   };
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem(LAST_EMAIL_STORAGE_KEY);
+    if (savedEmail && !formData.email) {
+      setFormData((prev) => ({ ...prev, email: normalizeEmail(savedEmail) }));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (formData.email) {
+      localStorage.setItem(LAST_EMAIL_STORAGE_KEY, formData.email);
+    }
+  }, [formData.email]);
 
   useEffect(() => {
     const renderCaptcha = () => {
@@ -110,6 +132,17 @@ const AuthPage = ({ isLogin }) => {
     setLoading(true);
     setError('');
 
+    const normalizedEmail = normalizeEmail(formData.email);
+    if (normalizedEmail) {
+      localStorage.setItem(LAST_EMAIL_STORAGE_KEY, normalizedEmail);
+    }
+
+    if (!validateEmail(normalizedEmail)) {
+      setError('Please enter a valid email address.');
+      setLoading(false);
+      return;
+    }
+
     if (!captchaToken) {
       setError('Please complete the reCAPTCHA challenge.');
       setLoading(false);
@@ -124,10 +157,10 @@ const AuthPage = ({ isLogin }) => {
 
     try {
       if (isLogin) {
-        await login(formData.email, formData.password);
+        await login(normalizedEmail, formData.password);
         navigate('/');
       } else {
-        await register(formData.name, formData.email, formData.phone, formData.password, formData.selectedRoles);
+        await register(formData.name, normalizedEmail, formData.phone, formData.password, formData.selectedRoles);
         // Redirect to OTP verification after registration
         navigate(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
       }
@@ -161,10 +194,11 @@ const AuthPage = ({ isLogin }) => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
+                    id="name"
                     type="text"
                     name="name"
                     value={formData.name}
@@ -178,10 +212,11 @@ const AuthPage = ({ isLogin }) => {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
+                  id="email"
                   type="email"
                   name="email"
                   value={formData.email}
@@ -195,10 +230,11 @@ const AuthPage = ({ isLogin }) => {
 
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
+                    id="phone"
                     type="tel"
                     name="phone"
                     value={formData.phone}
@@ -212,19 +248,30 @@ const AuthPage = ({ isLogin }) => {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  type="password"
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-brand transition-all placeholder-gray-500"
+                  className="w-full bg-gray-800/50 border border-gray-700 text-white rounded-xl pl-10 pr-12 py-3 focus:outline-none focus:border-brand transition-all placeholder-gray-500"
                   placeholder="••••••••••"
                   required
+                  aria-describedby="password-help"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-pressed={showPassword}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
               </div>
+              <p id="password-help" className="text-xs text-gray-500 mt-2">Use at least 8 characters, including a number and a symbol.</p>
             </div>
 
             {!isLogin && (
@@ -234,10 +281,12 @@ const AuthPage = ({ isLogin }) => {
                 </label>
                 <div className="space-y-2">
                   {availableRoles.map((role) => (
-                    <div
+                    <button
                       key={role.id}
+                      type="button"
                       onClick={() => handleRoleToggle(role.id)}
-                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                      aria-pressed={formData.selectedRoles.includes(role.id)}
+                      className={`w-full text-left flex items-center gap-3 p-3 rounded-xl border transition-all ${
                         formData.selectedRoles.includes(role.id)
                           ? 'bg-brand/20 border-brand text-white'
                           : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:border-gray-600'
@@ -252,7 +301,7 @@ const AuthPage = ({ isLogin }) => {
                         <p className="text-white font-medium">{role.name}</p>
                         <p className="text-xs text-gray-400">{role.description}</p>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
                 <p className="text-xs text-gray-500 mt-2">

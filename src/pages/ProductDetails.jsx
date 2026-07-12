@@ -119,10 +119,13 @@ const ProductDetails = () => {
               {product.images.map((image, index) => (
                 <button
                   key={index}
+                  type="button"
                   onClick={() => setSelectedImage(index)}
                   className={`flex-shrink-0 w-24 h-20 bg-gray-900/50 border rounded-lg p-2 transition-all ${
                     selectedImage === index ? 'border-green-500' : 'border-gray-700 hover:border-gray-600'
                   }`}
+                  aria-label={`Show image ${index + 1}`}
+                  aria-pressed={selectedImage === index}
                 >
                   <img src={image} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover rounded" />
                 </button>
@@ -183,18 +186,22 @@ const ProductDetails = () => {
             {/* Quantity and Actions */}
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <label className="text-gray-400">Quantity:</label>
-                <div className="flex items-center gap-3 bg-gray-900/50 border border-gray-700 rounded-lg">
+                <label htmlFor="product-quantity" className="text-gray-400">Quantity:</label>
+                <div className="flex items-center gap-3 bg-gray-900/50 border border-gray-700 rounded-lg" role="group" aria-label="Quantity selector">
                   <button
+                    type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="px-4 py-2 text-white hover:bg-gray-800 transition-all"
+                    aria-label="Decrease quantity"
                   >
                     -
                   </button>
-                  <span className="text-white font-medium w-8 text-center">{quantity}</span>
+                  <span id="product-quantity" className="text-white font-medium w-8 text-center" aria-live="polite">{quantity}</span>
                   <button
+                    type="button"
                     onClick={() => setQuantity(quantity + 1)}
                     className="px-4 py-2 text-white hover:bg-gray-800 transition-all"
+                    aria-label="Increase quantity"
                   >
                     +
                   </button>
@@ -206,6 +213,7 @@ const ProductDetails = () => {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  type="button"
                   onClick={handleAddToCart}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-all border border-gray-700"
                 >
@@ -215,12 +223,13 @@ const ProductDetails = () => {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  type="button"
                   onClick={handleBuyNow}
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-lg shadow-green-500/25"
                 >
                   Buy Now
                 </motion.button>
-                <button className="p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-all border border-gray-700">
+                <button type="button" aria-pressed="false" aria-label="Add to wishlist" className="p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-all border border-gray-700">
                   <Heart className="w-5 h-5" />
                 </button>
               </div>
@@ -229,6 +238,7 @@ const ProductDetails = () => {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  type="button"
                   onClick={handleDelivery}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
                 >
@@ -238,6 +248,7 @@ const ProductDetails = () => {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  type="button"
                   onClick={handleCancel}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
                 >
@@ -274,10 +285,12 @@ const ProductDetails = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md"
           >
-            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-white">Request Delivery</h3>
               <button
+                type="button"
                 onClick={() => setShowDeliveryModal(false)}
+                aria-label="Close delivery dialog"
                 className="text-gray-400 hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -286,10 +299,11 @@ const ProductDetails = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">Delivery Location</label>
+                <label htmlFor="delivery-location" className="block text-gray-300 text-sm font-medium mb-2">Delivery Location</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                   <input
+                    id="delivery-location"
                     type="text"
                     value={deliveryLocation}
                     onChange={(e) => setDeliveryLocation(e.target.value)}
@@ -320,10 +334,12 @@ const ProductDetails = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md"
           >
-            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-white">Cancel Order</h3>
               <button
+                type="button"
                 onClick={() => setShowCancelModal(false)}
+                aria-label="Close cancel dialog"
                 className="text-gray-400 hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -331,9 +347,10 @@ const ProductDetails = () => {
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">Reason for Cancellation</label>
+                <div>
+                <label htmlFor="cancel-reason" className="block text-gray-300 text-sm font-medium mb-2">Reason for Cancellation</label>
                 <textarea
+                  id="cancel-reason"
                   value={cancelReason}
                   onChange={(e) => setCancelReason(e.target.value)}
                   placeholder="Enter reason for cancelling this order"
