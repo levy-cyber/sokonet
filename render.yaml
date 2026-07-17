@@ -1,4 +1,5 @@
 services:
+  # ─── Backend API (Node.js + Express + Socket.io) ───────────────────────────
   - type: web
     name: sokonet-api
     env: node
@@ -6,13 +7,14 @@ services:
     rootDir: server
     buildCommand: npm install
     startCommand: node server.js
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 5000
+        value: 10000           # Render assigns this automatically; 10000 is the default
       - key: MONGO_URI
-        sync: false
+        value: mongodb+srv://Lev:tkp7cZ3I02U3C8ds@cluster0.4fwnktm.mongodb.net/?appName=Cluster0
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRE
@@ -29,3 +31,27 @@ services:
         value: sandbox
       - key: STRIPE_SECRET_KEY
         sync: false
+      - key: BANK_PAYBILL
+        value: 247247
+      - key: BANK_ACCOUNT
+        value: 0870185429080
+      - key: EMAIL_SERVICE
+        value: true
+      - key: EMAIL_USER
+        value: egemmanuelgichuki@gmail.com
+      - key: EMAIL_PASS
+        value: ldoo bvdf zlsn aata
+      - key: EMAIL_FROM
+        value: egemmanuelgichuki@gmail.com
+
+  # ─── Frontend (React + Vite) ───────────────────────────────────────────────
+  - type: web
+    name: sokonet-frontend
+    env: static
+    plan: free
+    rootDir: client
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://sokonet-api.onrender.com/api
