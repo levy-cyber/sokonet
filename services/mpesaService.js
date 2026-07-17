@@ -1,155 +1,348 @@
-const axios = require('axios');
+const axios = require("axios");
 
 class MpesaService {
-  constructor() {
-    this.consumerKey = process.env.MPESA_CONSUMER_KEY;
-    this.consumerSecret = process.env.MPESA_CONSUMER_SECRET;
-    this.shortcode = process.env.MPESA_SHORTCODE;
-    this.passkey = process.env.MPESA_PASSKEY;
-    this.env = process.env.MPESA_ENV || 'sandbox';
-  }
 
-  // Generates OAuth token for Safaricom Daraja API
-  async getOAuthToken() {
-    if (this.consumerKey === 'dummy_mpesa_consumer_key') {
-      return 'mock_oauth_token_12345';
+    constructor() {
+
+        this.consumerKey =
+            process.env.MPESA_CONSUMER_KEY;
+
+        this.consumerSecret =
+            process.env.MPESA_CONSUMER_SECRET;
+
+        this.shortCode =
+            process.env.MPESA_SHORTCODE;
+
+        this.passkey =
+            process.env.MPESA_PASSKEY;
+
+        this.environment =
+            process.env.MPESA_ENV || "sandbox";
+
+        this.backendURL =
+            process.env.BACKEND_URL;
+
+
+        this.baseURL =
+            this.environment === "sandbox"
+
+                ? "https://sandbox.safaricom.co.ke"
+
+                : "https://api.safaricom.co.ke";
+
     }
 
-    const url = this.env === 'sandbox'
-      ? 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
-      : 'https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
 
-    const auth = Buffer.from(`${this.consumerKey}:${this.consumerSecret}`).toString('base64');
+    //---------------------------------
+    // ACCESS TOKEN
+    //---------------------------------
 
-    try {
-      const response = await axios.get(url, {
-        headers: {
-          Authorization: `Basic ${auth}`,
-        },
-      });
-      return response.data.access_token;
-    } catch (error) {
-      console.error('M-Pesa OAuth Error:', error.response ? error.response.data : error.message);
-      throw new Error('Failed to retrieve M-Pesa access token');
-    }
-  }
+    async getAccessToken() {
 
-  // Triggers STK Push (Lipa na M-Pesa Online)
-  async triggerStkPush(phoneNumber, amount, referenceCode, description) {
-    console.log(`[M-Pesa] Triggering STK Push of KES ${amount} to ${phoneNumber}`);
-    
-    if (this.consumerKey === 'dummy_mpesa_consumer_key') {
-      // Simulate successful STK push request receipt
-      return {
-        MerchantRequestID: `MR_${Math.random().toString(36).substr(2, 9)}`,
-        CheckoutRequestID: `CH_${Math.random().toString(36).substr(2, 9)}`,
-        ResponseCode: '0',
-        ResponseDescription: 'Success. Request accepted for processing',
-        CustomerMessage: 'Success. Request accepted for processing',
-        isMock: true,
-      };
-    }
+        const auth = Buffer.from(
 
-    const token = await this.getOAuthToken();
-    const url = this.env === 'sandbox'
-      ? 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/query'
-      : 'https://api.safaricom.co.ke/mpesa/stkpush/v1/query';
+            `${this.consumerKey}:${this.consumerSecret}`
 
-    const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
-    const password = Buffer.from(`${this.shortcode}${this.passkey}${timestamp}`).toString('base64');
-    
-    // Normalize phone number to format 254XXXXXXXXX
-    let formattedPhone = phoneNumber.replace(/[^0-9]/g, '');
-    if (formattedPhone.startsWith('0')) {
-      formattedPhone = '254' + formattedPhone.slice(1);
-    } else if (!formattedPhone.startsWith('254')) {
-      formattedPhone = '254' + formattedPhone;
-    }
+        ).toString("base64");
 
-    const backendUrl = process.env.BACKEND_URL || 'https://Netsoko-backend-url.railway.app';
-    const requestBody = {
-      BusinessShortCode: this.shortcode,
-      Password: password,
-      Timestamp: timestamp,
-      TransactionType: 'CustomerPayBillOnline',
-      Amount: Math.round(amount),
-      PartyA: formattedPhone,
-      PartyB: this.shortcode,
-      PhoneNumber: formattedPhone,
-      CallBackURL: `${backendUrl}/api/wallet/mpesa-callback`,
-      AccountReference: referenceCode,
-      TransactionDesc: description,
-    };
 
-    try {
-      const response = await axios.post(url, requestBody, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error('M-Pesa STK Push Error:', error.response ? error.response.data : error.message);
-      throw new Error('M-Pesa STK Push transaction failed');
-    }
-  }
+        try {
 
-  // Trigger B2C payment (withdraw to phone)
-  async triggerPayout(phoneNumber, amount, description) {
-    console.log(`[M-Pesa B2C] Sending KES ${amount} to ${phoneNumber}`);
-    
-    if (this.consumerKey === 'dummy_mpesa_consumer_key') {
-      // Simulate successful B2C payout
-      return {
-        ConversationID: `CON_${Math.random().toString(36).substr(2, 9)}`,
-        OriginatorConversationID: `OCON_${Math.random().toString(36).substr(2, 9)}`,
-        ResponseCode: '0',
-        ResponseDescription: 'Accept the service request successfully.',
-        isMock: true,
-      };
+            const response = await axios.get(
+
+                `${this.baseURL}/oauth/v1/generate?grant_type=client_credentials`,
+
+                {
+                    headers: {
+                        Authorization: `Basic ${auth}`
+                    }
+                }
+
+            );
+
+            return response.data.access_token;
+
+        }
+
+        catch (error) {
+
+            console.error(
+
+                "Access Token Error:",
+
+                error.response?.data || error.message
+
+            );
+
+            throw new Error(
+
+                "Failed to generate M-Pesa access token."
+
+            );
+
+        }
+
     }
 
-    const token = await this.getOAuthToken();
-    const url = this.env === 'sandbox'
-      ? 'https://sandbox.safaricom.co.ke/mpesa/b2c/v1/paymentrequest'
-      : 'https://api.safaricom.co.ke/mpesa/b2c/v1/paymentrequest';
 
-    const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
-    const password = Buffer.from(`${this.shortcode}${this.passkey}${timestamp}`).toString('base64');
-    
-    // Normalize phone number to format 254XXXXXXXXX
-    let formattedPhone = phoneNumber.replace(/[^0-9]/g, '');
-    if (formattedPhone.startsWith('0')) {
-      formattedPhone = '254' + formattedPhone.slice(1);
-    } else if (!formattedPhone.startsWith('254')) {
-      formattedPhone = '254' + formattedPhone;
+
+    //---------------------------------
+    // TIMESTAMP
+    //---------------------------------
+
+    generateTimestamp() {
+
+        const date = new Date();
+
+        const pad = (n) => String(n).padStart(2, "0");
+
+        return (
+
+            date.getFullYear() +
+
+            pad(date.getMonth() + 1) +
+
+            pad(date.getDate()) +
+
+            pad(date.getHours()) +
+
+            pad(date.getMinutes()) +
+
+            pad(date.getSeconds())
+
+        );
+
     }
 
-    const requestBody = {
-      InitiatorName: 'testapi',
-      SecurityCredential: password,
-      CommandID: 'BusinessPayment',
-      Amount: Math.round(amount),
-      PartyA: this.shortcode,
-      PartyB: formattedPhone,
-      Remarks: description,
-      QueueTimeOutURL: `${backendUrl}/api/wallet/mpesa-b2c-timeout`,
-      ResultURL: `${backendUrl}/api/wallet/mpesa-b2c-result`,
-      Occasion: 'WalletWithdrawal',
-    };
 
-    try {
-      const response = await axios.post(url, requestBody, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error('M-Pesa B2C Error:', error.response ? error.response.data : error.message);
-      throw new Error('M-Pesa B2C transaction failed');
+
+    //---------------------------------
+    // PASSWORD
+    //---------------------------------
+
+    generatePassword(timestamp) {
+
+        return Buffer.from(
+
+            `${this.shortCode}${this.passkey}${timestamp}`
+
+        ).toString("base64");
+
     }
-  }
+
+
+
+    //---------------------------------
+    // STK PUSH
+    //---------------------------------
+
+    async triggerStkPush(
+
+        phoneNumber,
+        amount,
+        reference,
+        description
+
+    ) {
+
+        const token =
+            await this.getAccessToken();
+
+
+        const timestamp =
+            this.generateTimestamp();
+
+
+        const password =
+            this.generatePassword(timestamp);
+
+
+
+        const url =
+
+            `${this.baseURL}/mpesa/stkpush/v1/processrequest`;
+
+
+        const payload = {
+
+            BusinessShortCode:
+                this.shortCode,
+
+            Password:
+                password,
+
+            Timestamp:
+                timestamp,
+
+            TransactionType:
+                "CustomerPayBillOnline",
+
+            Amount:
+                Number(amount),
+
+            PartyA:
+                phoneNumber,
+
+            PartyB:
+                this.shortCode,
+
+            PhoneNumber:
+                phoneNumber,
+
+            CallBackURL:
+                `${this.backendURL}/api/wallet/mpesa-callback`,
+
+            AccountReference:
+                reference,
+
+            TransactionDesc:
+                description
+
+        };
+
+
+        try {
+
+            const response = await axios.post(
+
+                url,
+
+                payload,
+
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`
+                    }
+                }
+
+            );
+
+
+            return response.data;
+
+        }
+
+        catch (error) {
+
+            console.error(
+
+                "STK PUSH ERROR:",
+
+                error.response?.data || error.message
+
+            );
+
+            throw new Error(
+
+                "Failed to initiate STK Push."
+
+            );
+
+        }
+
+    }
+
+
+
+    //---------------------------------
+    // B2C PAYOUT
+    //---------------------------------
+
+    async triggerPayout(
+
+        phoneNumber,
+        amount,
+        remarks
+
+    ) {
+
+        const token =
+            await this.getAccessToken();
+
+
+        const url =
+            `${this.baseURL}/mpesa/b2c/v1/paymentrequest`;
+
+
+        const payload = {
+
+            InitiatorName:
+                process.env.MPESA_INITIATOR_NAME,
+
+            SecurityCredential:
+                process.env.MPESA_SECURITY_CREDENTIAL,
+
+            CommandID:
+                "BusinessPayment",
+
+            Amount:
+                Number(amount),
+
+            PartyA:
+                this.shortCode,
+
+            PartyB:
+                phoneNumber,
+
+            Remarks:
+                remarks,
+
+            QueueTimeOutURL:
+                `${this.backendURL}/api/wallet/mpesa-b2c-timeout`,
+
+            ResultURL:
+                `${this.backendURL}/api/wallet/mpesa-b2c-result`,
+
+            Occasion:
+                "Wallet Withdrawal"
+
+        };
+
+
+        try {
+
+            const response = await axios.post(
+
+                url,
+
+                payload,
+
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`
+                    }
+                }
+
+            );
+
+            return response.data;
+
+        }
+
+        catch (error) {
+
+            console.error(
+
+                "B2C ERROR:",
+
+                error.response?.data || error.message
+
+            );
+
+            throw new Error(
+
+                "Failed to send B2C payment."
+
+            );
+
+        }
+
+    }
+
 }
 
-module.exports = new MpesaService();
+
+module.exports =
+    new MpesaService();

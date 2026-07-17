@@ -1,3 +1,4 @@
+console.log("walletRoutes.js loaded");
 const express = require('express');
 const {
   getWalletDetails,
@@ -53,7 +54,30 @@ router.post('/simulate-stk', protect, async (req, res) => {
       }
     }
   };
+ 
 
+// Wallet routes
+router.get("/", protect, getWalletDetails);
+router.get("/transactions", protect, getWalletTransactions);
+
+
+// Deposit and withdrawal routes
+router.post("/deposit", protect, depositFunds);
+router.post("/withdraw", protect, withdrawFunds);
+
+
+// M-Pesa routes
+router.post("/mpesa-deposit", protect, mpesaDeposit);
+router.post("/mpesa-withdraw", protect, mpesaWithdraw);
+
+
+// M-Pesa callback routes
+router.post("/mpesa-callback", handleStkCallback);
+router.post("/mpesa-b2c-result", handleB2CResult);
+router.post("/mpesa-b2c-timeout", handleB2CTimeout);
+
+
+module.exports = router;
   // Call handler directly
   try {
     await handleStkCallback({ body: simulated }, { status: (code) => ({ json: (obj) => obj }) });
@@ -62,5 +86,5 @@ router.post('/simulate-stk', protect, async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
+console.log("Wallet routes loaded");
 module.exports = router;

@@ -39,7 +39,8 @@ initSocketServer(server);
 const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
   ? process.env.CORS_ALLOWED_ORIGINS.split(',')
   : ['http://localhost:3000'];
-
+console.log(process.env.MPESA_CONSUMER_KEY);
+console.log(process.env.MPESA_SHORTCODE);
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -98,6 +99,30 @@ app.use('/api/ai', require('./routes/ai'));
 app.use('/api/ride-requests', require('./routes/rideRequestRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 
+app.use(
+
+"/api/mpesa",
+
+require("./routes/mpesa.routes")
+
+);
+
+app.post(
+
+"/api/mpesa/callback",
+
+(req,res)=>{
+
+console.log(req.body);
+
+
+// update transaction status
+
+res.sendStatus(200);
+
+}
+
+);
 // Error Handler Middleware
 app.use(errorHandler);
 
@@ -108,3 +133,11 @@ server.listen(PORT, () => {
   console.log(`📍 Local: http://localhost:${PORT}`);
   console.log(`🌐 API: http://localhost:${PORT}/api`);
 });
+const { getAccessToken } = require("./services/mpesaService");
+
+(async () => {
+    const mpesaService = require("./services/mpesaService");
+    const token = await mpesaService.getAccessToken();
+    console.log("ACCESS TOKEN:");
+    console.log(token);
+})();

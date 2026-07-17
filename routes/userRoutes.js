@@ -1,12 +1,22 @@
-const express = require('express');
-const { getUsers, getUsersByRole, updateUserProfile } = require('../controllers/userController');
-const { protect } = require('../middleware/authMiddleware');
-const { authorize } = require('../middleware/adminMiddleware');
+const express = require("express");
 
 const router = express.Router();
 
-router.get('/', protect, authorize('admin'), getUsers);
-router.get('/role/:roleName', protect, getUsersByRole);
-router.put('/profile', protect, updateUserProfile);
+const {
+    getUsers,
+    getUsersByRole,
+    updateUserProfile,
+} = require("../controllers/userController");
+
+const { protect } = require("../middleware/authMiddleware");
+
+// Any authenticated user can view users.
+router.get("/", protect, getUsers);
+
+// Any authenticated user can filter users by role.
+router.get("/role/:roleName", protect, getUsersByRole);
+
+// Users can update their own profile.
+router.put("/profile", protect, updateUserProfile);
 
 module.exports = router;
