@@ -54,6 +54,7 @@ function initializeMockData() {
       role: 'buyer',
       avatar: 'https://i.pravatar.cc/150?img=1',
       rating: 4.5,
+      isEmailVerified: true,
       createdAt: new Date()
     },
     {
@@ -65,6 +66,7 @@ function initializeMockData() {
       role: 'seller',
       avatar: 'https://i.pravatar.cc/150?img=2',
       rating: 4.8,
+      isEmailVerified: true,
       createdAt: new Date()
     },
     {
@@ -76,6 +78,7 @@ function initializeMockData() {
       role: 'service_provider',
       avatar: 'https://i.pravatar.cc/150?img=3',
       rating: 4.6,
+      isEmailVerified: true,
       createdAt: new Date()
     },
     {
@@ -87,6 +90,7 @@ function initializeMockData() {
       role: 'rider',
       avatar: 'https://i.pravatar.cc/150?img=4',
       rating: 4.9,
+      isEmailVerified: true,
       createdAt: new Date()
     },
     {
@@ -98,6 +102,7 @@ function initializeMockData() {
       role: 'freelancer',
       avatar: 'https://i.pravatar.cc/150?img=5',
       rating: 4.7,
+      isEmailVerified: true,
       createdAt: new Date()
     }
   ];
@@ -278,6 +283,7 @@ const mockHelpers = {
     const newUser = {
       _id: 'user' + Date.now(),
       ...userData,
+      isEmailVerified: userData.isEmailVerified !== undefined ? userData.isEmailVerified : true,
       createdAt: new Date()
     };
     mockDB.users.push(newUser);
