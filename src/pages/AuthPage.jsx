@@ -1,5 +1,4 @@
-import ReCAPTCHA from "react-google-recaptcha";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -7,7 +6,6 @@ import { Lock, Mail, User, Phone, Check } from 'lucide-react';
 import { validateEmail, validatePhone } from '../utils/helpers';
 
 
-const RECAPTCHA_SITE_KEY = '6LerrkMtAAAAANH_kPf70sLLbILlfHFRTofnHJoB';
 const LAST_EMAIL_STORAGE_KEY = 'Netsoko_last_email';
 
 const normalizeEmail = (value) => value.trim().toLowerCase();
@@ -68,13 +66,6 @@ const AuthPage = ({ isLogin }) => {
       });
     }
   };
-  const handleCaptchaChange = (token) => {
-    setCaptchaToken(token);
-};
-
-const handleCaptchaExpired = () => {
-    setCaptchaToken("");
-};
 
   useEffect(() => {
     const savedEmail = localStorage.getItem(LAST_EMAIL_STORAGE_KEY);
@@ -102,12 +93,6 @@ const handleCaptchaExpired = () => {
 
     if (!validateEmail(normalizedEmail)) {
       setError('Please enter a valid email address.');
-      setLoading(false);
-      return;
-    }
-
-    if (!captchaToken) {
-      setError('Please complete the reCAPTCHA challenge.');
       setLoading(false);
       return;
     }
@@ -273,20 +258,6 @@ const handleCaptchaExpired = () => {
               </div>
             )}
 
-            <div className="flex justify-center rounded-xl border border-gray-700/60 bg-gray-800/40 px-3 py-2">
-
-    <ReCAPTCHA
-        sitekey={RECAPTCHA_SITE_KEY}
-        onChange={handleCaptchaChange}
-        onExpired={handleCaptchaExpired}
-    />
-
-</div>
-
-            <p className="text-[11px] text-gray-500 text-center leading-5">
-              This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" className="text-brand hover:underline">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" className="text-brand hover:underline">Terms of Service</a> apply.
-            </p>
-
             {error && (
               <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-3 text-red-400 text-sm">
                 {error}
@@ -295,10 +266,7 @@ const handleCaptchaExpired = () => {
 
             <button
               type="submit"
-              disabled={
-    loading ||
-    !captchaToken
-}
+              disabled={loading}
               className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-xl hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
