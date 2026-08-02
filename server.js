@@ -38,7 +38,7 @@ initSocketServer(server);
 // Configure CORS to allow origins from environment or fallback to localhost client
 const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
   ? process.env.CORS_ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:3000'];
+  : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'];
 console.log(process.env.MPESA_CONSUMER_KEY);
 console.log(process.env.MPESA_SHORTCODE);
 app.use(
