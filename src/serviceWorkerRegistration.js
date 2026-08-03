@@ -4,6 +4,7 @@ export function registerServiceWorker() {
   if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
     window.addEventListener('load', async () => {
       try {
+        await unregisterServiceWorker();
         const registration = await navigator.serviceWorker.register(SERVICE_WORKER_FILE);
         console.log('Service Worker registered:', registration.scope);
       } catch (error) {
@@ -13,10 +14,10 @@ export function registerServiceWorker() {
   }
 }
 
-export function unregisterServiceWorker() {
+export async function unregisterServiceWorker() {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => registration.unregister());
-    });
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((registration) => registration.unregister()));
+    console.log('Service Worker unregistered:', registrations.length);
   }
 }
