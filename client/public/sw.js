@@ -1,13 +1,10 @@
-const CACHE_NAME = 'netsoko-pwa-v1';
+const CACHE_NAME = 'netsoko-pwa-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/icons/192.png',
   '/icons/512.png',
-  '/src/main.jsx',
-  '/src/App.jsx',
-  '/src/styles/globals.css',
 ];
 
 self.addEventListener('install', (event) => {
@@ -30,6 +27,23 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  // For navigations, try network first and fall back to cached index.html.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', responseClone));
+            return response;
+          }
+          return caches.match('/index.html');
+        })
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {

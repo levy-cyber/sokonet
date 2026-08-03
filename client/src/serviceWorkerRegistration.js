@@ -6,6 +6,17 @@ export function registerServiceWorker() {
       try {
         const registration = await navigator.serviceWorker.register(SERVICE_WORKER_FILE);
         console.log('Service Worker registered:', registration.scope);
+
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('New service worker installed and ready to activate.');
+              }
+            });
+          }
+        });
       } catch (error) {
         console.error('Service Worker registration failed:', error);
       }
