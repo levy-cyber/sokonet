@@ -1,7 +1,23 @@
 import axios from 'axios';
 
+const getDefaultApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && envUrl.trim() !== '') {
+    return envUrl;
+  }
+
+  const hostname = window.location.hostname;
+  const localHosts = ['localhost', '127.0.0.1', '::1', '0.0.0.0'];
+  const isLocal = localHosts.includes(hostname) || hostname.endsWith('.localhost');
+
+  return isLocal ? `${window.location.protocol}//localhost:5000/api` : '/api';
+};
+
+const defaultApiUrl = getDefaultApiUrl();
+console.debug('Netsoko API base URL:', defaultApiUrl);
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: defaultApiUrl,
   headers: {
     'Content-Type': 'application/json',
   },
