@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import api from '../services/api';
+import api, { API_BASE_URL } from '../services/api';
 
 export const AuthContext = createContext();
 
@@ -56,7 +56,10 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.message || 'Login failed');
       }
     } catch (error) {
-      const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Login failed. Please try again.';
+      const message =
+        !error.response && error.message?.toLowerCase().includes('network error')
+          ? `Network error: cannot reach backend at ${API_BASE_URL}. Check that your API server is running and VITE_API_URL is configured correctly.`
+          : error.response?.data?.message || error.response?.data?.error || error.message || 'Login failed. Please try again.';
       console.error('Login error:', message, error);
       throw new Error(message);
     }
@@ -97,7 +100,12 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.message || 'Registration failed');
       }
     } catch (error) {
-      throw new Error(error.response?.data?.message || error.response?.data?.error || error.message || 'Registration failed.');
+      const message =
+        !error.response && error.message?.toLowerCase().includes('network error')
+          ? `Network error: cannot reach backend at ${API_BASE_URL}. Check that your API server is running and VITE_API_URL is configured correctly.`
+          : error.response?.data?.message || error.response?.data?.error || error.message || 'Registration failed.';
+      console.error('Register error:', message, error);
+      throw new Error(message);
     }
   };
 

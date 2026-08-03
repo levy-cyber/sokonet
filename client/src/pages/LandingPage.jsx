@@ -1,18 +1,28 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiArrowRight, FiShoppingCart, FiShield, FiTrendingUp } from 'react-icons/fi';
+import {
+  FiArrowRight,
+  FiShoppingCart,
+  FiShield,
+  FiTrendingUp,
+  FiTruck,
+  FiUsers,
+  FiBox,
+  FiServer,
+} from 'react-icons/fi';
 
 const LandingPage = () => {
   return (
     <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-      <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
+      <div className="grid gap-16 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
         <div>
-          <p className="text-sm uppercase tracking-[0.32em] text-brand/90 font-semibold">Welcome to Netsoko</p>
+          <p className="text-sm uppercase tracking-[0.32em] text-brand/90 font-semibold">One platform for every role</p>
           <h1 className="mt-6 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Netsoko Dashboard Preview — before login, before signup.
+            Netsoko brings buyers, sellers, riders, service providers, escrow and wallet services together.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-            Visitors see the customer-ready dashboard first, then choose Login or Sign Up from the top-right buttons.
+            Show your visitors the full Netsoko experience before they sign in: commerce, bookings, delivery, secure escrow, payments,
+            live analytics and easy role switching, all in one intelligent marketplace hub.
           </p>
 
           <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -32,33 +42,100 @@ const LandingPage = () => {
           </div>
 
           <div className="mt-14 grid gap-4 sm:grid-cols-2">
-            <Panel icon={FiTrendingUp} title="Live Insights" text="Impress customers with real dashboard metrics before they become users." />
-            <Panel icon={FiShield} title="Trusted Platform" text="Showcase secure escrow and wallet readiness to build trust instantly." />
+            <FeatureCard
+              icon={FiUsers}
+              title="Multi-role portal"
+              text="Buy, sell, ride, and deliver from a single shared marketplace platform."
+            />
+            <FeatureCard
+              icon={FiServer}
+              title="Secure escrow & wallet"
+              text="Handle payments and escrow securely with built-in wallet, payout and settlement workflows."
+            />
           </div>
         </div>
 
-        <div className="space-y-6 rounded-[2rem] border border-white/10 bg-slate-950/85 p-6 shadow-2xl shadow-black/40 lg:p-8">
+        <div className="rounded-[2rem] border border-white/10 bg-slate-950/85 p-6 shadow-2xl shadow-black/40 lg:p-8">
           <div className="flex items-center justify-between text-sm text-slate-400">
-            <span className="font-medium text-white">Dashboard Preview</span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Live</span>
+            <span className="font-medium text-white">Netsoko portal overview</span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Preview</span>
           </div>
 
-          <div className="grid gap-4 rounded-[1.75rem] bg-slate-900/90 p-5 shadow-inner shadow-black/30">
-            <PreviewCard title="Total Orders" value="8,743" delta="+12.4%" />
+          <div className="mt-6 grid gap-4 rounded-[1.75rem] bg-slate-900/90 p-5 shadow-inner shadow-black/30">
+            <DashboardStat title="Marketplace traffic" value="18.2K" delta="+18.3%" />
             <div className="grid gap-4 sm:grid-cols-2">
-              <MiniCard label="Wallet Balance" value="KES 124,650" />
-              <MiniCard label="Pending Orders" value="28" />
+              <MiniStat label="Live sellers" value="1,842" />
+              <MiniStat label="Rider trips" value="9,320" />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <MiniCard label="New Sellers" value="1,204" />
-              <MiniCard label="Active Riders" value="67" />
+              <MiniStat label="Escrow value" value="KES 8.4M" />
+              <MiniStat label="Requests today" value="624" />
             </div>
           </div>
+
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            <PortalCard icon={FiShoppingCart} title="Buyer" description="Browse products, place orders, and track delivery in one chat-friendly portal." />
+            <PortalCard icon={FiBox} title="Seller" description="Manage inventory, orders, and store performance with one dashboard." />
+            <PortalCard icon={FiTruck} title="Rider" description="Accept deliveries, follow routes, and check earnings from the rider panel." />
+            <PortalCard icon={FiShield} title="Service Provider" description="Offer professional jobs, receive bookings, and grow your services." />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-20 rounded-[2rem] border border-white/10 bg-slate-950/80 p-8 shadow-2xl shadow-black/40">
+        <h2 className="text-3xl font-bold text-white">What Netsoko can do for you</h2>
+        <p className="mt-3 max-w-2xl text-lg text-slate-300">
+          From product sales to gig work, delivery logistics to escrow-backed payments, Netsoko is built for the full business lifecycle.
+        </p>
+
+        <div className="mt-10 grid gap-6 lg:grid-cols-3">
+          <PortalFeature title="Unified commerce" description="One login gives access to marketplace, services, rider logistics, wallet, and escrow." />
+          <PortalFeature title="Trusted payment flow" description="Integrated wallet, escrow, and payout controls keep funds secure for all parties." />
+          <PortalFeature title="Live analytics" description="Dashboard insights show order volume, wallet balance, rider activity and seller performance." />
         </div>
       </div>
     </div>
   );
 };
+
+const FeatureCard = ({ icon: Icon, title, text }) => (
+  <div className="rounded-3xl border border-white/10 bg-slate-950/90 p-6 shadow-[0_20px_60px_-40px_rgba(16,185,129,0.35)]">
+    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-black">
+      <Icon className="h-5 w-5" />
+    </div>
+    <p className="mt-5 text-lg font-semibold text-white">{title}</p>
+    <p className="mt-3 text-sm leading-6 text-slate-400">{text}</p>
+  </div>
+);
+
+const DashboardStat = ({ title, value, delta }) => (
+  <div className="rounded-3xl bg-slate-950/90 border border-white/10 p-5">
+    <div className="flex items-center justify-between gap-4">
+      <p className="text-sm uppercase tracking-[0.3em] text-slate-500">{title}</p>
+      <span className="text-sm text-brand">{delta}</span>
+    </div>
+    <p className="mt-4 text-3xl font-semibold text-white">{value}</p>
+  </div>
+);
+
+const MiniStat = ({ label, value }) => (
+  <div className="rounded-3xl bg-slate-950/90 border border-white/10 p-4">
+    <p className="text-xs uppercase tracking-[0.3em] text-slate-500">{label}</p>
+    <p className="mt-3 text-2xl font-semibold text-white">{value}</p>
+  </div>
+);
+
+const PortalCard = ({ icon: Icon, title, description }) => (
+  <div className="rounded-3xl border border-white/10 bg-slate-950/90 p-5 transition hover:-translate-y-1 hover:border-brand/40 hover:shadow-[0_20px_60px_-30px_rgba(16,185,129,0.4)]">
+    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand text-black">
+      <Icon className="h-5 w-5" />
+    </div>
+    <h3 className="mt-5 text-lg font-semibold text-white">{title}</h3>
+    <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
+  </div>
+);
+
+export default LandingPage;
 
 const Panel = ({ icon: Icon, title, text }) => (
   <div className="rounded-3xl border border-white/10 bg-slate-950/90 p-6 shadow-[0_20px_60px_-40px_rgba(16,185,129,0.35)]">

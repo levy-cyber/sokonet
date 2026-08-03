@@ -31,6 +31,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
+  timeout: 15000,
 });
 
 export const API_BASE_URL = defaultApiUrl; // Export for debug display in auth pages
