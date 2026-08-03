@@ -135,6 +135,16 @@ const PortalCard = ({ icon: Icon, title, description }) => (
   </div>
 );
 
+const PortalFeature = ({ title, description }) => (
+  <div className="rounded-3xl border border-white/10 bg-slate-950/90 p-6 shadow-[0_20px_60px_-40px_rgba(16,185,129,0.35)]">
+    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-black">
+      <FiTrendingUp className="h-5 w-5" />
+    </div>
+    <p className="mt-5 text-lg font-semibold text-white">{title}</p>
+    <p className="mt-3 text-sm leading-6 text-slate-400">{description}</p>
+  </div>
+);
+
 const Panel = ({ icon: Icon, title, text }) => (
   <div className="rounded-3xl border border-white/10 bg-slate-950/90 p-6 shadow-[0_20px_60px_-40px_rgba(16,185,129,0.35)]">
     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-black">
