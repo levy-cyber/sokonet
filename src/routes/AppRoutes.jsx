@@ -2,10 +2,12 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import AuthLayout from '../layouts/AuthLayout';
+import PublicLayout from '../layouts/PublicLayout';
 import ProtectedRoute from './ProtectedRoute';
 
 // Pages
 import AuthPage from '../pages/AuthPage';
+import LandingPage from '../pages/LandingPage';
 import Dashboard from '../pages/Dashboard';
 import Marketplace from '../pages/Marketplace';
 import FoodMarketplace from '../pages/FoodMarketplace';
@@ -34,13 +36,17 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Auth routes */}
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/about" element={<AboutPage />} />
+      </Route>
+
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<AuthPage isLogin={true} />} />
         <Route path="/register" element={<AuthPage isLogin={false} />} />
       </Route>
 
       {/* Public auth-related routes */}
-      <Route path="/about" element={<AboutPage />} />
       <Route path="/verify-otp" element={<OTPVerificationPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
@@ -49,7 +55,7 @@ const AppRoutes = () => {
       {/* Protected Main Layout routes - All accessible to authenticated users */}
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout title="Dashboard" />}>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Route>
 
         <Route element={<MainLayout title="Marketplace Catalog" />}>
