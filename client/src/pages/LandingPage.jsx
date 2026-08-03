@@ -62,13 +62,13 @@ const LandingPage = () => {
           </div>
 
           <div className="mt-6 grid gap-4 rounded-[1.75rem] bg-slate-900/90 p-5 shadow-inner shadow-black/30">
-            <DashboardStat title="Marketplace traffic" value="18.2K" delta="+18.3%" />
+            <DashboardStat title="Marketplace traffic" value="504" delta="+0.0%" />
             <div className="grid gap-4 sm:grid-cols-2">
-              <MiniStat label="Live sellers" value="1,842" />
-              <MiniStat label="Rider trips" value="9,320" />
+              <MiniStat label="Live sellers" value="67" />
+              <MiniStat label="Rider trips" value="400" />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <MiniStat label="Escrow value" value="KES 8.4M" />
+              <MiniStat label="Escrow value" value="KES 2.6M" />
               <MiniStat label="Requests today" value="624" />
             </div>
           </div>
