@@ -1,6 +1,24 @@
 import axios from 'axios';
 
-const defaultApiUrl = import.meta.env.VITE_API_URL || ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:5000/api' : '/api');
+const getDefaultApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && envUrl.trim() !== '') {
+    return envUrl;
+  }
+
+  const hostname = window.location.hostname;
+  const localHosts = ['localhost', '127.0.0.1', '::1', '0.0.0.0'];
+  const isLocalHost = localHosts.includes(hostname) || hostname.endsWith('.localhost');
+
+  if (isLocalHost) {
+    return `${window.location.protocol}//localhost:5000/api`;
+  }
+
+  return '/api';
+};
+
+const defaultApiUrl = getDefaultApiUrl();
+console.debug('Netsoko API base URL:', defaultApiUrl);
 
 const api = axios.create({
   baseURL: defaultApiUrl,
