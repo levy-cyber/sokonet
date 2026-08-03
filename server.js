@@ -47,17 +47,28 @@ const defaultDevOrigins = [
   'http://0.0.0.0:5173',
   'http://0.0.0.0:10000',
 ];
-const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
-  ? process.env.CORS_ALLOWED_ORIGINS.split(',')
-  : defaultDevOrigins;
+const envOrigins = process.env.CORS_ALLOWED_ORIGINS
+  ? process.env.CORS_ALLOWED_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+  : [];
+const clientUrl = process.env.CLIENT_URL?.trim();
+const allowedOrigins = [...defaultDevOrigins, ...envOrigins];
+if (clientUrl && !allowedOrigins.includes(clientUrl)) {
+  allowedOrigins.push(clientUrl);
+}
+const allowAllOrigins = !process.env.CORS_ALLOWED_ORIGINS && !process.env.CLIENT_URL;
 console.log('Allowed CORS origins:', allowedOrigins);
+console.log('Allow all origins fallback:', allowAllOrigins);
 console.log(process.env.MPESA_CONSUMER_KEY);
 console.log(process.env.MPESA_SHORTCODE);
 app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1 || /https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?/.test(origin)) {
+      if (
+        allowAllOrigins ||
+        allowedOrigins.includes(origin) ||
+        /https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?/.test(origin)
+      ) {
         return callback(null, true);
       }
       return callback(new Error('Not allowed by CORS'));

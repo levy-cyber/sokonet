@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const getDefaultApiUrl = () => {
-  const envUrl = import.meta.env.VITE_API_URL;
-  if (envUrl && envUrl.trim() !== '') {
+  const envUrl = import.meta.env.VITE_API_URL?.trim();
+  if (envUrl) {
     return envUrl;
   }
 
@@ -10,7 +10,17 @@ const getDefaultApiUrl = () => {
   const localHosts = ['localhost', '127.0.0.1', '::1', '0.0.0.0'];
   const isLocal = localHosts.includes(hostname) || hostname.endsWith('.localhost');
 
-  return isLocal ? `${window.location.protocol}//localhost:5000/api` : '/api';
+  const fallbackUrl = isLocal
+    ? `${window.location.protocol}//localhost:5000/api`
+    : `${window.location.origin}/api`;
+
+  if (!isLocal) {
+    console.warn(
+      'Netsoko API base URL fallback: VITE_API_URL is not set. Using same-origin /api endpoint.',
+    );
+  }
+
+  return fallbackUrl;
 };
 
 const defaultApiUrl = getDefaultApiUrl();
@@ -22,6 +32,9 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+export const API_BASE_URL = defaultApiUrl; // Export for debug display in auth pages
+
 
 // Request interceptor to automatically attach authorization header
 api.interceptors.request.use(

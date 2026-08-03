@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Lock, Mail, User, Phone, Check } from 'lucide-react';
 import { validateEmail, validatePhone } from '../utils/helpers';
+import { API_BASE_URL } from '../services/api';
 
 
 const LAST_EMAIL_STORAGE_KEY = 'Netsoko_last_email';
@@ -82,7 +83,7 @@ const AuthPage = ({ isLogin }) => {
 
 
   const handleSubmit = async (e) => {
-  
+    e.preventDefault();
     setLoading(true);
     setError('');
 
@@ -279,6 +280,12 @@ const AuthPage = ({ isLogin }) => {
               )}
             </button>
           </form>
+
+          <div className="mt-4 text-center text-xs text-gray-500">
+            <p>
+              API target: <span className="text-white font-medium break-all">{API_BASE_URL}</span>
+            </p>
+          </div>
 
           <div className="mt-6 text-center">
             <p className="text-gray-400 text-sm">
