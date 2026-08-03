@@ -56,7 +56,9 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.message || 'Login failed');
       }
     } catch (error) {
-      throw new Error(error.response?.data?.message || error.message || 'Login failed. Please try again.');
+      const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Login failed. Please try again.';
+      console.error('Login error:', message, error);
+      throw new Error(message);
     }
   };
 

@@ -36,16 +36,28 @@ initSocketServer(server);
 
 // Security middleware
 // Configure CORS to allow origins from environment or fallback to localhost client
+const defaultDevOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:10000',
+  'http://127.0.0.1:10000',
+  'http://0.0.0.0:3000',
+  'http://0.0.0.0:5173',
+  'http://0.0.0.0:10000',
+];
 const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
   ? process.env.CORS_ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'];
+  : defaultDevOrigins;
+console.log('Allowed CORS origins:', allowedOrigins);
 console.log(process.env.MPESA_CONSUMER_KEY);
 console.log(process.env.MPESA_SHORTCODE);
 app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1) {
+      if (allowedOrigins.indexOf(origin) !== -1 || /https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?/.test(origin)) {
         return callback(null, true);
       }
       return callback(new Error('Not allowed by CORS'));

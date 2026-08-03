@@ -8,13 +8,9 @@ const getDefaultApiUrl = () => {
 
   const hostname = window.location.hostname;
   const localHosts = ['localhost', '127.0.0.1', '::1', '0.0.0.0'];
-  const isLocalHost = localHosts.includes(hostname) || hostname.endsWith('.localhost');
+  const isLocal = localHosts.includes(hostname) || hostname.endsWith('.localhost');
 
-  if (isLocalHost) {
-    return `${window.location.protocol}//localhost:5000/api`;
-  }
-
-  return '/api';
+  return isLocal ? `${window.location.protocol}//localhost:5000/api` : '/api';
 };
 
 const defaultApiUrl = getDefaultApiUrl();
