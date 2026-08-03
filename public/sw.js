@@ -1,19 +1,16 @@
-const CACHE_NAME = 'netsoko-pwa-v1';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'netsoko-pwa-v2';
+const PRECACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/icons/192.png',
   '/icons/512.png',
-  '/src/main.jsx',
-  '/src/App.jsx',
-  '/src/styles/globals.css',
 ];
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
   );
 });
 
@@ -31,6 +28,21 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          }
+          return response;
+        })
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -45,7 +57,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
           return response;
         })
-        .catch(() => caches.match('/index.html'));
+        .catch(() => caches.match(event.request));
     })
   );
 });
