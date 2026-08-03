@@ -135,8 +135,6 @@ const PortalCard = ({ icon: Icon, title, description }) => (
   </div>
 );
 
-export default LandingPage;
-
 const Panel = ({ icon: Icon, title, text }) => (
   <div className="rounded-3xl border border-white/10 bg-slate-950/90 p-6 shadow-[0_20px_60px_-40px_rgba(16,185,129,0.35)]">
     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-black">

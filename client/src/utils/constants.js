@@ -1,4 +1,8 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const PRODUCTION_API_URL = 'https://sokonet-api-production.up.railway.app/api';
+const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+const isNettsokoHost = hostname === 'nettsoko.com' || hostname === 'www.nettsoko.com' || hostname.endsWith('.nettsoko.com');
+
+export const API_BASE_URL = import.meta.env.VITE_API_URL?.trim() || (isNettsokoHost ? PRODUCTION_API_URL : 'http://localhost:5000/api');
 
 export const CATEGORIES = [
   { id: 'electronics', name: 'Electronics' },

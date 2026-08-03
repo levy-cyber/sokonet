@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+const PRODUCTION_API_URL = 'https://sokonet-api-production.up.railway.app/api';
+
 const getDefaultApiUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL?.trim();
   if (envUrl) {
@@ -9,12 +11,17 @@ const getDefaultApiUrl = () => {
   const hostname = window.location.hostname;
   const localHosts = ['localhost', '127.0.0.1', '::1', '0.0.0.0'];
   const isLocal = localHosts.includes(hostname) || hostname.endsWith('.localhost');
+  const isProductionHost = hostname === 'nettsoko.com' || hostname === 'www.nettsoko.com' || hostname.endsWith('.nettsoko.com');
+
+  if (isProductionHost) {
+    return PRODUCTION_API_URL;
+  }
 
   const fallbackUrl = isLocal
     ? `${window.location.protocol}//localhost:5000/api`
     : `${window.location.origin}/api`;
 
-  if (!isLocal) {
+  if (!isLocal && !isProductionHost) {
     console.warn(
       'Netsoko API base URL fallback: VITE_API_URL is not set. Using same-origin /api endpoint.',
     );
@@ -30,38 +37,48 @@ const api = axios.create({
   baseURL: defaultApiUrl,
   headers: {
     'Content-Type': 'application/json',
+    Accept: 'application/json',
   },
   withCredentials: true,
-  timeout: 15000,
+  timeout: 20000,
 });
 
 export const API_BASE_URL = defaultApiUrl; // Export for debug display in auth pages
 
-// Request interceptor to automatically attach authorization header
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('Netsoko_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    console.debug('API request:', config.method, config.baseURL + config.url, config.data);
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error),
 );
 
-// Response interceptor to handle errors globally
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.debug('API response:', response.status, response.config.url, response.data);
+    return response;
+  },
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Clear token and redirect if unauthorized
       localStorage.removeItem('Netsoko_token');
       localStorage.removeItem('Netsoko_user');
     }
-    return Promise.reject(error);
-  }
+
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      (error.request ? `Network Error: Unable to reach ${defaultApiUrl}` : error.message) ||
+      'API request failed';
+
+    const normalizedError = new Error(message);
+    normalizedError.status = error.response?.status;
+    normalizedError.config = error.config;
+    return Promise.reject(normalizedError);
+  },
 );
 
 export default api;
