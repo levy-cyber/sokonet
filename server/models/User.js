@@ -50,6 +50,39 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    twoFactorEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    webauthnCredentials: [
+      {
+        credentialID: {
+          type: String,
+        },
+        publicKey: {
+          type: String,
+        },
+        counter: {
+          type: Number,
+          default: 0,
+        },
+        transports: {
+          type: [String],
+          default: [],
+        },
+        name: {
+          type: String,
+          default: '',
+        },
+      },
+    ],
+    webauthnCurrentChallenge: {
+      type: String,
+    },
+    webauthnChallengeType: {
+      type: String,
+      enum: ['registration', 'authentication'],
+    },
     otp: {
       type: String,
     },

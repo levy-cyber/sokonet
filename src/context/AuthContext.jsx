@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const { data } = await api.post('/auth/login', { email, password });
-      if (data.success) {
+      if (data.success && !data.twoFactorRequired) {
         const userData = {
           _id: data._id,
           name: data.name,
@@ -52,9 +52,10 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         localStorage.setItem('Netsoko_token', data.token);
         localStorage.setItem('Netsoko_user', JSON.stringify(userData));
-      } else {
-        throw new Error(data.message || 'Login failed');
+        return data;
       }
+
+      return data;
     } catch (error) {
       const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Login failed. Please try again.';
       console.error('Login error:', message, error);
@@ -87,12 +88,6 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         localStorage.setItem('Netsoko_token', data.token);
         localStorage.setItem('Netsoko_user', JSON.stringify(userData));
-        // Automatically send OTP after registration
-        try {
-          await api.post('/auth/send-otp', { email });
-        } catch (otpErr) {
-          console.log('OTP send failed (non-blocking):', otpErr.message);
-        }
       } else {
         throw new Error(data.message || 'Registration failed');
       }

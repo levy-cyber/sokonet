@@ -5,20 +5,28 @@ const generateToken = require('../utils/generateToken');
 const { USE_MOCK, mockHelpers } = require('../config/db');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
+} = require('@simplewebauthn/server');
 const emailService = require('../services/emailService');
 
 // Admin credentials
 const ADMIN_PASSWORD = 'Netsoko234';
 
-// Helper function to generate OTP
-const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-};
-
 // Helper function to generate reset token
 const generateResetToken = () => {
   return crypto.randomBytes(32).toString('hex');
 };
+
+const getWebAuthnRp = () => ({
+  id: process.env.WEBAUTHN_RP_ID || 'localhost',
+  name: process.env.WEBAUTHN_RP_NAME || 'Netsoko',
+});
+
+const getWebAuthnOrigin = () => process.env.WEBAUTHN_ORIGIN || 'http://localhost:3000';
 
 const normalizeEmail = (email) => (email || '').trim().toLowerCase();
 
@@ -27,6 +35,12 @@ const isValidEmailFormat = (email) => {
 
   const re = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i;
   return re.test(email);
+};
+
+const base64UrlToBuffer = (base64urlString) => {
+  const padding = '='.repeat((4 - (base64urlString.length % 4)) % 4);
+  const base64 = (base64urlString + padding).replace(/-/g, '+').replace(/_/g, '/');
+  return Buffer.from(base64, 'base64');
 };
 
 // @desc    Register a new user
@@ -81,7 +95,7 @@ const registerUser = async (req, res) => {
         role: userRoles[0], // Primary role for backward compatibility
         roles: userRoles,
         activeRole: userActiveRole,
-        isEmailVerified: false,
+        isEmailVerified: true,
       });
 
       // Create user wallet immediately
@@ -151,8 +165,28 @@ const authUser = async (req, res) => {
       }
     }
 
-    if (user && !user.isEmailVerified) {
-      return res.status(403).json({ success: false, message: 'Please verify your email before logging in.' });
+    if (user && user.twoFactorEnabled && Array.isArray(user.webauthnCredentials) && user.webauthnCredentials.length > 0) {
+      const authOptions = generateAuthenticationOptions({
+        allowCredentials: user.webauthnCredentials.map((cred) => ({
+          id: Buffer.from(cred.credentialID, 'base64url'),
+          type: 'public-key',
+          transports: cred.transports || ['internal'],
+        })),
+        userVerification: 'required',
+      });
+
+      if (!USE_MOCK) {
+        user.webauthnCurrentChallenge = authOptions.challenge;
+        user.webauthnChallengeType = 'authentication';
+        await user.save();
+      }
+
+      return res.json({
+        success: true,
+        twoFactorRequired: true,
+        message: 'Biometric verification required.',
+        authOptions,
+      });
     }
 
     if (user) {
@@ -212,11 +246,98 @@ const getUserProfile = async (req, res) => {
   }
 };
 
-// @desc    Send OTP for email verification
-// @route   POST /api/auth/send-otp
+// @desc    Get WebAuthn registration options for biometric setup
+// @route   POST /api/auth/webauthn/register-options
+// @access  Private
+const webauthnRegisterOptions = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const options = generateRegistrationOptions({
+      rpName: getWebAuthnRp().name,
+      rpID: getWebAuthnRp().id,
+      userID: user._id.toString(),
+      userName: user.email,
+      timeout: 60000,
+      attestationType: 'none',
+      authenticatorSelection: {
+        authenticatorAttachment: 'platform',
+        userVerification: 'required',
+      },
+      supportedAlgorithmIDs: [-7, -257],
+      excludeCredentials: (user.webauthnCredentials || []).map((cred) => ({
+        id: base64UrlToBuffer(cred.credentialID),
+        type: 'public-key',
+        transports: cred.transports || ['internal'],
+      })),
+    });
+
+    user.webauthnCurrentChallenge = options.challenge;
+    user.webauthnChallengeType = 'registration';
+    await user.save();
+
+    res.json({ success: true, options });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// @desc    Verify WebAuthn registration response and save credential
+// @route   POST /api/auth/webauthn/register
+// @access  Private
+const webauthnRegister = async (req, res) => {
+  const { attestationResponse, credentialName } = req.body;
+
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const expectedChallenge = user.webauthnCurrentChallenge;
+    const verification = await verifyRegistrationResponse({
+      credential: attestationResponse,
+      expectedChallenge,
+      expectedOrigin: getWebAuthnOrigin(),
+      expectedRPID: getWebAuthnRp().id,
+      requireUserVerification: true,
+    });
+
+    if (!verification.verified) {
+      return res.status(400).json({ success: false, message: 'Biometric registration verification failed.' });
+    }
+
+    const { registrationInfo } = verification;
+
+    const credential = {
+      credentialID: attestationResponse.id,
+      publicKey: Buffer.from(registrationInfo.credentialPublicKey).toString('base64'),
+      counter: registrationInfo.counter,
+      transports: attestationResponse.transports || [],
+      name: credentialName || 'Fingerprint login',
+    };
+
+    user.webauthnCredentials = user.webauthnCredentials || [];
+    user.webauthnCredentials.push(credential);
+    user.twoFactorEnabled = true;
+    user.webauthnCurrentChallenge = undefined;
+    user.webauthnChallengeType = undefined;
+    await user.save();
+
+    res.json({ success: true, message: 'Biometric login enabled successfully.' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// @desc    Verify WebAuthn authentication assertion and complete login
+// @route   POST /api/auth/webauthn/authenticate
 // @access  Public
-const sendOTP = async (req, res) => {
-  const { email } = req.body;
+const webauthnAuthenticate = async (req, res) => {
+  const { email, assertionResponse } = req.body;
   const normalizedEmail = normalizeEmail(email);
 
   if (!normalizedEmail || !isValidEmailFormat(normalizedEmail)) {
@@ -224,96 +345,78 @@ const sendOTP = async (req, res) => {
   }
 
   try {
-    let user;
-    if (USE_MOCK) {
-      user = mockHelpers.findUser({ email });
-    } else {
-      user = await User.findOne({ email });
-    }
-
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found with this email' });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Generate OTP
-    const otp = generateOTP();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    if (USE_MOCK) {
-      user.otp = otp;
-      user.otpExpiry = otpExpiry;
-    } else {
-      user.otp = await bcrypt.hash(otp, 10);
-      user.otpExpiry = otpExpiry;
-      await user.save();
+    if (!user.webauthnCurrentChallenge || user.webauthnChallengeType !== 'authentication') {
+      return res.status(400).json({ success: false, message: 'No authentication challenge in progress.' });
     }
 
-    // Send OTP email
-    await emailService.sendOTP(normalizedEmail, otp, user.name);
+    const expectedCredential = (user.webauthnCredentials || []).find(
+      (cred) => cred.credentialID === assertionResponse.id,
+    );
 
-    res.json({
+    if (!expectedCredential) {
+      return res.status(404).json({ success: false, message: 'Authenticator not registered.' });
+    }
+
+    const verification = await verifyAuthenticationResponse({
+      credential: assertionResponse,
+      expectedChallenge: user.webauthnCurrentChallenge,
+      expectedOrigin: getWebAuthnOrigin(),
+      expectedRPID: getWebAuthnRp().id,
+      authenticator: {
+        counter: expectedCredential.counter,
+        credentialPublicKey: Buffer.from(expectedCredential.publicKey, 'base64'),
+      },
+      requireUserVerification: true,
+    });
+
+    if (!verification.verified) {
+      return res.status(400).json({ success: false, message: 'Biometric verification failed.' });
+    }
+
+    expectedCredential.counter = verification.authenticationInfo.newCounter;
+    user.webauthnCurrentChallenge = undefined;
+    user.webauthnChallengeType = undefined;
+    await user.save();
+
+    return res.json({
       success: true,
-      message: 'OTP sent successfully. Please check your email.',
-      // For development, return OTP in response (remove in production)
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone || '',
+      role: user.role,
+      roles: user.roles || [user.role],
+      activeRole: user.activeRole || user.role,
+      avatar: user.avatar,
+      isEmailVerified: user.isEmailVerified || false,
+      twoFactorEnabled: user.twoFactorEnabled || false,
+      token: generateToken(user._id),
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// @desc    Verify OTP
-// @route   POST /api/auth/verify-otp
-// @access  Public
-const verifyOTP = async (req, res) => {
-  const { email, otp } = req.body;
-  const normalizedEmail = normalizeEmail(email);
-
-  if (!normalizedEmail || !isValidEmailFormat(normalizedEmail)) {
-    return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
-  }
-
+// @desc    Disable biometric login
+// @route   POST /api/auth/webauthn/remove
+// @access  Private
+const webauthnRemove = async (req, res) => {
   try {
-    let user;
-    if (USE_MOCK) {
-      user = mockHelpers.findUser({ email: normalizedEmail });
-    } else {
-      user = await User.findOne({ email: normalizedEmail });
-    }
-
+    const user = await User.findById(req.user._id);
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found with this email' });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Check if OTP is expired
-    if (!user.otp || !user.otpExpiry || user.otpExpiry < new Date()) {
-      return res.status(400).json({ success: false, message: 'OTP has expired or is invalid. Please request a new one.' });
-    }
+    user.webauthnCredentials = [];
+    user.twoFactorEnabled = false;
+    await user.save();
 
-    let isValidOTP;
-    if (USE_MOCK) {
-      isValidOTP = user.otp === otp;
-    } else {
-      isValidOTP = await bcrypt.compare(otp, user.otp);
-    }
-
-    if (!isValidOTP) {
-      return res.status(400).json({ success: false, message: 'Invalid OTP. Please try again.' });
-    }
-
-    // Mark email as verified
-    user.isEmailVerified = true;
-    user.otp = undefined;
-    user.otpExpiry = undefined;
-
-    if (!USE_MOCK) {
-      await user.save();
-    }
-
-    res.json({
-      success: true,
-      message: 'Email verified successfully!',
-    });
+    res.json({ success: true, message: 'Biometric login disabled.' });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -447,9 +550,11 @@ module.exports = {
   registerUser,
   authUser,
   getUserProfile,
-  sendOTP,
-  verifyOTP,
   forgotPassword,
   resetPassword,
   adminLogin,
+  webauthnRegisterOptions,
+  webauthnRegister,
+  webauthnAuthenticate,
+  webauthnRemove,
 };
