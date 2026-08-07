@@ -267,6 +267,7 @@ const AuthPage = ({ isLogin }) => {
             <p className="text-gray-400 text-sm">
               {isLogin ? "Don't have an account?" : "Already have an account?"}
               <button
+                type="button"
                 onClick={() => {
                   navigate(isLogin ? '/register' : '/login');
                   setError('');
@@ -278,6 +279,7 @@ const AuthPage = ({ isLogin }) => {
             </p>
             {isLogin && (
               <button
+                type="button"
                 onClick={() => {
                   navigate('/forgot-password');
                   setError('');
