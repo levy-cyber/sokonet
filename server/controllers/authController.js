@@ -58,12 +58,16 @@ const registerUser = async (req, res) => {
     let userExists;
 
     if (USE_MOCK) {
-      userExists = mockHelpers.findUser({ email: normalizedEmail }) || mockHelpers.findUser({ phone });
+      const userByEmail = mockHelpers.findUser({ email: normalizedEmail });
+      const userByPhone = mockHelpers.findUser({ phone });
+      console.log('DEBUG registerUser MOCK lookup', { normalizedEmail, phone, userByEmail, userByPhone });
+      userExists = userByEmail || userByPhone;
     } else {
       userExists = await User.findOne({ $or: [{ email: normalizedEmail }, { phone }] });
     }
 
     if (userExists) {
+      console.log('DEBUG registerUser: userExists', { normalizedEmail, phone, exists: true });
       return res.status(400).json({ success: false, message: 'User already exists with this email or phone' });
     }
 

@@ -276,6 +276,7 @@ const mockHelpers = {
   findUser: (query) => {
     if (query.email) return mockDB.users.find(u => u.email === query.email);
     if (query._id) return mockDB.users.find(u => u._id === query._id);
+    if (query.phone) return mockDB.users.find(u => u.phone === query.phone);
     return mockDB.users.filter(u => Object.keys(query).every(key => u[key] === query[key]));
   },
 
