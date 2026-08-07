@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Lock, Mail, User, Phone, Check } from 'lucide-react';
 import { startAuthentication } from '@simplewebauthn/browser';
-import api from '../services/api';
+import api, { API_BASE_URL } from '../services/api';
 import { validateEmail, validatePhone } from '../utils/helpers';
 
 const normalizeEmail = (value) => value.trim().toLowerCase();
