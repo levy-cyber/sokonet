@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Lock, Mail, User, Phone, Check } from 'lucide-react';
+import { startAuthentication } from '@simplewebauthn/browser';
+import api from '../services/api';
 import { validateEmail, validatePhone } from '../utils/helpers';
-import { API_BASE_URL } from '../services/api';
 
 const normalizeEmail = (value) => value.trim().toLowerCase();
 
@@ -19,7 +20,7 @@ const AuthPage = ({ isLogin }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login, register } = useAuth();
+  const { login, register, completeBiometricLogin } = useAuth();
   const navigate = useNavigate();
 
   const availableRoles = [
@@ -59,25 +60,50 @@ const AuthPage = ({ isLogin }) => {
     }
   };
 
+  const performBiometricAuth = async (authOptions, email) => {
+    try {
+      const assertionResponse = await startAuthentication(authOptions);
+      const { data } = await api.post('/auth/webauthn/authenticate', {
+        email,
+        assertionResponse,
+      });
+      if (!data.success) {
+        throw new Error(data.message || 'Biometric authentication failed');
+      }
+      completeBiometricLogin(data);
+      return data;
+    } catch (err) {
+      throw new Error(err.message || 'Fingerprint login failed. Please try again.');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
+    const normalizedEmail = normalizeEmail(formData.email);
     if (!isLogin && !validatePhone(formData.phone)) {
       setError('Please enter a valid 10-digit phone number.');
+      setLoading(false);
+      return;
+    }
+    if (!validateEmail(normalizedEmail)) {
+      setError('Please enter a valid email address.');
       setLoading(false);
       return;
     }
 
     try {
       if (isLogin) {
-        await login(formData.email, formData.password);
-        navigate('/');
+        const data = await login(normalizedEmail, formData.password);
+        if (data.twoFactorRequired && data.authOptions) {
+          await performBiometricAuth(data.authOptions, normalizedEmail);
+        }
+        navigate('/dashboard');
       } else {
-        await register(formData.name, formData.email, formData.phone, formData.password, formData.selectedRoles);
-        // Redirect to OTP verification after registration
-        navigate(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
+        await register(formData.name, normalizedEmail, formData.phone, formData.password, formData.selectedRoles);
+        navigate('/dashboard');
       }
     } catch (err) {
       setError(err.message || 'Authentication failed');

@@ -46,4 +46,17 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+const supportOnly = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: 'Not authorized, no token provided' });
+  }
+
+  const isSupport = req.user.isSupport || req.user.isSuperAdmin || req.user.role === 'support' || req.user.role === 'admin';
+  if (!isSupport) {
+    return res.status(403).json({ success: false, message: 'Access denied: support only area' });
+  }
+
+  next();
+};
+
+module.exports = { protect, supportOnly };

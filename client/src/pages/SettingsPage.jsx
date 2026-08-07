@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, Camera, Save, X, ArrowRight, Store, Bike, Briefcase, Shield, LayoutDashboard, BarChart3 } from 'lucide-react';
+import { startRegistration } from '@simplewebauthn/browser';
 import api from '../services/api';
 import { validatePhone } from '../utils/helpers';
 
@@ -19,6 +20,8 @@ const SettingsPage = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [previewImage, setPreviewImage] = useState(null);
+  const [twoFactorLoading, setTwoFactorLoading] = useState(false);
+  const [twoFactorMessage, setTwoFactorMessage] = useState('');
 
   const roleLinks = {
     buyer: [
@@ -99,6 +102,52 @@ const SettingsPage = () => {
   const handleRemoveImage = () => {
     setPreviewImage(null);
     setFormData({ ...formData, avatar: '' });
+  };
+
+  const handleEnableBiometric = async () => {
+    try {
+      setTwoFactorLoading(true);
+      setTwoFactorMessage('');
+      const { data: optionsData } = await api.post('/auth/webauthn/register-options');
+      if (!optionsData.success) {
+        throw new Error(optionsData.message || 'Unable to start biometric setup');
+      }
+      const attestationResponse = await startRegistration(optionsData.options);
+      const { data } = await api.post('/auth/webauthn/register', {
+        attestationResponse,
+        credentialName: 'Fingerprint login',
+      });
+      if (!data.success) {
+        throw new Error(data.message || 'Biometric setup failed');
+      }
+      setTwoFactorMessage(data.message || 'Biometric login enabled.');
+      const updatedUser = { ...user, twoFactorEnabled: true };
+      setUser(updatedUser);
+      localStorage.setItem('Netsoko_user', JSON.stringify(updatedUser));
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Biometric setup failed. Please try again.');
+    } finally {
+      setTwoFactorLoading(false);
+    }
+  };
+
+  const handleDisableBiometric = async () => {
+    try {
+      setTwoFactorLoading(true);
+      setTwoFactorMessage('');
+      const { data } = await api.post('/auth/webauthn/remove');
+      if (!data.success) {
+        throw new Error(data.message || 'Unable to disable biometric login');
+      }
+      setTwoFactorMessage(data.message || 'Biometric login disabled.');
+      const updatedUser = { ...user, twoFactorEnabled: false };
+      setUser(updatedUser);
+      localStorage.setItem('Netsoko_user', JSON.stringify(updatedUser));
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to disable biometric login.');
+    } finally {
+      setTwoFactorLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {

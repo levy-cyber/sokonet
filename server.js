@@ -119,6 +119,7 @@ app.use('/api/jobs', require('./routes/jobRoutes'));
 app.use('/api/services', require('./routes/serviceRoutes'));
 app.use('/api/shops', require('./routes/shopRoutes'));
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/support', require('./routes/supportRoutes'));
 app.use('/api/ride-requests', require('./routes/rideRequestRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 

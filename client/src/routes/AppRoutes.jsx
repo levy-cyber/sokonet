@@ -27,7 +27,8 @@ import ServicesMarketplace from '../pages/ServicesMarketplace';
 import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import SettingsPage from '../pages/SettingsPage';
-import OTPVerificationPage from '../pages/OTPVerificationPage';
+import SupportPage from '../pages/SupportPage';
+import SupportAdminPage from '../pages/SupportAdminPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import ResetPasswordPage from '../pages/ResetPasswordPage';
 
@@ -45,7 +46,6 @@ const AppRoutes = () => {
       </Route>
 
       {/* Public auth-related routes */}
-      <Route path="/verify-otp" element={<OTPVerificationPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
       <Route path="/admin-login" element={<AdminLoginPage />} />
@@ -87,6 +87,10 @@ const AppRoutes = () => {
 
         <Route element={<MainLayout title="Live Chats" />}>
           <Route path="/chat" element={<ChatPage />} />
+        </Route>
+
+        <Route element={<MainLayout title="Support Center" />}>
+          <Route path="/support" element={<SupportPage />} />
         </Route>
 
         <Route element={<MainLayout title="Shopping Cart" />}>
@@ -133,6 +137,12 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
         <Route element={<MainLayout title="Admin Management Console" />}>
           <Route path="/admin" element={<AdminPage />} />
+        </Route>
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={['admin', 'support']} />}>
+        <Route element={<MainLayout title="Support Dashboard" />}>
+          <Route path="/support/admin" element={<SupportAdminPage />} />
         </Route>
       </Route>
 

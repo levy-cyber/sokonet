@@ -50,6 +50,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isSupport: {
+      type: Boolean,
+      default: false,
+    },
+    isSuperAdmin: {
+      type: Boolean,
+      default: false,
+    },
     twoFactorEnabled: {
       type: Boolean,
       default: false,

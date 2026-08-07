@@ -6,7 +6,7 @@ import {
   FiHome, FiShoppingBag, FiLock, FiCreditCard, FiInbox,
   FiBriefcase, FiUser, FiSliders, FiUsers, FiActivity, FiLogOut, FiX,
   FiTool, FiBriefcase as FiJob, FiCalendar, FiTruck, FiChevronDown,
-  FiGrid, FiTrendingUp, FiLayout as FiLayoutIcon, FiShield as FiShieldIcon
+  FiGrid, FiTrendingUp, FiLayout as FiLayoutIcon, FiShield as FiShieldIcon, FiHelpCircle
 } from 'react-icons/fi';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -42,8 +42,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       { path: '/services/mine', label: 'My Services', icon: FiTool },
       { path: '/bookings', label: 'Service Bookings', icon: FiCalendar },
     ],
+    support: [
+      { path: '/support/admin', label: 'Support Dashboard', icon: FiHelpCircle },
+    ],
     admin: [
       { path: '/admin', label: 'Admin Console', icon: FiShieldIcon },
+      { path: '/support/admin', label: 'Support Dashboard', icon: FiHelpCircle },
     ],
   };
 
@@ -83,6 +87,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'My Services', path: '/services/mine', icon: FiTool, description: 'Manage service listings', role: 'freelancer' },
     { name: 'Bookings', path: '/bookings', icon: FiCalendar, description: 'View service bookings', role: 'service_provider' },
     { name: 'Rider Console', path: '/rider/dashboard', icon: FiTruck, description: 'Delivery partner dashboard', role: 'rider' },
+    { name: 'Support Center', path: '/support', icon: FiHelpCircle, description: 'Open a support ticket or chat with Netsoko AI', role: 'all' },
     { name: 'Chat Room', path: '/chat', icon: FiUsers, description: 'Real-time messaging', role: 'all' },
     { name: 'Settings', path: '/settings', icon: FiSliders, description: 'Account settings', role: 'all' },
     { name: 'Admin Console', path: '/admin', icon: FiSliders, description: 'System administration', role: 'admin' },

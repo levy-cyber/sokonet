@@ -87,15 +87,9 @@ const AISupport = () => {
 
   const fetchAIResponse = async (userMessage) => {
     try {
-      const response = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage }),
-      });
-
-      const data = await response.json();
-      if (data.success && data.response) {
-        return data.response;
+      const response = await api.post('/ai/chat', { message: userMessage });
+      if (response.data?.success && response.data?.response) {
+        return response.data.response;
       }
     } catch (error) {
       console.error('AI chat API error:', error);

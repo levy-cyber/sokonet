@@ -15,6 +15,35 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const setAuthData = (data) => {
+    const userData = {
+      _id: data._id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      role: data.role || 'buyer',
+      roles: data.roles || [data.role || 'buyer'],
+      activeRole: data.activeRole || data.role || 'buyer',
+      avatar: data.avatar,
+      isEmailVerified: data.isEmailVerified || false,
+      twoFactorEnabled: data.twoFactorEnabled || false,
+    };
+
+    setUser(userData);
+    if (data.token) {
+      localStorage.setItem('Netsoko_token', data.token);
+    }
+    localStorage.setItem('Netsoko_user', JSON.stringify(userData));
+    return userData;
+  };
+
+  const completeBiometricLogin = (data) => {
+    if (!data.success) {
+      throw new Error(data.message || 'Biometric login failed');
+    }
+    return setAuthData(data);
+  };
+
   useEffect(() => {
     const storedUser = localStorage.getItem('Netsoko_user');
     const storedToken = localStorage.getItem('Netsoko_token');
@@ -37,6 +66,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const { data } = await api.post('/auth/login', { email, password });
+      if (data.success && data.twoFactorRequired) {
+        return data;
+      }
       if (data.success) {
         const userData = {
           _id: data._id,
@@ -55,6 +87,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         throw new Error(data.message || 'Login failed');
       }
+      return data;
     } catch (error) {
       const message =
         !error.response && error.message?.toLowerCase().includes('network error')
@@ -90,12 +123,6 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         localStorage.setItem('Netsoko_token', data.token);
         localStorage.setItem('Netsoko_user', JSON.stringify(userData));
-        // Automatically send OTP after registration
-        try {
-          await api.post('/auth/send-otp', { email });
-        } catch (otpErr) {
-          console.log('OTP send failed (non-blocking):', otpErr.message);
-        }
       } else {
         throw new Error(data.message || 'Registration failed');
       }
@@ -128,7 +155,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, setUser, switchRole }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, setUser, switchRole, completeBiometricLogin }}>
       {children}
     </AuthContext.Provider>
   );

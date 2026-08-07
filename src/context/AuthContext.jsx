@@ -15,6 +15,35 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const setAuthData = (data) => {
+    const userData = {
+      _id: data._id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      role: data.role || 'buyer',
+      roles: data.roles || [data.role || 'buyer'],
+      activeRole: data.activeRole || data.role || 'buyer',
+      avatar: data.avatar,
+      isEmailVerified: data.isEmailVerified || false,
+      twoFactorEnabled: data.twoFactorEnabled || false,
+    };
+
+    setUser(userData);
+    if (data.token) {
+      localStorage.setItem('Netsoko_token', data.token);
+    }
+    localStorage.setItem('Netsoko_user', JSON.stringify(userData));
+    return userData;
+  };
+
+  const completeBiometricLogin = (data) => {
+    if (!data.success) {
+      throw new Error(data.message || 'Biometric login failed');
+    }
+    return setAuthData(data);
+  };
+
   useEffect(() => {
     const storedUser = localStorage.getItem('Netsoko_user');
     const storedToken = localStorage.getItem('Netsoko_token');
@@ -115,7 +144,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, setUser, switchRole }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, setUser, switchRole, completeBiometricLogin }}>
       {children}
     </AuthContext.Provider>
   );
